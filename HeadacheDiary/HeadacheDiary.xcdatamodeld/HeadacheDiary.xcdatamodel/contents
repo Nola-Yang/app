@@ -1,15 +1,25 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="1" systemVersion="11A491" minimumToolsVersion="Automatic" sourceLanguage="Swift" usedWithCloudKit="true" userDefinedModelVersionIdentifier="">
+<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="23788.4" systemVersion="24F74" minimumToolsVersion="Automatic" sourceLanguage="Swift" usedWithCloudKit="YES" userDefinedModelVersionIdentifier="">
+    <entity name="HeadacheRecord" representedClassName="HeadacheRecord" syncable="YES">
+        <attribute name="endTime" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="hasThrobbing" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
+        <attribute name="hasTinnitus" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
+        <attribute name="intensity" optional="YES" attributeType="Integer 16" usesScalarValueType="YES"/>
+        <attribute name="isVascular" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
+        <attribute name="locationFace" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
+        <attribute name="locationForehead" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
+        <attribute name="locationLeftSide" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
+        <attribute name="locationRightSide" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
+        <attribute name="locationTemple" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
+        <attribute name="medicineRelief" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
+        <attribute name="medicineTime" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="medicineType" optional="YES" attributeType="String"/>
+        <attribute name="note" optional="YES" attributeType="String"/>
+        <attribute name="startTime" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="timestamp" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="tookMedicine" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
+    </entity>
     <entity name="Item" representedClassName="Item" syncable="YES" codeGenerationType="class">
         <attribute name="timestamp" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
     </entity>
-    <entity name="HeadacheRecord" representedClassName="HeadacheRecord" syncable="YES" codeGenerationType="class">
-        <attribute name="timestamp" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
-        <attribute name="intensity" optional="YES" attributeType="Integer 16" usesScalarValueType="YES"/>
-        <attribute name="note" optional="YES" attributeType="String" usesScalarValueType="NO"/>
-    </entity>
-    <elements>
-        <element name="Item" positionX="-63" positionY="-18" width="128" height="44"/>
-        <element name="HeadacheRecord" positionX="133" positionY="-18" width="128" height="44"/>
-    </elements>
 </model>
