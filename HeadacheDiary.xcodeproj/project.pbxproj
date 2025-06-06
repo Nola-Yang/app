@@ -23,6 +23,19 @@
 		};
 /* End PBXContainerItemProxy section */
 
+/* Begin PBXCopyFilesBuildPhase section */
+		7A1716082DF35F3600C66597 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
 		7AE0BD542DF21F1C005523BE /* HeadacheDiary.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = HeadacheDiary.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		7AE0BD682DF21F1C005523BE /* HeadacheDiaryTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = HeadacheDiaryTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -40,6 +53,16 @@
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
+		7A1715FD2DF35F3600C66597 /* HedacheDiary */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = HedacheDiary;
+			sourceTree = "<group>";
+		};
+		7A17160E2DF35F9100C66597 /* HedacheDiary */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = HedacheDiary;
+			sourceTree = "<group>";
+		};
 		7AE0BD562DF21F1C005523BE /* HeadacheDiary */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
@@ -91,6 +114,8 @@
 				7AE0BD562DF21F1C005523BE /* HeadacheDiary */,
 				7AE0BD6B2DF21F1C005523BE /* HeadacheDiaryTests */,
 				7AE0BD752DF21F1C005523BE /* HeadacheDiaryUITests */,
+				7A1715FD2DF35F3600C66597 /* HedacheDiary */,
+				7A17160E2DF35F9100C66597 /* HedacheDiary */,
 				7AE0BD552DF21F1C005523BE /* Products */,
 			);
 			sourceTree = "<group>";
@@ -115,6 +140,7 @@
 				7AE0BD502DF21F1C005523BE /* Sources */,
 				7AE0BD512DF21F1C005523BE /* Frameworks */,
 				7AE0BD522DF21F1C005523BE /* Resources */,
+				7A1716082DF35F3600C66597 /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
@@ -290,7 +316,7 @@
 				CODE_SIGN_ENTITLEMENTS = HeadacheDiary/HeadacheDiary.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = U3KHUQB5YQ;
+				DEVELOPMENT_TEAM = R8QFS7RA9R;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = HeadacheDiary/Info.plist;
@@ -304,7 +330,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.nola.HeadacheDiary;
+				PRODUCT_BUNDLE_IDENTIFIER = com.jiayue.HeadacheDiary;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
@@ -320,7 +346,7 @@
 				CODE_SIGN_ENTITLEMENTS = HeadacheDiary/HeadacheDiary.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = U3KHUQB5YQ;
+				DEVELOPMENT_TEAM = R8QFS7RA9R;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = HeadacheDiary/Info.plist;
@@ -334,7 +360,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.nola.HeadacheDiary;
+				PRODUCT_BUNDLE_IDENTIFIER = com.jiayue.HeadacheDiary;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
@@ -469,7 +495,7 @@
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = U3KHUQB5YQ;
+				DEVELOPMENT_TEAM = R8QFS7RA9R;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 18.5;
 				MARKETING_VERSION = 1.0;
@@ -488,7 +514,7 @@
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = U3KHUQB5YQ;
+				DEVELOPMENT_TEAM = R8QFS7RA9R;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 18.5;
 				MARKETING_VERSION = 1.0;

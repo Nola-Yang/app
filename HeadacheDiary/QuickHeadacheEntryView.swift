@@ -205,9 +205,10 @@ struct QuickHeadacheEntryView: View {
                 // 固定的症状特征
                 record.setCustomSymptoms(["若有若无", "轻微不适"])
                 
-                // 时间信息 - 设置为今天，不记录具体时间
+                // 时间信息 - 设置为今天，标记为已完成的记录
                 record.startTime = todayTimestamp
-                // 不设置结束时间，表示不确定持续时间
+                // 设置结束时间为同一天的稍后时间，表示这是一个完整的记录
+                record.endTime = Calendar.current.date(byAdding: .hour, value: 1, to: todayTimestamp)
                 
                 // 用药信息 - 快速记录默认没有用药
                 record.tookMedicine = false

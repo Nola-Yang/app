@@ -187,10 +187,19 @@ struct MonthlyView: View {
                 }
                 
                 VStack(spacing: 2) {
+                    Text("\(thisWeekMildCount)")
+                        .font(.headline.bold())
+                        .foregroundColor(thisWeekMildCount > 3 ? .orange : thisWeekMildCount > 0 ? .green : .secondary)
+                    Text("本周轻微")
+                        .font(.caption2)
+                        .foregroundColor(.secondary)
+                }
+                
+                VStack(spacing: 2) {
                     Text("\(thisWeekCount)")
                         .font(.headline.bold())
                         .foregroundColor(thisWeekCount > 3 ? .red : thisWeekCount > 0 ? .orange : .secondary)
-                    Text("本周")
+                    Text("本周总计")
                         .font(.caption2)
                         .foregroundColor(.secondary)
                 }
@@ -234,6 +243,20 @@ struct MonthlyView: View {
         return records.filter { record in
             guard let timestamp = record.timestamp else { return false }
             return timestamp >= weekAgo
+        }.count
+    }
+    
+    // 新增：本周轻微头痛次数
+    private var thisWeekMildCount: Int {
+        let calendar = Calendar.current
+        let now = Date()
+        let weekAgo = calendar.date(byAdding: .day, value: -7, to: now)!
+        
+        return records.filter { record in
+            guard let timestamp = record.timestamp else { return false }
+            let isThisWeek = timestamp >= weekAgo
+            let isMild = record.intensity <= 3 || (record.note?.contains("快速记录") == true)
+            return isThisWeek && isMild
         }.count
     }
     

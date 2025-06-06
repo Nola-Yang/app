@@ -21,6 +21,8 @@ extension HeadacheRecord: Identifiable {
 }
 
 
+
+
 extension HeadacheRecord {
     
     // 获取所有疼痛位置（包括自定义）
@@ -287,5 +289,14 @@ extension HeadacheRecord {
         }
         
         return description
+    }
+    
+    var isMildHeadache: Bool {
+        return intensity <= 3 || (note?.contains("快速记录") == true)
+    }
+    
+    // 新增：检查是否为快速记录
+    var isQuickRecord: Bool {
+        return note?.contains("快速记录") == true
     }
 }

@@ -163,7 +163,6 @@ struct PersistenceController {
         }
         
         
-        // 替换为：
         let customOptionsManager = HeadacheCustomOptionsManager.shared
 
         // 自定义位置

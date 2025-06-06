@@ -23,6 +23,9 @@ struct StatisticsView: View {
                     // 总体统计
                     OverallStatsCard(records: Array(records))
                     
+                    // 新增：轻微头痛统计
+                    MildHeadacheStatsCard(records: Array(records))
+                    
                     // 月度趋势
                     MonthlyTrendCard(records: Array(records))
                     
@@ -785,7 +788,248 @@ struct SymptomsStatsCard: View {
     }
 }
 
-// 新增：备注分析卡片
+// 轻微头痛统计卡片
+struct MildHeadacheStatsCard: View {
+    let records: [HeadacheRecord]
+    
+    // 识别轻微头痛记录（强度1-3级或包含"快速记录"）
+    private var mildHeadacheRecords: [HeadacheRecord] {
+        return records.filter { record in
+            record.intensity <= 3 || (record.note?.contains("快速记录") == true)
+        }
+    }
+    
+    // 本月轻微头痛次数
+    private var thisMonthMildCount: Int {
+        let calendar = Calendar.current
+        let now = Date()
+        return mildHeadacheRecords.filter { record in
+            guard let timestamp = record.timestamp else { return false }
+            return calendar.isDate(timestamp, equalTo: now, toGranularity: .month)
+        }.count
+    }
+    
+    // 最近7天轻微头痛次数
+    private var last7DaysMildCount: Int {
+        let calendar = Calendar.current
+        let now = Date()
+        let weekAgo = calendar.date(byAdding: .day, value: -7, to: now)!
+        
+        return mildHeadacheRecords.filter { record in
+            guard let timestamp = record.timestamp else { return false }
+            return timestamp >= weekAgo
+        }.count
+    }
+    
+    // 轻微头痛在总记录中的占比
+    private var mildHeadachePercentage: Double {
+        guard !records.isEmpty else { return 0 }
+        return Double(mildHeadacheRecords.count) / Double(records.count) * 100
+    }
+    
+    // 最常见的轻微头痛触发因素
+    private var topMildTriggers: [(String, Int)] {
+        var triggerCounts: [String: Int] = [:]
+        
+        for record in mildHeadacheRecords {
+            // 预定义触发因素
+            if let triggersString = record.triggers {
+                let triggerStrings = triggersString.components(separatedBy: ",")
+                for triggerString in triggerStrings {
+                    if let trigger = HeadacheTrigger(rawValue: triggerString.trimmingCharacters(in: .whitespaces)) {
+                        triggerCounts[trigger.displayName, default: 0] += 1
+                    }
+                }
+            }
+            
+            // 自定义触发因素
+            for customTrigger in record.customTriggerNames {
+                triggerCounts[customTrigger, default: 0] += 1
+            }
+        }
+        
+        return triggerCounts.sorted { $0.value > $1.value }.prefix(3).map { ($0.key, $0.value) }
+    }
+    
+    // 轻微头痛的平均强度
+    private var averageMildIntensity: Double {
+        guard !mildHeadacheRecords.isEmpty else { return 0 }
+        let total = mildHeadacheRecords.reduce(0) { $0 + Double($1.intensity) }
+        return total / Double(mildHeadacheRecords.count)
+    }
+    
+    var body: some View {
+        VStack(spacing: 16) {
+            // 标题
+            HStack {
+                Image(systemName: "clock.badge")
+                    .foregroundColor(.orange)
+                    .font(.title2)
+                Text("轻微头痛分析")
+                    .font(.headline.bold())
+                Spacer()
+                if mildHeadacheRecords.count > 0 {
+                    Text("\(mildHeadacheRecords.count)次")
+                        .font(.caption.bold())
+                        .foregroundColor(.orange)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4)
+                        .background(Color.orange.opacity(0.2))
+                        .cornerRadius(8)
+                }
+            }
+            
+            // 核心数据
+            HStack(spacing: 12) {
+                MildMetricCard(
+                    title: "本月",
+                    value: "\(thisMonthMildCount)",
+                    subtitle: "次",
+                    color: monthColor(count: thisMonthMildCount)
+                )
+                
+                MildMetricCard(
+                    title: "最近7天",
+                    value: "\(last7DaysMildCount)",
+                    subtitle: "次",
+                    color: weekColor(count: last7DaysMildCount)
+                )
+                
+                MildMetricCard(
+                    title: "占比",
+                    value: String(format: "%.0f%%", mildHeadachePercentage),
+                    subtitle: "轻微",
+                    color: .blue
+                )
+                
+                MildMetricCard(
+                    title: "平均强度",
+                    value: String(format: "%.1f", averageMildIntensity),
+                    subtitle: "级",
+                    color: .green
+                )
+            }
+            
+            // 触发因素分析
+            if !topMildTriggers.isEmpty {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("常见触发因素:")
+                        .font(.subheadline.bold())
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                    
+                    VStack(spacing: 6) {
+                        ForEach(topMildTriggers, id: \.0) { trigger, count in
+                            HStack {
+                                HStack(spacing: 6) {
+                                    Image(systemName: iconForTrigger(trigger))
+                                        .foregroundColor(.orange)
+                                        .font(.caption)
+                                        .frame(width: 16)
+                                    Text(trigger)
+                                        .font(.caption)
+                                }
+                                Spacer()
+                                Text("\(count)次")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
+                        }
+                    }
+                }
+                .padding()
+                .background(Color.orange.opacity(0.1))
+                .cornerRadius(8)
+            }
+            
+            // 趋势提示
+            if mildHeadacheRecords.count >= 5 {
+                HStack {
+                    Image(systemName: "lightbulb")
+                        .foregroundColor(.blue)
+                        .font(.caption)
+                    Text(trendInsight)
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+                .padding(.top, 4)
+            }
+        }
+        .padding()
+        .background(Color(.systemBackground))
+        .cornerRadius(12)
+        .shadow(radius: 2)
+    }
+    
+    private func monthColor(count: Int) -> Color {
+        switch count {
+        case 0...5: return .green
+        case 6...10: return .yellow
+        case 11...15: return .orange
+        default: return .red
+        }
+    }
+    
+    private func weekColor(count: Int) -> Color {
+        switch count {
+        case 0...1: return .green
+        case 2...3: return .yellow
+        case 4...5: return .orange
+        default: return .red
+        }
+    }
+    
+    private func iconForTrigger(_ triggerName: String) -> String {
+        switch triggerName {
+        case "无明显原因": return "circle.slash"
+        case "睡眠不足": return "bed.double"
+        case "压力/焦虑": return "brain.head.profile"
+        case "天气变化": return "cloud.rain"
+        case "长时间看屏幕": return "display"
+        case "饥饿": return "stomach"
+        case "脱水": return "drop"
+        case "咖啡因": return "cup.and.saucer"
+        default: return "questionmark.circle"
+        }
+    }
+    
+    private var trendInsight: String {
+        if thisMonthMildCount > 15 {
+            return "本月轻微头痛较频繁，建议关注生活规律和触发因素"
+        } else if last7DaysMildCount > 5 {
+            return "近期轻微头痛增多，注意休息和压力管理"
+        } else if mildHeadachePercentage > 80 {
+            return "大部分头痛都是轻微的，这是一个好现象"
+        } else {
+            return "轻微头痛记录有助于发现早期预警信号"
+        }
+    }
+}
+
+// 轻微头痛指标卡片
+struct MildMetricCard: View {
+    let title: String
+    let value: String
+    let subtitle: String
+    let color: Color
+    
+    var body: some View {
+        VStack(spacing: 4) {
+            Text(value)
+                .font(.title3.bold())
+                .foregroundColor(color)
+            Text(title)
+                .font(.caption.bold())
+            Text(subtitle)
+                .font(.caption2)
+                .foregroundColor(.secondary)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 8)
+        .background(color.opacity(0.1))
+        .cornerRadius(8)
+    }
+}
+
 struct NotesAnalysisCard: View {
     let records: [HeadacheRecord]
     
