@@ -56,7 +56,7 @@ struct WeatherAnalysisView: View {
                         WeatherCorrelationCard(
                             correlationResult: correlationResult,
                             isAnalyzing: isAnalyzing,
-                            timeRange: selectedTimeRange,
+                            timeRange: $selectedTimeRange,  // 传递绑定
                             onAnalyze: performCorrelationAnalysis,
                             onTimeRangeChanged: { range in
                                 selectedTimeRange = range
@@ -561,7 +561,7 @@ struct HeadacheRiskCard: View {
 struct WeatherCorrelationCard: View {
     let correlationResult: WeatherCorrelationResult?
     let isAnalyzing: Bool
-    let timeRange: WeatherAnalysisView.TimeRange
+    @Binding var timeRange: WeatherAnalysisView.TimeRange
     let onAnalyze: () -> Void
     let onTimeRangeChanged: (WeatherAnalysisView.TimeRange) -> Void
     
@@ -586,7 +586,7 @@ struct WeatherCorrelationCard: View {
             }
             
             // 时间范围选择
-            Picker("分析期间", selection: .constant(timeRange)) {
+            Picker("分析期间", selection: $timeRange) {  // 使用 $timeRange 绑定
                 ForEach(WeatherAnalysisView.TimeRange.allCases, id: \.self) { range in
                     Text(range.rawValue).tag(range)
                 }
