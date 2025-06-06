@@ -190,7 +190,7 @@ struct StatItem: View {
 struct MonthlyTrendCard: View {
     let records: [HeadacheRecord]
     
-    private var monthlyData: [(String, Int)] {
+    private var groupedRecords: [MonthGroup] {
         let calendar = Calendar.current
         let formatter = DateFormatter()
         formatter.dateFormat = "M月"
