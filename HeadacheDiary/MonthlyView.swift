@@ -19,10 +19,25 @@ struct MonthlyView: View {
     @State private var selectedRecord: HeadacheRecord?
     @State private var refreshID = UUID()
     @State private var expandedMonths: Set<String> = [] // 追踪展开的月份
+    @State private var showMedicationSafetyGuide = false
     
     var body: some View {
         NavigationView {
             List {
+                // 用药警告部分 - 显示在顶部
+                if !Array(records).isEmpty {
+                    Section {
+                        MedicationWarningView(records: Array(records))
+                            .onTapGesture {
+                                // 点击警告卡片时显示用药安全指南
+                                showMedicationSafetyGuide = true
+                            }
+                    }
+                    .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
+                    .listRowBackground(Color.clear)
+                    .listRowSeparator(.hidden)
+                }
+                
                 ForEach(groupedRecords, id: \.monthKey) { monthGroup in
                     Section {
                         // 月份标题 - 可点击展开/收起
@@ -91,6 +106,9 @@ struct MonthlyView: View {
                         }
                         selectedRecord = nil
                     }
+            }
+            .sheet(isPresented: $showMedicationSafetyGuide) {
+                MedicationSafetyGuideView()
             }
             .onAppear {
                 refreshID = UUID()
@@ -231,8 +249,11 @@ struct HeadacheRecordRow: View {
                 }
             }
             
-            // 用药信息
-            if record.tookMedicine {
+            // 用药信息 - 更新为显示新的用药记录
+            if !record.medicationEntries.isEmpty {
+                medicationInfoView
+            } else if record.tookMedicine {
+                // 兼容旧的用药记录显示
                 HStack {
                     Image(systemName: "pills")
                         .foregroundColor(.green)
@@ -295,6 +316,48 @@ struct HeadacheRecordRow: View {
         .onReceive(NotificationCenter.default.publisher(for: .NSManagedObjectContextDidSave)) { _ in
             DispatchQueue.main.async {
                 refreshTrigger = UUID()
+            }
+        }
+    }
+    
+    // 新的用药信息视图
+    @ViewBuilder
+    private var medicationInfoView: some View {
+        let entries = record.medicationEntries
+        if entries.count == 1 {
+            let entry = entries[0]
+            HStack {
+                Image(systemName: "pills")
+                    .foregroundColor(.green)
+                    .font(.caption)
+                Text("\(entry.displayName) \(entry.dosageText)")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                if entry.relief {
+                    Image(systemName: "checkmark.circle.fill")
+                        .foregroundColor(.green)
+                        .font(.caption)
+                } else {
+                    Image(systemName: "xmark.circle.fill")
+                        .foregroundColor(.red)
+                        .font(.caption)
+                }
+            }
+        } else {
+            let effectiveCount = entries.filter { $0.relief }.count
+            let totalDosage = entries.reduce(0) { $0 + $1.dosage }
+            HStack {
+                Image(systemName: "pills")
+                    .foregroundColor(.green)
+                    .font(.caption)
+                Text("\(entries.count)次用药，共\(Int(totalDosage))mg")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                if effectiveCount > 0 {
+                    Text("(\(effectiveCount)次有效)")
+                        .font(.caption)
+                        .foregroundColor(effectiveCount == entries.count ? .green : .orange)
+                }
             }
         }
     }

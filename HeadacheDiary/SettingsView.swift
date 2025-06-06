@@ -283,6 +283,21 @@ struct SettingsView: View {
                         }
                     }
                     
+                    NavigationLink(destination: MedicationWarningSettingsView()) {
+                        HStack {
+                            Image(systemName: "shield.checkered")
+                                .foregroundColor(.blue)
+                                .frame(width: 24)
+                            VStack(alignment: .leading) {
+                                Text("用药安全监控")
+                                Text("监控用药频率，预防药物过量性头痛")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
+                        }
+                    }
+
+                    
                     NavigationLink(destination: NotificationSettingsView()) {
                         HStack {
                             Image(systemName: "bell.badge")
