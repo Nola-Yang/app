@@ -84,32 +84,53 @@ struct AddEntryView: View {
                 }
                 .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
                 
-                // 导航按钮
-                HStack {
-                    if currentStep > 0 {
-                        Button("上一步") {
-                            withAnimation {
-                                currentStep -= 1
+                // 修改后的导航按钮 - 增加保存并完成选项
+                VStack(spacing: 12) {
+                    // 主要导航按钮行
+                    HStack {
+                        // 上一步按钮
+                        if currentStep > 0 {
+                            Button("上一步") {
+                                withAnimation {
+                                    currentStep -= 1
+                                }
                             }
+                            .disabled(isSaving)
                         }
-                        .disabled(isSaving)
+                        
+                        Spacer()
+                        
+                        // 下一步或最终保存按钮
+                        if currentStep < totalSteps - 1 {
+                            Button("下一步") {
+                                withAnimation {
+                                    currentStep += 1
+                                }
+                            }
+                            .buttonStyle(.borderedProminent)
+                            .disabled(isSaving)
+                        } else {
+                            Button(isEditing ? "更新" : "保存") {
+                                save()
+                            }
+                            .buttonStyle(.borderedProminent)
+                            .disabled(isSaving)
+                        }
                     }
                     
-                    Spacer()
-                    
+                    // 保存并完成按钮 - 在非最后一步显示
                     if currentStep < totalSteps - 1 {
-                        Button("下一步") {
-                            withAnimation {
-                                currentStep += 1
-                            }
-                        }
-                        .buttonStyle(.borderedProminent)
-                        .disabled(isSaving)
-                    } else {
-                        Button(isEditing ? "更新" : "保存") {
+                        Button(action: {
                             save()
+                        }) {
+                            HStack {
+                                Image(systemName: "checkmark.circle")
+                                Text("保存并完成")
+                            }
+                            .frame(maxWidth: .infinity)
                         }
-                        .buttonStyle(.borderedProminent)
+                        .buttonStyle(.bordered)
+                        .foregroundColor(.blue)
                         .disabled(isSaving)
                     }
                 }
@@ -157,7 +178,12 @@ struct AddEntryView: View {
             } header: {
                 Text("基本信息")
             } footer: {
-                Text("记录这次头痛的基本信息和总体感受")
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("记录这次头痛的基本信息和总体感受")
+                    Text("💡 提示：可以随时点击\"保存并完成\"来快速保存当前信息")
+                        .foregroundColor(.blue)
+                        .font(.caption)
+                }
             }
         }
     }
@@ -191,6 +217,10 @@ struct AddEntryView: View {
                 }
             } header: {
                 Text("疼痛位置 (可多选)")
+            } footer: {
+                Text("💡 没有合适的选项？可以添加临时位置或在设置中永久添加")
+                    .foregroundColor(.blue)
+                    .font(.caption)
             }
             
             // 已保存的自定义位置
@@ -265,10 +295,17 @@ struct AddEntryView: View {
     private func medicineStep() -> some View {
         ScrollView {
             VStack(spacing: 20) {
-                Text("用药记录")
-                    .font(.headline)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.horizontal)
+                HStack {
+                    Text("用药记录")
+                        .font(.headline)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                    
+                    // 快速提示
+                    Text("💡 没有用药？可直接保存")
+                        .font(.caption)
+                        .foregroundColor(.blue)
+                }
+                .padding(.horizontal)
                 
                 // 新的用药记录组件
                 MedicationTrackingView(medicationEntries: $medicationEntries)
@@ -304,6 +341,10 @@ struct AddEntryView: View {
                 .padding(.vertical, 8)
             } header: {
                 Text("可能的触发因素 (可多选)")
+            } footer: {
+                Text("💡 不确定触发因素？可以暂时跳过，后续再补充")
+                    .foregroundColor(.blue)
+                    .font(.caption)
             }
             
             // 已保存的自定义触发因素
@@ -390,6 +431,10 @@ struct AddEntryView: View {
                 Toggle("明显血管跳动", isOn: $hasThrobbing)
             } header: {
                 Text("常见症状")
+            } footer: {
+                Text("💡 症状信息可选，有助于分析头痛类型")
+                    .foregroundColor(.blue)
+                    .font(.caption)
             }
             
             // 已保存的自定义症状
@@ -487,8 +532,12 @@ struct AddEntryView: View {
             } header: {
                 Text("疼痛时间范围")
             } footer: {
-                if !hasEndTime {
-                    Text("如果头痛还在持续，系统会每3小时提醒你更新状态")
+                VStack(alignment: .leading, spacing: 4) {
+                    if !hasEndTime {
+                        Text("如果头痛还在持续，系统会每3小时提醒你更新状态")
+                    }
+                    Text("💡 时间信息也是可选的，可以随时保存当前记录")
+                        .foregroundColor(.blue)
                         .font(.caption)
                 }
             }
@@ -527,15 +576,20 @@ struct AddEntryView: View {
         selectedCustomLocations = Set(allCustomLocations.filter { savedLocations.contains($0) })
         temporaryCustomLocations = allCustomLocations.filter { !savedLocations.contains($0) }
         
-        // 用药信息
-        tookMedicine = record.tookMedicine
-        medicineTime = record.medicineTime ?? Date()
-        if let typeString = record.medicineType,
-           let type = MedicineType(rawValue: typeString) {
-            medicineType = type
+        // 用药信息 - 如果有新的 medicationEntries，优先使用
+        if !record.medicationEntries.isEmpty {
+            medicationEntries = record.medicationEntries
+        } else {
+            // 兼容旧数据
+            tookMedicine = record.tookMedicine
+            medicineTime = record.medicineTime ?? Date()
+            if let typeString = record.medicineType,
+               let type = MedicineType(rawValue: typeString) {
+                medicineType = type
+            }
+            medicineRelief = record.medicineRelief
+            medicineNote = record.medicineNote ?? ""
         }
-        medicineRelief = record.medicineRelief
-        medicineNote = record.medicineNote ?? ""
         
         // 加载自定义药物
         let allCustomMedicines = record.customMedicineNames
@@ -603,22 +657,41 @@ struct AddEntryView: View {
                 let allCustomLocations = Array(selectedCustomLocations) + temporaryCustomLocations
                 record.setCustomLocations(allCustomLocations)
                 
-                // 用药信息
-                record.tookMedicine = tookMedicine
-                if tookMedicine {
-                    record.medicineTime = medicineTime
-                    record.medicineType = medicineType.rawValue
-                    record.medicineRelief = medicineRelief
-                    // 合并已保存的和临时的自定义药物
-                    let allCustomMedicines = Array(selectedCustomMedicines) + temporaryCustomMedicines
-                    record.setCustomMedicines(allCustomMedicines)
-                    record.medicineNote = medicineNote.isEmpty ? nil : medicineNote
+                // 用药信息 - 优先使用新的 medicationEntries
+                if !medicationEntries.isEmpty {
+                    record.medicationEntries = medicationEntries
+                    
+                    // 更新缓存字段
+                    record.totalDosageValue = medicationEntries.reduce(0) { $0 + $1.dosage }
+                    record.hasMedicationTimeline = medicationEntries.count > 1
+                    
+                    // 为了兼容性，更新传统字段
+                    record.tookMedicine = true
+                    if let firstEntry = medicationEntries.first {
+                        record.medicineTime = firstEntry.time
+                        if !firstEntry.isCustomMedicine {
+                            record.medicineType = firstEntry.medicineType
+                        }
+                    }
+                    record.medicineRelief = medicationEntries.contains { $0.relief }
                 } else {
-                    record.medicineTime = nil
-                    record.medicineType = nil
-                    record.medicineRelief = false
-                    record.setCustomMedicines([])
-                    record.medicineNote = nil
+                    // 使用传统字段（向后兼容）
+                    record.tookMedicine = tookMedicine
+                    if tookMedicine {
+                        record.medicineTime = medicineTime
+                        record.medicineType = medicineType.rawValue
+                        record.medicineRelief = medicineRelief
+                        // 合并已保存的和临时的自定义药物
+                        let allCustomMedicines = Array(selectedCustomMedicines) + temporaryCustomMedicines
+                        record.setCustomMedicines(allCustomMedicines)
+                        record.medicineNote = medicineNote.isEmpty ? nil : medicineNote
+                    } else {
+                        record.medicineTime = nil
+                        record.medicineType = nil
+                        record.medicineRelief = false
+                        record.setCustomMedicines([])
+                        record.medicineNote = nil
+                    }
                 }
                 
                 // 触发因素
@@ -641,23 +714,6 @@ struct AddEntryView: View {
                 record.startTime = startTime
                 record.endTime = hasEndTime ? endTime : nil
                 record.timeNote = timeNote.isEmpty ? nil : timeNote
-                
-                // 保存用药记录
-                record.medicationEntries = medicationEntries
-                
-                // 更新缓存字段
-                record.totalDosageValue = medicationEntries.reduce(0) { $0 + $1.dosage }
-                record.hasMedicationTimeline = medicationEntries.count > 1
-                
-                // 为了兼容性，更新传统字段
-                record.tookMedicine = !medicationEntries.isEmpty
-                if let firstEntry = medicationEntries.first {
-                    record.medicineTime = firstEntry.time
-                    if !firstEntry.isCustomMedicine {
-                        record.medicineType = firstEntry.medicineType
-                    }
-                }
-                record.medicineRelief = medicationEntries.contains { $0.relief }
                 
                 // 保存到Core Data
                 try viewContext.save()
