@@ -5,15 +5,10 @@
 //  Created by 俟岳安 on 2025-06-06.
 //
 
-//
-//  WeatherSettingsView.swift
-//  HeadacheDiary
-//
-//  Created by Claude on 2025-06-06.
-//
 
 import SwiftUI
 import UserNotifications
+import CoreLocation
 
 struct WeatherSettingsView: View {
     @Environment(\.dismiss) private var dismiss
@@ -210,26 +205,45 @@ struct WeatherSettingsView: View {
                 
                 // 权限管理
                 Section {
-                    Button(action: requestLocationPermission) {
+                    Button(action: {
+                        // 修复权限请求逻辑
+                        if weatherService.isLocationAuthorized {
+                            // 如果已授权，重新检查状态
+                            weatherService.recheckLocationPermission()
+                        } else {
+                            // 如果未授权，请求权限或跳转设置
+                            let status = CLLocationManager().authorizationStatus
+                            if status == .denied || status == .restricted {
+                                // 权限被拒绝，跳转到设置
+                                openSettings()
+                            } else {
+                                // 首次请求权限
+                                weatherService.requestLocationPermission()
+                            }
+                        }
+                    }) {
                         HStack {
                             Image(systemName: "location")
                                 .foregroundColor(weatherService.isLocationAuthorized ? .green : .red)
                                 .frame(width: 24)
                             VStack(alignment: .leading) {
                                 Text("位置权限")
-                                Text(weatherService.isLocationAuthorized ? "已授权" : "需要授权才能获取天气数据")
+                                Text(locationPermissionDescription)
                                     .font(.caption)
                                     .foregroundColor(.secondary)
                             }
                             Spacer()
                             if !weatherService.isLocationAuthorized {
-                                Text("授权")
+                                Text(locationButtonText)
                                     .font(.caption.bold())
                                     .foregroundColor(.blue)
+                            } else {
+                                Image(systemName: "checkmark.circle.fill")
+                                    .foregroundColor(.green)
                             }
                         }
                     }
-                    .disabled(weatherService.isLocationAuthorized)
+                    .disabled(false) // 总是可点击
                     
                     Button(action: requestNotificationPermission) {
                         HStack {
@@ -238,7 +252,7 @@ struct WeatherSettingsView: View {
                                 .frame(width: 24)
                             VStack(alignment: .leading) {
                                 Text("通知权限")
-                                Text(notificationStatusText)
+                                Text(notificationStatusDescription)
                                     .font(.caption)
                                     .foregroundColor(.secondary)
                             }
@@ -247,10 +261,13 @@ struct WeatherSettingsView: View {
                                 Text("授权")
                                     .font(.caption.bold())
                                     .foregroundColor(.blue)
+                            } else {
+                                Image(systemName: "checkmark.circle.fill")
+                                    .foregroundColor(.green)
                             }
                         }
                     }
-                    .disabled(notificationStatus == .authorized)
+                    .disabled(false) // 总是可点击
                 } header: {
                     Text("权限管理")
                 }
@@ -328,9 +345,6 @@ struct WeatherSettingsView: View {
                     .fontWeight(.semibold)
                 }
             }
-            .onAppear {
-                checkNotificationPermission()
-            }
             .alert("需要位置权限", isPresented: $showLocationAlert) {
                 Button("去设置") {
                     openSettings()
@@ -347,6 +361,63 @@ struct WeatherSettingsView: View {
             } message: {
                 Text("请在系统设置中为HeadacheDiary开启通知权限，以接收天气预警")
             }
+        }
+        // ⭐️ 在这里添加新的 modifier - 所有现有 modifier 的最后
+        .onAppear {
+            checkNotificationPermission()
+            // 检查位置权限状态
+            weatherService.recheckLocationPermission()
+        }
+        .onReceive(NotificationCenter.default.publisher(for: UIApplication.didBecomeActiveNotification)) { _ in
+            // 从设置返回时重新检查权限
+            checkNotificationPermission()
+            weatherService.recheckLocationPermission()
+        }
+    }
+    
+    // 新增计算属性
+    private var locationPermissionDescription: String {
+        if weatherService.isLocationAuthorized {
+            return "已授权 - 可获取天气数据"
+        } else {
+            let status = CLLocationManager().authorizationStatus
+            switch status {
+            case .denied, .restricted:
+                return "已拒绝 - 点击前往设置开启"
+            case .notDetermined:
+                return "未询问 - 点击请求权限"
+            default:
+                return "需要授权才能获取天气数据"
+            }
+        }
+    }
+    
+    private var locationButtonText: String {
+        let status = CLLocationManager().authorizationStatus
+        switch status {
+        case .denied, .restricted:
+            return "前往设置"
+        case .notDetermined:
+            return "请求权限"
+        default:
+            return "授权"
+        }
+    }
+    
+    private var notificationStatusDescription: String {
+        switch notificationStatus {
+        case .authorized:
+            return "已授权 - 可接收预警通知"
+        case .denied:
+            return "已拒绝 - 点击前往设置开启"
+        case .notDetermined:
+            return "未询问 - 点击请求权限"
+        case .provisional:
+            return "临时授权 - 建议完全授权"
+        case .ephemeral:
+            return "临时权限"
+        @unknown default:
+            return "未知状态"
         }
     }
     
@@ -369,11 +440,30 @@ struct WeatherSettingsView: View {
         weatherService.requestLocationPermission()
     }
     
+    // 修改 requestNotificationPermission 方法
     private func requestNotificationPermission() {
-        UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge]) { granted, error in
-            DispatchQueue.main.async {
-                checkNotificationPermission()
+        switch notificationStatus {
+        case .denied, .provisional:
+            // 权限被拒绝或只有临时权限，跳转到设置
+            openSettings()
+        case .notDetermined:
+            // 首次请求权限
+            UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge]) { granted, error in
+                DispatchQueue.main.async {
+                    checkNotificationPermission()
+                    if !granted {
+                        // 如果用户拒绝了，提示可以在设置中开启
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                            showNotificationAlert = true
+                        }
+                    }
+                }
             }
+        case .authorized:
+            // 已授权，重新检查状态
+            checkNotificationPermission()
+        @unknown default:
+            break
         }
     }
     
@@ -399,6 +489,9 @@ struct WeatherSettingsView: View {
         }
     }
 }
+
+// 其他组件保持不变...
+// StatusItem, WeatherConditionToggle, HelpItem, WeatherStatisticsView 等组件的代码保持原样
 
 // 状态项组件
 struct StatusItem: View {

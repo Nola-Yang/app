@@ -22,6 +22,7 @@ struct WeatherAnalysisView: View {
     @State private var isAnalyzing = false
     @State private var showSettings = false
     @State private var selectedTimeRange: TimeRange = .last30Days
+    @State private var hasInitialized = false  // 新增：防止重复初始化
     
     enum TimeRange: String, CaseIterable {
         case last7Days = "最近7天"
@@ -41,32 +42,37 @@ struct WeatherAnalysisView: View {
         NavigationView {
             ScrollView {
                 LazyVStack(spacing: 16) {
-                    // 当前天气状况卡片
-                    CurrentWeatherCard()
-                    
-                    // 头痛风险预警卡片
-                    HeadacheRiskCard()
-                    
-                    // 天气与头痛关联分析
-                    WeatherCorrelationCard(
-                        correlationResult: correlationResult,
-                        isAnalyzing: isAnalyzing,
-                        timeRange: selectedTimeRange,
-                        onAnalyze: performCorrelationAnalysis,
-                        onTimeRangeChanged: { range in
-                            selectedTimeRange = range
-                            performCorrelationAnalysis()
-                        }
-                    )
-                    
-                    // 最近预警历史
-                    RecentWarningsCard()
-                    
-                    // 天气趋势图表
-                    WeatherTrendCard()
-                    
-                    // 个性化建议
-                    PersonalizedAdviceCard(correlationResult: correlationResult)
+                    // 权限状态检查卡片
+                    if !weatherService.isLocationAuthorized {
+                        LocationPermissionCard()
+                    } else {
+                        // 当前天气状况卡片
+                        CurrentWeatherCard()
+                        
+                        // 头痛风险预警卡片
+                        HeadacheRiskCard()
+                        
+                        // 天气与头痛关联分析
+                        WeatherCorrelationCard(
+                            correlationResult: correlationResult,
+                            isAnalyzing: isAnalyzing,
+                            timeRange: selectedTimeRange,
+                            onAnalyze: performCorrelationAnalysis,
+                            onTimeRangeChanged: { range in
+                                selectedTimeRange = range
+                                performCorrelationAnalysis()
+                            }
+                        )
+                        
+                        // 最近预警历史
+                        RecentWarningsCard()
+                        
+                        // 天气趋势图表
+                        WeatherTrendCard()
+                        
+                        // 个性化建议
+                        PersonalizedAdviceCard(correlationResult: correlationResult)
+                    }
                 }
                 .padding()
             }
@@ -78,10 +84,15 @@ struct WeatherAnalysisView: View {
                             showSettings = true
                         }
                         Button("刷新天气") {
-                            weatherService.requestCurrentLocationWeather()
+                            Task {
+                                await refreshWeatherData()
+                            }
                         }
                         Button("重新分析") {
                             performCorrelationAnalysis()
+                        }
+                        Button("检查权限") {
+                            weatherService.recheckLocationPermission()
                         }
                     } label: {
                         Image(systemName: "ellipsis.circle")
@@ -92,30 +103,140 @@ struct WeatherAnalysisView: View {
                 WeatherSettingsView()
             }
             .onAppear {
-                if correlationResult == nil {
-                    performCorrelationAnalysis()
-                }
+                initializeWeatherAnalysis()
+            }
+            .refreshable {
+                await refreshWeatherData()
+                performCorrelationAnalysis()
             }
         }
     }
     
-    private func performCorrelationAnalysis() {
-        isAnalyzing = true
-        let cutoff = Calendar.current.date(byAdding: .day,
-                                           value: -selectedTimeRange.days,
-                                           to: Date()) ?? Date()
-        let filtered = headacheRecords.filter { rec in
-            guard let ts = rec.timestamp else { return false }
-            return ts >= cutoff
+    // 新增：初始化天气分析
+    private func initializeWeatherAnalysis() {
+        guard !hasInitialized else { return }
+        hasInitialized = true
+        
+        print("🔄 初始化天气分析页面...")
+        
+        // 检查位置权限
+        weatherService.recheckLocationPermission()
+        
+        // 如果有权限，获取天气数据
+        if weatherService.isLocationAuthorized {
+            weatherService.requestCurrentLocationWeather()
         }
-        correlationResult = weatherService
-            .analyzeWeatherHeadacheCorrelation(with: Array(filtered))
-        isAnalyzing = false
+        
+        // 延迟执行关联分析，确保数据已加载
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+            if correlationResult == nil {
+                performCorrelationAnalysis()
+            }
+        }
     }
-
+    
+    // 新增：刷新天气数据
+    private func refreshWeatherData() async {
+        print("🔄 刷新天气数据...")
+        
+        // 重新检查权限
+        weatherService.recheckLocationPermission()
+        
+        // 如果有权限，获取最新天气
+        if weatherService.isLocationAuthorized {
+            weatherService.requestCurrentLocationWeather()
+            
+            // 等待一段时间让数据更新
+            try? await Task.sleep(nanoseconds: 2_000_000_000) // 2秒
+        }
+    }
+    
+    private func performCorrelationAnalysis() {
+        guard !isAnalyzing else { return }
+        
+        isAnalyzing = true
+        print("🔄 开始天气关联分析...")
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+            let cutoff = Calendar.current.date(byAdding: .day,
+                                               value: -selectedTimeRange.days,
+                                               to: Date()) ?? Date()
+            let filtered = headacheRecords.filter { rec in
+                guard let ts = rec.timestamp else { return false }
+                return ts >= cutoff
+            }
+            
+            correlationResult = weatherService
+                .analyzeWeatherHeadacheCorrelation(with: Array(filtered))
+            
+            isAnalyzing = false
+            print("✅ 天气关联分析完成，发现 \(correlationResult?.conditions.count ?? 0) 种天气条件")
+        }
+    }
 }
 
-// 当前天气状况卡片
+// 新增：位置权限卡片
+struct LocationPermissionCard: View {
+    @ObservedObject private var weatherService = WeatherService.shared
+    
+    var body: some View {
+        VStack(spacing: 16) {
+            Image(systemName: "location.slash.circle")
+                .font(.largeTitle)
+                .foregroundColor(.red)
+            
+            Text("需要位置权限")
+                .font(.headline.bold())
+            
+            Text("天气分析功能需要获取您的位置信息来提供准确的天气数据和头痛风险预测")
+                .font(.subheadline)
+                .foregroundColor(.secondary)
+                .multilineTextAlignment(.center)
+            
+            if let errorMessage = weatherService.errorMessage {
+                Text(errorMessage)
+                    .font(.caption)
+                    .foregroundColor(.orange)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal)
+            }
+            
+            VStack(spacing: 12) {
+                Button("开启位置权限") {
+                    weatherService.requestLocationPermission()
+                }
+                .buttonStyle(.borderedProminent)
+                .controlSize(.large)
+                
+                Button("重新检查权限") {
+                    weatherService.recheckLocationPermission()
+                }
+                .buttonStyle(.bordered)
+            }
+            
+            VStack(alignment: .leading, spacing: 8) {
+                Text("开启步骤：")
+                    .font(.caption.bold())
+                
+                Text("1. 点击「开启位置权限」")
+                Text("2. 在弹出的系统设置中找到「位置服务」")
+                Text("3. 开启位置服务并为头痛日记选择「使用App时」")
+                Text("4. 返回应用并点击「重新检查权限」")
+            }
+            .font(.caption)
+            .foregroundColor(.secondary)
+            .padding()
+            .background(Color(.systemGray6))
+            .cornerRadius(8)
+        }
+        .padding()
+        .background(Color(.systemBackground))
+        .cornerRadius(12)
+        .shadow(radius: 2)
+    }
+}
+
+// 更新当前天气卡片，添加更好的错误处理
 struct CurrentWeatherCard: View {
     @ObservedObject private var weatherService = WeatherService.shared
     
@@ -132,15 +253,23 @@ struct CurrentWeatherCard: View {
                 if weatherService.isLoading {
                     ProgressView()
                         .scaleEffect(0.8)
+                } else {
+                    Button("刷新") {
+                        weatherService.requestCurrentLocationWeather()
+                    }
+                    .font(.caption.bold())
+                    .foregroundColor(.blue)
                 }
             }
             
             if let weather = weatherService.currentWeather {
                 currentWeatherContent(weather)
+            } else if weatherService.isLoading {
+                loadingContent()
             } else if let error = weatherService.errorMessage {
                 errorContent(error)
             } else if !weatherService.isLocationAuthorized {
-                locationPermissionContent()
+                permissionContent()
             } else {
                 noDataContent()
             }
@@ -151,6 +280,38 @@ struct CurrentWeatherCard: View {
         .shadow(radius: 2)
     }
     
+    // 加载中内容
+    @ViewBuilder
+    private func loadingContent() -> some View {
+        VStack(spacing: 12) {
+            ProgressView()
+                .scaleEffect(1.2)
+            Text("正在获取天气数据...")
+                .font(.subheadline)
+                .foregroundColor(.secondary)
+        }
+        .frame(height: 100)
+    }
+    
+    // 权限内容
+    @ViewBuilder
+    private func permissionContent() -> some View {
+        VStack(spacing: 8) {
+            Image(systemName: "location.slash")
+                .foregroundColor(.red)
+                .font(.title2)
+            Text("需要位置权限")
+                .font(.headline)
+            Button("开启权限") {
+                weatherService.requestLocationPermission()
+            }
+            .font(.caption.bold())
+            .foregroundColor(.blue)
+        }
+        .frame(height: 100)
+    }
+    
+    // 其他现有方法保持不变...
     @ViewBuilder
     private func currentWeatherContent(_ weather: WeatherRecord) -> some View {
         VStack(spacing: 12) {
@@ -228,33 +389,21 @@ struct CurrentWeatherCard: View {
                 .foregroundColor(.secondary)
                 .multilineTextAlignment(.center)
             
-            Button("重新获取") {
-                weatherService.requestCurrentLocationWeather()
+            HStack(spacing: 12) {
+                Button("重新获取") {
+                    weatherService.requestCurrentLocationWeather()
+                }
+                .font(.caption.bold())
+                .foregroundColor(.blue)
+                
+                Button("检查权限") {
+                    weatherService.recheckLocationPermission()
+                }
+                .font(.caption.bold())
+                .foregroundColor(.blue)
             }
-            .font(.caption.bold())
-            .foregroundColor(.blue)
         }
-    }
-    
-    @ViewBuilder
-    private func locationPermissionContent() -> some View {
-        VStack(spacing: 8) {
-            Image(systemName: "location.slash")
-                .foregroundColor(.red)
-                .font(.title2)
-            Text("需要位置权限")
-                .font(.headline)
-            Text("开启位置权限来获取当地天气数据")
-                .font(.caption)
-                .foregroundColor(.secondary)
-                .multilineTextAlignment(.center)
-            
-            Button("开启权限") {
-                weatherService.requestLocationPermission()
-            }
-            .font(.caption.bold())
-            .foregroundColor(.blue)
-        }
+        .frame(height: 100)
     }
     
     @ViewBuilder
@@ -263,13 +412,21 @@ struct CurrentWeatherCard: View {
             Image(systemName: "cloud")
                 .foregroundColor(.gray)
                 .font(.title2)
-            Text("正在获取天气数据...")
+            Text("点击刷新获取天气数据")
                 .font(.subheadline)
                 .foregroundColor(.secondary)
+            
+            Button("获取天气") {
+                weatherService.requestCurrentLocationWeather()
+            }
+            .font(.caption.bold())
+            .foregroundColor(.blue)
         }
+        .frame(height: 100)
     }
 }
 
+// ... 其他现有组件保持不变 ...
 struct WeatherDetailItem: View {
     let icon: String
     let label: String

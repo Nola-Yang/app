@@ -9,6 +9,7 @@ import Foundation
 import WeatherKit
 import CoreLocation
 import Combine
+import UIKit
 
 // 天气记录数据模型
 struct WeatherRecord: Codable, Identifiable {
@@ -138,16 +139,57 @@ class WeatherService: NSObject, ObservableObject {
     
     // MARK: - 权限管理
     
+    private func openAppSettings() {
+            guard let settingsUrl = URL(string: UIApplication.openSettingsURLString) else {
+                return
+            }
+            
+            if UIApplication.shared.canOpenURL(settingsUrl) {
+                UIApplication.shared.open(settingsUrl) { success in
+                    if success {
+                        print("✅ 成功打开系统设置")
+                    } else {
+                        print("❌ 无法打开系统设置")
+                    }
+                }
+            }
+    }
+    
     func requestLocationPermission() {
-        switch locationManager.authorizationStatus {
-        case .notDetermined:
-            locationManager.requestWhenInUseAuthorization()
+            switch locationManager.authorizationStatus {
+            case .notDetermined:
+                locationManager.requestWhenInUseAuthorization()
+            case .authorizedWhenInUse, .authorizedAlways:
+                isLocationAuthorized = true
+                requestCurrentLocationWeather()
+            case .denied, .restricted:
+                isLocationAuthorized = false
+                errorMessage = "位置权限被拒绝，请在系统设置中开启"
+                // 跳转到系统设置
+                openAppSettings()
+            @unknown default:
+                break
+            }
+    }
+    
+    func recheckLocationPermission() {
+        let status = locationManager.authorizationStatus
+        print("🔍 重新检查位置权限状态: \(status.rawValue)")
+        
+        switch status {
         case .authorizedWhenInUse, .authorizedAlways:
             isLocationAuthorized = true
+            errorMessage = nil
             requestCurrentLocationWeather()
+            print("✅ 位置权限已授权")
         case .denied, .restricted:
             isLocationAuthorized = false
-            errorMessage = "需要位置权限来获取天气数据"
+            errorMessage = "位置权限被拒绝，请在系统设置中开启"
+            print("❌ 位置权限被拒绝")
+        case .notDetermined:
+            isLocationAuthorized = false
+            errorMessage = "位置权限未确定"
+            print("⚠️ 位置权限未确定")
         @unknown default:
             break
         }
@@ -482,29 +524,37 @@ extension WeatherService: CLLocationManagerDelegate {
         }
     }
     
-    nonisolated func locationManager(_ manager: CLLocationManager,
-                                         didFailWithError error: Error) {
-            Task { @MainActor [weak self] in
-                self?.errorMessage = "定位失败: \(error.localizedDescription)"
-                print("❌ 定位失败: \(error)")
-            }
+    nonisolated func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
+        Task { @MainActor [weak self] in
+            self?.errorMessage = "定位失败: \(error.localizedDescription)"
+            print("❌ 定位失败: \(error)")
+        }
     }
     
     nonisolated func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
-            Task { @MainActor [weak self] in
-                guard let self = self else { return }
-
-                switch manager.authorizationStatus {
-                case .authorizedWhenInUse, .authorizedAlways:
-                    self.isLocationAuthorized = true
-                    self.requestCurrentLocationWeather()
-                case .denied, .restricted:
-                    self.isLocationAuthorized = false
-                    self.errorMessage = "需要位置权限来获取天气数据"
-                default:
-                    break
-                }
+        Task { @MainActor [weak self] in
+            guard let self = self else { return }
+            
+            print("🔄 位置权限状态变化: \(manager.authorizationStatus.rawValue)")
+            
+            switch manager.authorizationStatus {
+            case .authorizedWhenInUse, .authorizedAlways:
+                self.isLocationAuthorized = true
+                self.errorMessage = nil
+                self.requestCurrentLocationWeather()
+                print("✅ 位置权限已授权，开始获取天气")
+            case .denied, .restricted:
+                self.isLocationAuthorized = false
+                self.errorMessage = "位置权限被拒绝，请在系统设置中开启"
+                print("❌ 位置权限被拒绝")
+            case .notDetermined:
+                self.isLocationAuthorized = false
+                self.errorMessage = nil
+                print("⚠️ 位置权限未确定")
+            @unknown default:
+                break
             }
+        }
     }
 }
 
