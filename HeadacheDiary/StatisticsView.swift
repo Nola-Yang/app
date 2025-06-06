@@ -321,9 +321,9 @@ struct EnhancedTriggerStatsCard: View {
         .cornerRadius(12)
         .shadow(radius: 2)
     }
-    
+
     private func getIconForTrigger(_ triggerName: String) -> String {
-        // 简化版本的图标匹配，实际可以做更完整的映射
+        // 完整的图标匹配，移除了"不清楚原因"选项
         switch triggerName {
         case "吹冷风": return "wind"
         case "睡眠不足": return "bed.double"
@@ -331,18 +331,38 @@ struct EnhancedTriggerStatsCard: View {
         case "压力/焦虑": return "brain.head.profile"
         case "月经期": return "calendar.badge.clock"
         case "补剂漏服(CoQ10等)": return "pills.circle"
+        case "无明显原因": return "circle.slash"
+        case "长时间看屏幕": return "display"
+        case "天气变化": return "cloud.rain"
+        case "饮食因素": return "fork.knife"
+        case "强光刺激": return "sun.max"
+        case "噪音环境": return "speaker.wave.3"
+        case "气味刺激": return "nose"
+        case "运动过度": return "figure.run"
+        case "脱水": return "drop"
+        case "饥饿": return "stomach"
+        case "饮酒": return "wineglass"
+        case "咖啡因": return "cup.and.saucer"
         default: return "exclamationmark.triangle"
         }
     }
-    
+
     private func getColorForTrigger(_ triggerName: String) -> Color {
         switch triggerName {
-        case "吹冷风": return .blue
+        case "吹冷风", "天气变化": return .blue
         case "睡眠不足": return .purple
         case "社交活动": return .green
-        case "压力/焦虑": return .red
+        case "压力/焦虑", "饮酒": return .red
         case "月经期": return .pink
         case "补剂漏服(CoQ10等)": return .teal
+        case "无明显原因": return .gray
+        case "长时间看屏幕": return .indigo
+        case "饮食因素", "饥饿": return .orange
+        case "强光刺激": return .yellow
+        case "噪音环境": return .gray
+        case "气味刺激", "咖啡因": return .brown
+        case "运动过度": return .mint
+        case "脱水": return .cyan
         default: return .orange
         }
     }

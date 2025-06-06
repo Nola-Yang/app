@@ -16,6 +16,7 @@ struct MonthlyView: View {
     private var records: FetchedResults<HeadacheRecord>
     
     @State private var showAdd = false
+    @State private var showQuickAdd = false  // 新增：快速记录
     @State private var selectedRecord: HeadacheRecord?
     @State private var refreshID = UUID()
     @State private var expandedMonths: Set<String> = [] // 追踪展开的月份
@@ -23,48 +24,53 @@ struct MonthlyView: View {
     
     var body: some View {
         NavigationView {
-            List {
-                // 用药警告部分 - 显示在顶部
-                if !Array(records).isEmpty {
-                    Section {
-                        MedicationWarningView(records: Array(records))
-                            .onTapGesture {
-                                // 点击警告卡片时显示用药安全指南
-                                showMedicationSafetyGuide = true
-                            }
-                    }
-                    .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
-                    .listRowBackground(Color.clear)
-                    .listRowSeparator(.hidden)
-                }
+            VStack(spacing: 0) {
+                // 快速操作栏
+                quickActionBar
                 
-                ForEach(groupedRecords, id: \.monthKey) { monthGroup in
-                    Section {
-                        // 月份标题 - 可点击展开/收起
-                        MonthHeaderExpandable(
-                            month: monthGroup.month,
-                            count: monthGroup.records.count,
-                            isExpanded: expandedMonths.contains(monthGroup.monthKey)
-                        ) {
-                            withAnimation(.easeInOut(duration: 0.3)) {
-                                if expandedMonths.contains(monthGroup.monthKey) {
-                                    expandedMonths.remove(monthGroup.monthKey)
-                                } else {
-                                    expandedMonths.insert(monthGroup.monthKey)
+                List {
+                    // 用药警告部分 - 显示在顶部
+                    if !Array(records).isEmpty {
+                        Section {
+                            MedicationWarningView(records: Array(records))
+                                .onTapGesture {
+                                    // 点击警告卡片时显示用药安全指南
+                                    showMedicationSafetyGuide = true
+                                }
+                        }
+                        .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
+                        .listRowBackground(Color.clear)
+                        .listRowSeparator(.hidden)
+                    }
+                    
+                    ForEach(groupedRecords, id: \.monthKey) { monthGroup in
+                        Section {
+                            // 月份标题 - 可点击展开/收起
+                            MonthHeaderExpandable(
+                                month: monthGroup.month,
+                                count: monthGroup.records.count,
+                                isExpanded: expandedMonths.contains(monthGroup.monthKey)
+                            ) {
+                                withAnimation(.easeInOut(duration: 0.3)) {
+                                    if expandedMonths.contains(monthGroup.monthKey) {
+                                        expandedMonths.remove(monthGroup.monthKey)
+                                    } else {
+                                        expandedMonths.insert(monthGroup.monthKey)
+                                    }
                                 }
                             }
-                        }
-                        
-                        // 只有展开时才显示记录
-                        if expandedMonths.contains(monthGroup.monthKey) {
-                            ForEach(monthGroup.records, id: \.objectID) { record in
-                                HeadacheRecordRow(record: record)
-                                    .onTapGesture {
-                                        selectedRecord = record
-                                    }
-                            }
-                            .onDelete { offsets in
-                                deleteItems(offsets: offsets, from: monthGroup.records)
+                            
+                            // 只有展开时才显示记录
+                            if expandedMonths.contains(monthGroup.monthKey) {
+                                ForEach(monthGroup.records, id: \.objectID) { record in
+                                    HeadacheRecordRow(record: record)
+                                        .onTapGesture {
+                                            selectedRecord = record
+                                        }
+                                }
+                                .onDelete { offsets in
+                                    deleteItems(offsets: offsets, from: monthGroup.records)
+                                }
                             }
                         }
                     }
@@ -81,13 +87,31 @@ struct MonthlyView: View {
                     EditButton()
                 }
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button(action: { showAdd = true }) {
-                        Image(systemName: "plus")
+                    Menu {
+                        Button(action: { showAdd = true }) {
+                            Label("详细记录", systemImage: "note.text.badge.plus")
+                        }
+                        Button(action: { showQuickAdd = true }) {
+                            Label("快速记录轻微头痛", systemImage: "clock.badge")
+                        }
+                    } label: {
+                        Image(systemName: "plus.circle.fill")
+                            .font(.title2)
                     }
                 }
             }
             .sheet(isPresented: $showAdd) {
                 AddEntryView()
+                    .environment(\.managedObjectContext, viewContext)
+                    .onDisappear {
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                            refreshID = UUID()
+                            viewContext.refreshAllObjects()
+                        }
+                    }
+            }
+            .sheet(isPresented: $showQuickAdd) {
+                QuickHeadacheEntryView()
                     .environment(\.managedObjectContext, viewContext)
                     .onDisappear {
                         DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
@@ -117,6 +141,104 @@ struct MonthlyView: View {
                 expandedMonths.insert(currentMonthKey)
             }
         }
+    }
+    
+    // 新增：快速操作栏
+    @ViewBuilder
+    private var quickActionBar: some View {
+        HStack(spacing: 16) {
+            // 快速记录按钮
+            Button(action: { showQuickAdd = true }) {
+                HStack(spacing: 8) {
+                    Image(systemName: "clock.badge")
+                        .font(.title3)
+                        .foregroundColor(.orange)
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("快速记录")
+                            .font(.caption.bold())
+                            .foregroundColor(.primary)
+                        Text("轻微头痛")
+                            .font(.caption2)
+                            .foregroundColor(.secondary)
+                    }
+                }
+                .padding(.horizontal, 12)
+                .padding(.vertical, 8)
+                .background(Color.orange.opacity(0.1))
+                .cornerRadius(10)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 10)
+                        .stroke(Color.orange.opacity(0.3), lineWidth: 1)
+                )
+            }
+            .buttonStyle(PlainButtonStyle())
+            
+            Spacer()
+            
+            // 统计信息
+            HStack(spacing: 12) {
+                VStack(spacing: 2) {
+                    Text("\(todayCount)")
+                        .font(.headline.bold())
+                        .foregroundColor(todayCount > 0 ? .orange : .secondary)
+                    Text("今天")
+                        .font(.caption2)
+                        .foregroundColor(.secondary)
+                }
+                
+                VStack(spacing: 2) {
+                    Text("\(thisWeekCount)")
+                        .font(.headline.bold())
+                        .foregroundColor(thisWeekCount > 3 ? .red : thisWeekCount > 0 ? .orange : .secondary)
+                    Text("本周")
+                        .font(.caption2)
+                        .foregroundColor(.secondary)
+                }
+                
+                VStack(spacing: 2) {
+                    Text("\(ongoingCount)")
+                        .font(.headline.bold())
+                        .foregroundColor(ongoingCount > 0 ? .red : .secondary)
+                    Text("进行中")
+                        .font(.caption2)
+                        .foregroundColor(.secondary)
+                }
+            }
+        }
+        .padding(.horizontal)
+        .padding(.vertical, 8)
+        .background(Color(.systemGray6))
+        .overlay(
+            Rectangle()
+                .frame(height: 0.5)
+                .foregroundColor(Color(.systemGray4)),
+            alignment: .bottom
+        )
+    }
+    
+    // 统计计算属性
+    private var todayCount: Int {
+        let calendar = Calendar.current
+        let today = Date()
+        return records.filter { record in
+            guard let timestamp = record.timestamp else { return false }
+            return calendar.isDate(timestamp, inSameDayAs: today)
+        }.count
+    }
+    
+    private var thisWeekCount: Int {
+        let calendar = Calendar.current
+        let now = Date()
+        let weekAgo = calendar.date(byAdding: .day, value: -7, to: now)!
+        
+        return records.filter { record in
+            guard let timestamp = record.timestamp else { return false }
+            return timestamp >= weekAgo
+        }.count
+    }
+    
+    private var ongoingCount: Int {
+        records.filter { $0.isOngoing }.count
     }
     
     private var groupedRecords: [MonthGroup] {
@@ -234,6 +356,18 @@ struct HeadacheRecordRow: View {
                         .font(.headline)
                 }
                 Spacer()
+                
+                // 显示记录类型标识
+                if record.note?.contains("快速记录") == true {
+                    Text("快速")
+                        .font(.caption2.bold())
+                        .foregroundColor(.orange)
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 2)
+                        .background(Color.orange.opacity(0.2))
+                        .cornerRadius(4)
+                }
+                
                 IntensityBadge(intensity: Int(record.intensity))
             }
             
@@ -272,6 +406,19 @@ struct HeadacheRecordRow: View {
                 }
             }
             
+            // 触发因素 - 更新显示新的触发因素
+            if !allTriggers.isEmpty {
+                HStack {
+                    Image(systemName: "exclamationmark.triangle")
+                        .foregroundColor(.gray)
+                        .font(.caption)
+                    Text(allTriggers.joined(separator: ", "))
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                        .lineLimit(1)
+                }
+            }
+            
             // 症状标签
             HStack {
                 if record.hasTinnitus {
@@ -279,6 +426,10 @@ struct HeadacheRecordRow: View {
                 }
                 if record.hasThrobbing {
                     SymptomTag(text: "跳动", color: .purple)
+                }
+                // 显示自定义症状中的若有若无
+                if record.customSymptomNames.contains("若有若无") {
+                    SymptomTag(text: "若有若无", color: .gray)
                 }
             }
             .id(refreshTrigger)
@@ -372,12 +523,22 @@ struct HeadacheRecordRow: View {
         return locations
     }
     
-    private var selectedTriggers: [HeadacheTrigger] {
-        guard let triggersString = record.triggers else { return [] }
-        let triggerStrings = triggersString.components(separatedBy: ",")
-        return triggerStrings.compactMap { triggerString in
-            HeadacheTrigger(rawValue: triggerString.trimmingCharacters(in: .whitespaces))
+    private var allTriggers: [String] {
+        var triggers: [String] = []
+        
+        // 预定义触发因素
+        if let triggersString = record.triggers {
+            let triggerStrings = triggersString.components(separatedBy: ",")
+            let triggerNames = triggerStrings.compactMap { triggerString in
+                HeadacheTrigger(rawValue: triggerString.trimmingCharacters(in: .whitespaces))?.displayName
+            }
+            triggers.append(contentsOf: triggerNames)
         }
+        
+        // 自定义触发因素
+        triggers.append(contentsOf: record.customTriggerNames)
+        
+        return triggers
     }
     
     private func durationText(from start: Date, to end: Date) -> String {

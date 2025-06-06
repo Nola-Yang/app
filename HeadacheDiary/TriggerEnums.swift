@@ -26,6 +26,8 @@ enum HeadacheTrigger: String, CaseIterable {
     case screenTime = "screenTime"
     case alcohol = "alcohol"
     case caffeine = "caffeine"
+    // 新增：无明显原因
+    case noObviousCause = "noObviousCause"
     
     var displayName: String {
         switch self {
@@ -63,6 +65,8 @@ enum HeadacheTrigger: String, CaseIterable {
             return "饮酒"
         case .caffeine:
             return "咖啡因"
+        case .noObviousCause:
+            return "无明显原因"
         }
     }
     
@@ -102,6 +106,8 @@ enum HeadacheTrigger: String, CaseIterable {
             return "wineglass"
         case .caffeine:
             return "cup.and.saucer"
+        case .noObviousCause:
+            return "circle.slash"
         }
     }
     
@@ -137,6 +143,8 @@ enum HeadacheTrigger: String, CaseIterable {
             return "red"
         case .caffeine:
             return "brown"
+        case .noObviousCause:
+            return "gray"
         }
     }
 }
