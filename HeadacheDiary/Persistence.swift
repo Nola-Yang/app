@@ -162,27 +162,28 @@ struct PersistenceController {
             }
         }
         
-        // 添加一些自定义选项到用户偏好中（模拟用户已经添加过的自定义选项）
-        let customOptionsManager = CustomOptionsManager.shared
         
+        // 替换为：
+        let customOptionsManager = HeadacheCustomOptionsManager.shared
+
         // 自定义位置
         customOptionsManager.addCustomOption(text: "后脑勺", category: .location)
         customOptionsManager.addCustomOption(text: "颈部", category: .location)
         customOptionsManager.addCustomOption(text: "下巴", category: .location)
         customOptionsManager.addCustomOption(text: "眼眶周围", category: .location)
-        
+
         // 自定义药物
         customOptionsManager.addCustomOption(text: "阿司匹林", category: .medicine)
         customOptionsManager.addCustomOption(text: "头痛粉", category: .medicine)
         customOptionsManager.addCustomOption(text: "散列通", category: .medicine)
-        
+
         // 自定义触发因素
         customOptionsManager.addCustomOption(text: "空调直吹", category: .trigger)
         customOptionsManager.addCustomOption(text: "办公室噪音", category: .trigger)
         customOptionsManager.addCustomOption(text: "熬夜工作", category: .trigger)
         customOptionsManager.addCustomOption(text: "吃了巧克力", category: .trigger)
         customOptionsManager.addCustomOption(text: "长时间开车", category: .trigger)
-        
+
         // 自定义症状
         customOptionsManager.addCustomOption(text: "恶心想吐", category: .symptom)
         customOptionsManager.addCustomOption(text: "眼睛疼", category: .symptom)

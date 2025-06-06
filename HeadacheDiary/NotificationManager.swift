@@ -153,8 +153,14 @@ class NotificationDelegate: NSObject, UNUserNotificationCenterDelegate {
     
     // 应用在前台时如何显示通知
     func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification, withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
-        // 即使在前台也显示通知
-        completionHandler([.alert, .sound, .badge])
+        // 这里使用 UNNotificationPresentationOptions，可以使用新的选项
+        if #available(iOS 14.0, *) {
+            // iOS 14.0+ 使用新的选项替代已弃用的 .alert
+            completionHandler([.banner, .list, .sound, .badge])
+        } else {
+            // iOS 14.0 以下继续使用 .alert
+            completionHandler([.alert, .sound, .badge])
+        }
     }
     
     // 处理用户点击通知或通知按钮的操作

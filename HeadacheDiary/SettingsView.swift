@@ -7,8 +7,251 @@
 
 import SwiftUI
 
+
+struct CustomOptionsManagementView: View {
+    @ObservedObject private var customOptionsManager = HeadacheCustomOptionsManager.shared
+    @State private var selectedCategory: HeadacheCustomOptionCategory = .location
+    @State private var showAddOption = false
+    @State private var newOptionText = ""
+    @State private var showAlert = false
+    @State private var alertMessage = ""
+    
+    var body: some View {
+        VStack {
+            // 分类选择器
+            Picker("选择分类", selection: $selectedCategory) {
+                ForEach(HeadacheCustomOptionCategory.allCases, id: \.self) { category in
+                    Text(category.displayName).tag(category)
+                }
+            }
+            .pickerStyle(SegmentedPickerStyle())
+            .padding()
+            
+            // 自定义选项列表
+            List {
+                // 当前分类的选项
+                ForEach(customOptionsManager.getCustomOptions(for: selectedCategory), id: \.id) { option in
+                    HStack {
+                        Image(systemName: selectedCategory.icon)
+                            .foregroundColor(.blue)
+                            .frame(width: 24)
+                        
+                        VStack(alignment: .leading) {
+                            Text(option.text)
+                                .font(.body)
+                            Text(option.createdAt, formatter: dateFormatter)
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+                        
+                        Spacer()
+                        
+                        // 删除按钮
+                        Button(action: {
+                            customOptionsManager.removeCustomOption(option)
+                        }) {
+                            Image(systemName: "trash")
+                                .foregroundColor(.red)
+                        }
+                    }
+                    .padding(.vertical, 4)
+                }
+                
+                // 添加新选项按钮
+                Button(action: {
+                    showAddOption = true
+                    newOptionText = ""
+                }) {
+                    HStack {
+                        Image(systemName: "plus.circle.fill")
+                            .foregroundColor(.blue)
+                        Text("添加新的\(selectedCategory.displayName)")
+                            .foregroundColor(.blue)
+                    }
+                }
+                .padding(.vertical, 8)
+                
+                // 统计信息
+                Section {
+                    HStack {
+                        Text("当前分类选项数量")
+                        Spacer()
+                        Text("\(customOptionsManager.getCustomOptions(for: selectedCategory).count)")
+                            .foregroundColor(.secondary)
+                    }
+                    
+                    HStack {
+                        Text("总选项数量")
+                        Spacer()
+                        Text("\(customOptionsManager.customOptions.count)")
+                            .foregroundColor(.secondary)
+                    }
+                } header: {
+                    Text("统计信息")
+                }
+            }
+        }
+        .navigationTitle("自定义选项管理")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .primaryAction) {
+                Menu {
+                    Button("清空当前分类") {
+                        customOptionsManager.removeCustomOptions(for: selectedCategory)
+                    }
+                    
+                    Button("调试：打印所有选项") {
+                        customOptionsManager.debugPrintAllOptions()
+                    }
+                } label: {
+                    Image(systemName: "ellipsis.circle")
+                }
+            }
+        }
+        .sheet(isPresented: $showAddOption) {
+            AddCustomOptionView(
+                title: "添加\(selectedCategory.displayName)",
+                category: selectedCategory,
+                text: $newOptionText,
+                onSave: {
+                    let trimmedText = newOptionText.trimmingCharacters(in: .whitespacesAndNewlines)
+                    
+                    if trimmedText.isEmpty {
+                        alertMessage = "请输入有效的内容"
+                        showAlert = true
+                        return
+                    }
+                    
+                    if customOptionsManager.optionExists(text: trimmedText, category: selectedCategory) {
+                        alertMessage = "该选项已存在"
+                        showAlert = true
+                        return
+                    }
+                    
+                    customOptionsManager.addCustomOption(text: trimmedText, category: selectedCategory)
+                    newOptionText = ""
+                    showAddOption = false
+                },
+                onCancel: {
+                    newOptionText = ""
+                    showAddOption = false
+                }
+            )
+        }
+        .alert("提示", isPresented: $showAlert) {
+            Button("确定") { }
+        } message: {
+            Text(alertMessage)
+        }
+        .onAppear {
+            print("CustomOptionsManagementView 出现，当前选项数量: \(customOptionsManager.customOptions.count)")
+        }
+    }
+}
+
+// 同样替换 AddCustomOptionView
+struct AddCustomOptionView: View {
+    let title: String
+    let category: HeadacheCustomOptionCategory
+    @Binding var text: String
+    let onSave: () -> Void
+    let onCancel: () -> Void
+    
+    @State private var isValid = false
+    @ObservedObject private var customOptionsManager = HeadacheCustomOptionsManager.shared
+    
+    var body: some View {
+        NavigationView {
+            Form {
+                Section {
+                    TextField("输入\(category.displayName)名称", text: $text)
+                        .textFieldStyle(RoundedBorderTextFieldStyle())
+                        .onChange(of: text) { newValue in
+                            validateInput()
+                        }
+                    
+                    if !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                        if customOptionsManager.optionExists(text: text, category: category) {
+                            Label("该选项已存在", systemImage: "exclamationmark.triangle")
+                                .foregroundColor(.orange)
+                        } else {
+                            Label("可以添加", systemImage: "checkmark.circle")
+                                .foregroundColor(.green)
+                        }
+                    }
+                } header: {
+                    Text("新增 \(category.displayName)")
+                } footer: {
+                    Text("请输入您要添加的\(category.displayName)名称，例如：")
+                    + Text(getExampleText())
+                        .foregroundColor(.blue)
+                }
+                
+                // 当前分类已有的选项（供参考）
+                if !customOptionsManager.getCustomOptions(for: category).isEmpty {
+                    Section {
+                        ForEach(customOptionsManager.getCustomOptions(for: category).prefix(5), id: \.id) { option in
+                            HStack {
+                                Image(systemName: category.icon)
+                                    .foregroundColor(.gray)
+                                    .frame(width: 20)
+                                Text(option.text)
+                                    .foregroundColor(.secondary)
+                            }
+                        }
+                        
+                        if customOptionsManager.getCustomOptions(for: category).count > 5 {
+                            Text("还有 \(customOptionsManager.getCustomOptions(for: category).count - 5) 个选项...")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+                    } header: {
+                        Text("已有的\(category.displayName)（参考）")
+                    }
+                }
+            }
+            .navigationTitle(title)
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("取消", action: onCancel)
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("保存") {
+                        onSave()
+                    }
+                    .disabled(!isValid)
+                    .fontWeight(.semibold)
+                }
+            }
+            .onAppear {
+                validateInput()
+            }
+        }
+    }
+    
+    private func validateInput() {
+        let trimmedText = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        isValid = !trimmedText.isEmpty && !customOptionsManager.optionExists(text: trimmedText, category: category)
+    }
+    
+    private func getExampleText() -> String {
+        switch category {
+        case .location:
+            return "后脑勺、眼眶周围、下巴"
+        case .medicine:
+            return "阿司匹林、头痛粉、散列通"
+        case .trigger:
+            return "空调直吹、长时间开车、吃巧克力"
+        case .symptom:
+            return "恶心想吐、畏光、脖子僵硬"
+        }
+    }
+}
+
+// 在 SettingsView 的主体中，也要更新引用
 struct SettingsView: View {
-    @StateObject private var customOptionsManager = CustomOptionsManager.shared
+    @ObservedObject private var customOptionsManager = HeadacheCustomOptionsManager.shared
     @State private var showDataExport = false
     @State private var showNotificationSettings = false
     @State private var showCustomOptionsManagement = false
@@ -17,7 +260,7 @@ struct SettingsView: View {
     var body: some View {
         NavigationView {
             List {
-                // 自定义选项管理
+                // 个人化设置
                 Section {
                     NavigationLink(destination: CustomOptionsManagementView()) {
                         HStack {
@@ -26,9 +269,16 @@ struct SettingsView: View {
                                 .frame(width: 24)
                             VStack(alignment: .leading) {
                                 Text("自定义选项管理")
-                                Text("管理您的个人化选项")
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
+                                HStack {
+                                    Text("已有 \(customOptionsManager.customOptions.count) 个自定义选项")
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                    if customOptionsManager.customOptions.count > 0 {
+                                        Image(systemName: "checkmark.circle.fill")
+                                            .foregroundColor(.green)
+                                            .font(.caption)
+                                    }
+                                }
                             }
                         }
                     }
@@ -50,6 +300,7 @@ struct SettingsView: View {
                     Text("个人化设置")
                 }
                 
+                // 其他sections保持不变...
                 // 数据管理
                 Section {
                     Button(action: { showDataExport = true }) {
@@ -122,77 +373,47 @@ struct SettingsView: View {
         .sheet(isPresented: $showDataExport) {
             DataExportView()
         }
+        .onAppear {
+            print("设置页面加载，当前自定义选项数量: \(customOptionsManager.customOptions.count)")
+        }
     }
 }
 
-// 自定义选项管理视图
-struct CustomOptionsManagementView: View {
-    @StateObject private var customOptionsManager = CustomOptionsManager.shared
-    @State private var selectedCategory: CustomOptionCategory = .location
-    @State private var showAddOption = false
-    @State private var newOptionText = ""
+// 更新 QuickStatsView 中的引用
+struct QuickStatsView: View {
+    @Environment(\.managedObjectContext) private var viewContext
+    @FetchRequest(
+        sortDescriptors: [NSSortDescriptor(keyPath: \HeadacheRecord.timestamp, ascending: false)],
+        animation: .default)
+    private var records: FetchedResults<HeadacheRecord>
     
     var body: some View {
-        VStack {
-            // 分类选择器
-            Picker("选择分类", selection: $selectedCategory) {
-                ForEach(CustomOptionCategory.allCases, id: \.self) { category in
-                    Text(category.displayName).tag(category)
-                }
+        VStack(spacing: 8) {
+            HStack {
+                StatCard(title: "总记录", value: "\(records.count)", color: .blue)
+                StatCard(title: "本周", value: "\(thisWeekCount)", color: .green)
             }
-            .pickerStyle(SegmentedPickerStyle())
-            .padding()
             
-            // 自定义选项列表
-            List {
-                ForEach(customOptionsManager.getCustomOptions(for: selectedCategory), id: \.id) { option in
-                    HStack {
-                        Image(systemName: selectedCategory.icon)
-                            .foregroundColor(.blue)
-                        Text(option.text)
-                        Spacer()
-                        Text(option.createdAt, formatter: dateFormatter)
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                    }
-                }
-                .onDelete(perform: deleteOptions)
-                
-                // 添加新选项
-                Button(action: { showAddOption = true }) {
-                    HStack {
-                        Image(systemName: "plus.circle")
-                            .foregroundColor(.blue)
-                        Text("添加新的\(selectedCategory.displayName)")
-                            .foregroundColor(.blue)
-                    }
-                }
+            HStack {
+                StatCard(title: "自定义选项", value: "\(HeadacheCustomOptionsManager.shared.customOptions.count)", color: .purple)
+                StatCard(title: "进行中", value: "\(ongoingCount)", color: .orange)
             }
-        }
-        .navigationTitle("自定义选项管理")
-        .navigationBarTitleDisplayMode(.inline)
-        .sheet(isPresented: $showAddOption) {
-            AddCustomOptionView(
-                title: "添加\(selectedCategory.displayName)",
-                text: $newOptionText,
-                onSave: {
-                    customOptionsManager.addCustomOption(text: newOptionText.trimmingCharacters(in: .whitespacesAndNewlines), category: selectedCategory)
-                    newOptionText = ""
-                    showAddOption = false
-                },
-                onCancel: {
-                    newOptionText = ""
-                    showAddOption = false
-                }
-            )
         }
     }
     
-    private func deleteOptions(offsets: IndexSet) {
-        let optionsToDelete = offsets.map { customOptionsManager.getCustomOptions(for: selectedCategory)[$0] }
-        for option in optionsToDelete {
-            customOptionsManager.removeCustomOption(option)
-        }
+    private var thisWeekCount: Int {
+        let calendar = Calendar.current
+        let now = Date()
+        let weekAgo = calendar.date(byAdding: .day, value: -7, to: now)!
+        
+        return records.filter { record in
+            guard let timestamp = record.timestamp else { return false }
+            return timestamp >= weekAgo
+        }.count
+    }
+    
+    private var ongoingCount: Int {
+        records.filter { $0.isOngoing }.count
     }
 }
 
@@ -536,43 +757,6 @@ struct ExportRecord: Codable {
     let timeNote: String?
 }
 
-// 快速统计视图
-struct QuickStatsView: View {
-    @Environment(\.managedObjectContext) private var viewContext
-    @FetchRequest(
-        sortDescriptors: [NSSortDescriptor(keyPath: \HeadacheRecord.timestamp, ascending: false)],
-        animation: .default)
-    private var records: FetchedResults<HeadacheRecord>
-    
-    var body: some View {
-        VStack(spacing: 8) {
-            HStack {
-                StatCard(title: "总记录", value: "\(records.count)", color: .blue)
-                StatCard(title: "本周", value: "\(thisWeekCount)", color: .green)
-            }
-            
-            HStack {
-                StatCard(title: "自定义选项", value: "\(CustomOptionsManager.shared.customOptions.count)", color: .purple)
-                StatCard(title: "进行中", value: "\(ongoingCount)", color: .orange)
-            }
-        }
-    }
-    
-    private var thisWeekCount: Int {
-        let calendar = Calendar.current
-        let now = Date()
-        let weekAgo = calendar.date(byAdding: .day, value: -7, to: now)!
-        
-        return records.filter { record in
-            guard let timestamp = record.timestamp else { return false }
-            return timestamp >= weekAgo
-        }.count
-    }
-    
-    private var ongoingCount: Int {
-        records.filter { $0.isOngoing }.count
-    }
-}
 
 struct StatCard: View {
     let title: String
@@ -664,28 +848,4 @@ private let dateFormatter: DateFormatter = {
 
 #Preview {
     SettingsView()
-}
-
-struct AddCustomOptionView: View {
-    let title: String
-    @Binding var text: String
-    let onSave: ()->Void
-    let onCancel: ()->Void
-
-    var body: some View {
-        NavigationView {
-            Form {
-                TextField("输入内容", text: $text)
-            }
-            .navigationTitle(title)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("取消", action: onCancel)
-                }
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("保存", action: onSave).disabled(text.trimmingCharacters(in: .whitespaces).isEmpty)
-                }
-            }
-        }
-    }
 }
