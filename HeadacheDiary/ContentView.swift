@@ -1,7 +1,6 @@
 import SwiftUI
 import CoreData
 
-// 修改后的ContentView，包含设置页面
 struct ContentView: View {
     var body: some View {
         TabView {
@@ -17,6 +16,13 @@ struct ContentView: View {
                     Text("统计")
                 }
             
+            // 天气分析页面
+            WeatherAnalysisView()
+                .tabItem {
+                    Image(systemName: "cloud.sun.bolt")
+                    Text("天气")
+                }
+            
             SettingsView()
                 .tabItem {
                     Image(systemName: "gearshape")
@@ -26,6 +32,9 @@ struct ContentView: View {
         .onAppear {
             // 确保应用启动时通知权限已请求
             NotificationManager.shared.requestNotificationPermission()
+            
+            // 初始化天气服务
+            WeatherService.shared.requestCurrentLocationWeather()
         }
     }
 }

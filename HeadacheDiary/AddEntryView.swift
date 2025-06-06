@@ -3,12 +3,13 @@ import SwiftUI
 struct AddEntryView: View {
     @Environment(\.managedObjectContext) private var viewContext
     @Environment(\.dismiss) private var dismiss
-    @ObservedObject private var customOptionsManager = HeadacheCustomOptionsManager.shared  // 新增这一行
+    @ObservedObject private var customOptionsManager = HeadacheCustomOptionsManager.shared
+    @ObservedObject private var weatherService = WeatherService.shared  // 天气服务
     
     let editingRecord: HeadacheRecord?
     
     @State private var currentStep = 0
-    private let totalSteps = 6
+    private let totalSteps = 7  // 增加天气信息步骤
     
     // 基本信息
     @State private var timestamp: Date = Date()
@@ -52,6 +53,13 @@ struct AddEntryView: View {
     @State private var hasEndTime = false
     @State private var timeNote: String = ""
     
+    // 新增：天气信息
+    @State private var autoDetectWeather = true
+    @State private var weatherNote: String = ""
+    @State private var manualWeatherCondition: WeatherCondition = .sunny
+    @State private var manualTemperature: Double = 20
+    @State private var manualHumidity: Double = 50
+    
     // 状态管理
     @State private var isSaving = false
     @State private var showError = false
@@ -81,6 +89,7 @@ struct AddEntryView: View {
                     triggerStep().tag(3)
                     symptomsStep().tag(4)
                     timeRangeStep().tag(5)
+                    weatherStep().tag(6)  // 新增：天气信息步骤
                 }
                 .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
                 
@@ -152,6 +161,10 @@ struct AddEntryView: View {
             }
             .onAppear {
                 loadData()
+                // 请求获取当前天气
+                if !isEditing {
+                    weatherService.requestCurrentLocationWeather()
+                }
             }
             .alert("保存失败", isPresented: $showError) {
                 Button("确定") { }
@@ -161,6 +174,229 @@ struct AddEntryView: View {
         }
     }
     
+    // 新增：天气信息步骤
+    @ViewBuilder
+    private func weatherStep() -> some View {
+        Form {
+            Section {
+                Toggle("自动检测天气", isOn: $autoDetectWeather)
+                
+                if autoDetectWeather {
+                    // 显示当前天气信息
+                    if let currentWeather = weatherService.currentWeather {
+                        currentWeatherDisplay(currentWeather)
+                    } else if weatherService.isLoading {
+                        HStack {
+                            ProgressView()
+                                .scaleEffect(0.8)
+                            Text("正在获取天气数据...")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+                    } else if let error = weatherService.errorMessage {
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("天气获取失败")
+                                .font(.subheadline.bold())
+                                .foregroundColor(.orange)
+                            Text(error)
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                            Button("重新获取") {
+                                weatherService.requestCurrentLocationWeather()
+                            }
+                            .font(.caption.bold())
+                            .foregroundColor(.blue)
+                        }
+                    } else {
+                        Text("无法获取天气数据，可以手动输入")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                } else {
+                    // 手动输入天气信息
+                    manualWeatherInput()
+                }
+            } header: {
+                Text("天气信息")
+            } footer: {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("天气数据有助于分析头痛与天气变化的关联性")
+                    if autoDetectWeather && weatherService.currentWeather != nil {
+                        Text("✅ 将自动关联当前天气数据到此次头痛记录")
+                            .foregroundColor(.green)
+                            .font(.caption)
+                    }
+                }
+            }
+            
+            // 天气相关备注
+            Section {
+                TextField("天气相关备注", text: $weatherNote, axis: .vertical)
+                    .lineLimit(2...4)
+            } header: {
+                Text("天气备注")
+            } footer: {
+                Text("记录天气对头痛的影响，如：气压变化、温度骤降等")
+            }
+            
+            // 新增：智能天气建议
+            if let currentWeather = weatherService.currentWeather, autoDetectWeather {
+                weatherInsightSection(currentWeather)
+            }
+        }
+    }
+    
+    @ViewBuilder
+    private func currentWeatherDisplay(_ weather: WeatherRecord) -> some View {
+        VStack(spacing: 12) {
+            HStack {
+                if let condition = WeatherCondition(rawValue: weather.condition) {
+                    Image(systemName: condition.icon)
+                        .foregroundColor(.blue)
+                        .font(.title2)
+                    Text(condition.displayName)
+                        .font(.headline)
+                }
+                Spacer()
+                Text("\(weather.temperature.formatted(.number.precision(.fractionLength(0))))°C")
+                    .font(.title2.bold())
+                    .foregroundColor(.blue)
+            }
+            
+            // 详细天气信息
+            HStack {
+                WeatherInfoItem(icon: "humidity", label: "湿度", value: "\(weather.humidity.formatted(.number.precision(.fractionLength(0))))%")
+                Spacer()
+                WeatherInfoItem(icon: "barometer", label: "气压", value: "\(weather.pressure.formatted(.number.precision(.fractionLength(0))))hPa")
+                Spacer()
+                WeatherInfoItem(icon: "wind", label: "风速", value: "\(weather.windSpeed.formatted(.number.precision(.fractionLength(0))))km/h")
+            }
+            
+            // 变化指示
+            if abs(weather.temperatureChange) > 1 || abs(weather.pressureChange) > 1 {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("与昨日相比:")
+                        .font(.caption.bold())
+                    HStack {
+                        if abs(weather.temperatureChange) > 1 {
+                            HStack(spacing: 4) {
+                                Image(systemName: weather.temperatureChange > 0 ? "arrow.up" : "arrow.down")
+                                    .foregroundColor(weather.temperatureChange > 0 ? .red : .blue)
+                                Text("温度\(weather.temperatureChange > 0 ? "上升" : "下降")\(abs(weather.temperatureChange).formatted(.number.precision(.fractionLength(1))))°C")
+                            }
+                            .font(.caption)
+                        }
+                        
+                        if abs(weather.pressureChange) > 1 {
+                            HStack(spacing: 4) {
+                                Image(systemName: weather.pressureChange > 0 ? "arrow.up" : "arrow.down")
+                                    .foregroundColor(weather.pressureChange > 0 ? .orange : .green)
+                                Text("气压\(weather.pressureChange > 0 ? "上升" : "下降")\(abs(weather.pressureChange).formatted(.number.precision(.fractionLength(1))))hPa")
+                            }
+                            .font(.caption)
+                        }
+                    }
+                }
+                .padding(8)
+                .background(Color(.systemGray6))
+                .cornerRadius(8)
+            }
+        }
+    }
+    
+    @ViewBuilder
+    private func manualWeatherInput() -> some View {
+        VStack(spacing: 16) {
+            Picker("天气状况", selection: $manualWeatherCondition) {
+                ForEach(WeatherCondition.allCases, id: \.self) { condition in
+                    HStack {
+                        Image(systemName: condition.icon)
+                        Text(condition.displayName)
+                    }
+                    .tag(condition)
+                }
+            }
+            
+            VStack(alignment: .leading, spacing: 8) {
+                Text("温度: \(manualTemperature.formatted(.number.precision(.fractionLength(0))))°C")
+                    .font(.subheadline)
+                Slider(value: $manualTemperature, in: -10...40, step: 1)
+                    .accentColor(.red)
+            }
+            
+            VStack(alignment: .leading, spacing: 8) {
+                Text("湿度: \(manualHumidity.formatted(.number.precision(.fractionLength(0))))%")
+                    .font(.subheadline)
+                Slider(value: $manualHumidity, in: 0...100, step: 5)
+                    .accentColor(.blue)
+            }
+        }
+    }
+    
+    @ViewBuilder
+    private func weatherInsightSection(_ weather: WeatherRecord) -> some View {
+        let insights = generateWeatherInsights(weather)
+        if !insights.isEmpty {
+            Section {
+                VStack(alignment: .leading, spacing: 8) {
+                    ForEach(insights, id: \.self) { insight in
+                        HStack(alignment: .top) {
+                            Image(systemName: "lightbulb")
+                                .foregroundColor(.orange)
+                                .font(.caption)
+                                .padding(.top, 2)
+                            Text(insight)
+                                .font(.caption)
+                        }
+                    }
+                }
+            } header: {
+                Text("天气洞察")
+            }
+        }
+    }
+    
+    private func generateWeatherInsights(_ weather: WeatherRecord) -> [String] {
+        var insights: [String] = []
+        
+        // 气压变化洞察
+        if abs(weather.pressureChange) > 3 {
+            insights.append("气压变化较大，这可能是头痛的诱因之一")
+        }
+        
+        // 温度变化洞察
+        if abs(weather.temperatureChange) > 8 {
+            insights.append("温度变化剧烈，注意保暖或降温")
+        }
+        
+        // 湿度洞察
+        if weather.humidity > 80 {
+            insights.append("湿度较高，可能影响舒适度")
+        } else if weather.humidity < 30 {
+            insights.append("空气干燥，注意补水")
+        }
+        
+        // 风速洞察
+        if weather.windSpeed > 25 {
+            insights.append("风速较大，外出时注意防风保暖")
+        }
+        
+        // 天气条件洞察
+        switch weather.condition {
+        case WeatherCondition.stormy.rawValue:
+            insights.append("暴风雨天气，气压变化可能影响头痛")
+        case WeatherCondition.rainy.rawValue:
+            insights.append("下雨天，湿度和气压变化需要关注")
+        case WeatherCondition.foggy.rawValue:
+            insights.append("雾天能见度低，湿度较高")
+        default:
+            break
+        }
+        
+        return insights
+    }
+    
+    // 其他现有的步骤方法保持不变...
     @ViewBuilder
     private func basicInfoStep() -> some View {
         Form {
@@ -633,6 +869,11 @@ struct AddEntryView: View {
             endTime = record.endTime ?? timestamp
         }
         timeNote = record.timeNote ?? ""
+        
+        // 天气信息 - 加载现有的天气备注
+        if let note = record.note, note.contains("天气") {
+            weatherNote = ""  // 从备注中提取天气相关信息
+        }
     }
     
     private func save() {
@@ -645,7 +886,17 @@ struct AddEntryView: View {
                 // 保存基本信息
                 record.timestamp = timestamp
                 record.intensity = Int16(intensity)
-                record.note = note.isEmpty ? nil : note
+                
+                // 合并天气备注到总体备注
+                var finalNote = note
+                if !weatherNote.isEmpty {
+                    if !finalNote.isEmpty {
+                        finalNote += "\n天气相关：\(weatherNote)"
+                    } else {
+                        finalNote = "天气相关：\(weatherNote)"
+                    }
+                }
+                record.note = finalNote.isEmpty ? nil : finalNote
                 
                 // 疼痛位置
                 record.locationForehead = selectedLocations.contains(.forehead)
@@ -715,6 +966,12 @@ struct AddEntryView: View {
                 record.endTime = hasEndTime ? endTime : nil
                 record.timeNote = timeNote.isEmpty ? nil : timeNote
                 
+                // 新增：保存天气关联信息
+                if autoDetectWeather && !isEditing {
+                    // 将当前天气数据关联到头痛记录
+                    saveWeatherAssociation(for: record)
+                }
+                
                 // 保存到Core Data
                 try viewContext.save()
                 
@@ -723,7 +980,7 @@ struct AddEntryView: View {
                     scheduleHeadacheReminders(for: record)
                 }
                 
-                print("✅ 保存成功: 强度=\(record.intensity), 有结束时间=\(hasEndTime)")
+                print("✅ 保存成功: 强度=\(record.intensity), 有结束时间=\(hasEndTime), 已关联天气=\(autoDetectWeather)")
                 
                 isSaving = false
                 
@@ -737,6 +994,37 @@ struct AddEntryView: View {
                 showError = true
                 print("❌ 保存失败：\(error)")
             }
+        }
+    }
+    
+    // 新增：保存天气关联信息
+    private func saveWeatherAssociation(for record: HeadacheRecord) {
+        // 如果有当前天气数据，创建关联
+        if let currentWeather = weatherService.currentWeather {
+            // 在备注中添加天气信息
+            var weatherInfo = "天气状况："
+            if let condition = WeatherCondition(rawValue: currentWeather.condition) {
+                weatherInfo += "\(condition.displayName)，"
+            }
+            weatherInfo += "温度\(currentWeather.temperature.formatted(.number.precision(.fractionLength(0))))°C，"
+            weatherInfo += "湿度\(currentWeather.humidity.formatted(.number.precision(.fractionLength(0))))%"
+            
+            if abs(currentWeather.temperatureChange) > 3 {
+                weatherInfo += "，温度\(currentWeather.temperatureChange > 0 ? "上升" : "下降")\(abs(currentWeather.temperatureChange).formatted(.number.precision(.fractionLength(1))))°C"
+            }
+            
+            if abs(currentWeather.pressureChange) > 2 {
+                weatherInfo += "，气压\(currentWeather.pressureChange > 0 ? "上升" : "下降")\(abs(currentWeather.pressureChange).formatted(.number.precision(.fractionLength(1))))hPa"
+            }
+            
+            // 将天气信息添加到备注
+            if let existingNote = record.note {
+                record.note = existingNote + "\n\n" + weatherInfo
+            } else {
+                record.note = weatherInfo
+            }
+            
+            print("✅ 已关联天气数据到头痛记录")
         }
     }
     
@@ -769,6 +1057,26 @@ struct AddEntryView: View {
     
     private func scheduleHeadacheReminders(for record: HeadacheRecord) {
         NotificationManager.shared.scheduleHeadacheReminders(for: record)
+    }
+}
+
+// 新增：天气信息项组件
+struct WeatherInfoItem: View {
+    let icon: String
+    let label: String
+    let value: String
+    
+    var body: some View {
+        VStack(spacing: 4) {
+            Image(systemName: icon)
+                .foregroundColor(.blue)
+                .font(.caption)
+            Text(value)
+                .font(.caption.bold())
+            Text(label)
+                .font(.caption2)
+                .foregroundColor(.secondary)
+        }
     }
 }
 

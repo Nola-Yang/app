@@ -21,11 +21,85 @@ class NotificationManager: ObservableObject {
             DispatchQueue.main.async {
                 if granted {
                     print("✅ 通知权限已获得")
+                    
+                    // 注册通知类别
+                    self.registerNotificationCategories()
                 } else {
                     print("❌ 通知权限被拒绝: \(error?.localizedDescription ?? "未知错误")")
                 }
             }
         }
+    }
+    
+    // 注册所有通知类别
+    private func registerNotificationCategories() {
+        var categories: Set<UNNotificationCategory> = []
+        
+        // 头痛提醒类别
+        let endHeadacheAction = UNNotificationAction(
+            identifier: "end_headache",
+            title: "头痛已结束",
+            options: [.foreground]
+        )
+        
+        let continueHeadacheAction = UNNotificationAction(
+            identifier: "continue_headache",
+            title: "还在疼痛",
+            options: []
+        )
+        
+        let headacheCategory = UNNotificationCategory(
+            identifier: "headache_reminder_category",
+            actions: [endHeadacheAction, continueHeadacheAction],
+            intentIdentifiers: [],
+            options: []
+        )
+        categories.insert(headacheCategory)
+        
+        // 天气预警类别
+        let viewWeatherAction = UNNotificationAction(
+            identifier: "view_weather_warning",
+            title: "查看详情",
+            options: [.foreground]
+        )
+        
+        let dismissWeatherAction = UNNotificationAction(
+            identifier: "dismiss_weather_warning",
+            title: "知道了",
+            options: []
+        )
+        
+        let quickRecordAction = UNNotificationAction(
+            identifier: "quick_record_headache",
+            title: "快速记录头痛",
+            options: [.foreground]
+        )
+        
+        let weatherWarningCategory = UNNotificationCategory(
+            identifier: "weather_warning_category",
+            actions: [viewWeatherAction, quickRecordAction, dismissWeatherAction],
+            intentIdentifiers: [],
+            options: []
+        )
+        categories.insert(weatherWarningCategory)
+        
+        // 天气预报类别
+        let checkWeatherAction = UNNotificationAction(
+            identifier: "check_weather_detail",
+            title: "查看天气分析",
+            options: [.foreground]
+        )
+        
+        let weatherForecastCategory = UNNotificationCategory(
+            identifier: "weather_forecast_category",
+            actions: [checkWeatherAction],
+            intentIdentifiers: [],
+            options: []
+        )
+        categories.insert(weatherForecastCategory)
+        
+        UNUserNotificationCenter.current().setNotificationCategories(categories)
+        print("✅ 已注册 \(categories.count) 个通知类别")
     }
     
     // 为未结束的头痛安排3小时间隔的提醒
@@ -67,27 +141,6 @@ class NotificationManager: ObservableObject {
             "recordID": recordID
         ]
         
-        // 添加操作按钮
-        let endAction = UNNotificationAction(
-            identifier: "end_headache",
-            title: "头痛已结束",
-            options: [.foreground]
-        )
-        
-        let continueAction = UNNotificationAction(
-            identifier: "continue_headache",
-            title: "还在疼痛",
-            options: []
-        )
-        
-        let category = UNNotificationCategory(
-            identifier: "headache_reminder_category",
-            actions: [endAction, continueAction],
-            intentIdentifiers: [],
-            options: []
-        )
-        
-        UNUserNotificationCenter.current().setNotificationCategories([category])
         content.categoryIdentifier = "headache_reminder_category"
         
         // 创建触发器
@@ -102,6 +155,100 @@ class NotificationManager: ObservableObject {
                 print("❌ 安排通知失败: \(error.localizedDescription)")
             } else {
                 print("✅ 成功安排通知: \(identifier)")
+            }
+        }
+    }
+    
+    // 新增：发送天气预警通知
+    func sendWeatherWarningNotification(
+        title: String,
+        message: String,
+        riskLevel: HeadacheRisk,
+        warningId: String
+    ) {
+        let content = UNMutableNotificationContent()
+        content.title = title
+        content.body = message
+        content.sound = .default
+        content.badge = 1
+        
+        // 根据风险级别设置中断级别
+        switch riskLevel {
+        case .low:
+            content.interruptionLevel = .passive
+        case .moderate:
+            content.interruptionLevel = .active
+        case .high, .veryHigh:
+            content.interruptionLevel = .timeSensitive
+        }
+        
+        content.userInfo = [
+            "type": "weather_warning",
+            "warningId": warningId,
+            "riskLevel": riskLevel.rawValue
+        ]
+        
+        content.categoryIdentifier = "weather_warning_category"
+        
+        let request = UNNotificationRequest(
+            identifier: "weather_warning_\(warningId)",
+            content: content,
+            trigger: nil // 立即发送
+        )
+        
+        UNUserNotificationCenter.current().add(request) { error in
+            if let error = error {
+                print("❌ 发送天气预警通知失败: \(error)")
+            } else {
+                print("✅ 发送天气预警通知成功: \(title)")
+            }
+        }
+    }
+    
+    // 新增：发送每日天气预报通知
+    func sendDailyWeatherForecast(forecast: String, riskLevel: HeadacheRisk) {
+        let content = UNMutableNotificationContent()
+        content.title = "今日头痛风险预报"
+        content.body = forecast
+        content.sound = .default
+        
+        // 根据风险级别设置不同的标识符和内容
+        let riskEmoji: String
+        switch riskLevel {
+        case .low:
+            riskEmoji = "✅"
+            content.interruptionLevel = .passive
+        case .moderate:
+            riskEmoji = "⚠️"
+            content.interruptionLevel = .active
+        case .high:
+            riskEmoji = "🔶"
+            content.interruptionLevel = .timeSensitive
+        case .veryHigh:
+            riskEmoji = "🔴"
+            content.interruptionLevel = .timeSensitive
+        }
+        
+        content.title = "\(riskEmoji) \(content.title)"
+        
+        content.userInfo = [
+            "type": "weather_forecast",
+            "riskLevel": riskLevel.rawValue
+        ]
+        
+        content.categoryIdentifier = "weather_forecast_category"
+        
+        let request = UNNotificationRequest(
+            identifier: "daily_weather_forecast_\(Date().timeIntervalSince1970)",
+            content: content,
+            trigger: nil
+        )
+        
+        UNUserNotificationCenter.current().add(request) { error in
+            if let error = error {
+                print("❌ 发送天气预报通知失败: \(error)")
+            } else {
+                print("✅ 发送天气预报通知成功")
             }
         }
     }
@@ -125,6 +272,18 @@ class NotificationManager: ObservableObject {
         }
     }
     
+    // 新增：取消所有天气预警通知
+    func cancelAllWeatherWarningNotifications() {
+        UNUserNotificationCenter.current().getPendingNotificationRequests { requests in
+            let weatherWarningIDs = requests
+                .filter { $0.identifier.hasPrefix("weather_warning_") || $0.identifier.hasPrefix("daily_weather_forecast_") }
+                .map { $0.identifier }
+            
+            UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: weatherWarningIDs)
+            print("✅ 已取消所有天气预警通知")
+        }
+    }
+    
     // 处理用户点击"头痛已结束"的操作
     func handleHeadacheEndAction(recordID: String) {
         // 这里需要访问Core Data来更新记录
@@ -141,11 +300,49 @@ class NotificationManager: ObservableObject {
         // 暂时不需要特殊处理，让后续的提醒继续
         print("用户表示头痛仍在继续，将继续提醒")
     }
+    
+    // 新增：处理天气预警通知响应
+    func handleWeatherWarningResponse(action: String, warningId: String) {
+        switch action {
+        case "view_weather_warning":
+            // 打开天气分析页面
+            NotificationCenter.default.post(
+                name: .openWeatherAnalysis,
+                object: nil,
+                userInfo: ["warningId": warningId]
+            )
+        case "quick_record_headache":
+            // 打开快速记录页面
+            NotificationCenter.default.post(
+                name: .openQuickRecord,
+                object: nil,
+                userInfo: ["source": "weather_warning"]
+            )
+        case "dismiss_weather_warning":
+            // 标记预警为已读
+            WeatherWarningManager.shared.markWarningAsRead(UUID(uuidString: warningId) ?? UUID())
+        default:
+            break
+        }
+    }
+    
+    // 新增：处理天气预报通知响应
+    func handleWeatherForecastResponse(action: String) {
+        switch action {
+        case "check_weather_detail":
+            // 打开天气分析页面
+            NotificationCenter.default.post(name: .openWeatherAnalysis, object: nil)
+        default:
+            break
+        }
+    }
 }
 
 // 扩展Notification.Name来定义自定义通知
 extension Notification.Name {
     static let headacheEnded = Notification.Name("headacheEnded")
+    static let openWeatherAnalysis = Notification.Name("openWeatherAnalysis")
+    static let openQuickRecord = Notification.Name("openQuickRecord")
 }
 
 // 通知代理，处理用户与通知的交互
@@ -167,10 +364,27 @@ class NotificationDelegate: NSObject, UNUserNotificationCenterDelegate {
     func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse, withCompletionHandler completionHandler: @escaping () -> Void) {
         let userInfo = response.notification.request.content.userInfo
         
-        guard let type = userInfo["type"] as? String,
-              type == "headache_reminder",
-              let recordID = userInfo["recordID"] as? String else {
+        guard let type = userInfo["type"] as? String else {
             completionHandler()
+            return
+        }
+        
+        switch type {
+        case "headache_reminder":
+            handleHeadacheReminderResponse(response: response)
+        case "weather_warning":
+            handleWeatherWarningResponse(response: response)
+        case "weather_forecast":
+            handleWeatherForecastResponse(response: response)
+        default:
+            break
+        }
+        
+        completionHandler()
+    }
+    
+    private func handleHeadacheReminderResponse(response: UNNotificationResponse) {
+        guard let recordID = response.notification.request.content.userInfo["recordID"] as? String else {
             return
         }
         
@@ -185,7 +399,20 @@ class NotificationDelegate: NSObject, UNUserNotificationCenterDelegate {
         default:
             break
         }
+    }
+    
+    private func handleWeatherWarningResponse(response: UNNotificationResponse) {
+        guard let warningId = response.notification.request.content.userInfo["warningId"] as? String else {
+            return
+        }
         
-        completionHandler()
+        NotificationManager.shared.handleWeatherWarningResponse(
+            action: response.actionIdentifier,
+            warningId: warningId
+        )
+    }
+    
+    private func handleWeatherForecastResponse(response: UNNotificationResponse) {
+        NotificationManager.shared.handleWeatherForecastResponse(action: response.actionIdentifier)
     }
 }
