@@ -665,3 +665,27 @@ private let dateFormatter: DateFormatter = {
 #Preview {
     SettingsView()
 }
+
+struct AddCustomOptionView: View {
+    let title: String
+    @Binding var text: String
+    let onSave: ()->Void
+    let onCancel: ()->Void
+
+    var body: some View {
+        NavigationView {
+            Form {
+                TextField("输入内容", text: $text)
+            }
+            .navigationTitle(title)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("取消", action: onCancel)
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("保存", action: onSave).disabled(text.trimmingCharacters(in: .whitespaces).isEmpty)
+                }
+            }
+        }
+    }
+}

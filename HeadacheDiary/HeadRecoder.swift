@@ -252,24 +252,25 @@ extension HeadacheRecord {
             description += "\n触发因素: \(allTriggerNames.joined(separator: ", "))"
         }
         
-        if !triggerNote?.isEmpty ?? true, let triggerNote = triggerNote {
-            description += "\n触发因素备注: \(triggerNote)"
+        
+        if let note = triggerNote, !note.isEmpty {
+            description += "\n触发因素备注: \(note)"
         }
         
         if !allSymptomTags.isEmpty {
             description += "\n症状: \(allSymptomTags.joined(separator: ", "))"
         }
         
-        if !symptomNote?.isEmpty ?? true, let symptomNote = symptomNote {
-            description += "\n症状备注: \(symptomNote)"
+        if let note = symptomNote, !note.isEmpty {
+            description += "\n症状备注: \(note)"
         }
         
         if tookMedicine {
             let medicineInfo = allMedicineNames.isEmpty ? "已用药" : allMedicineNames.joined(separator: ", ")
             description += "\n用药: \(medicineInfo)\(medicineRelief ? " (有缓解)" : " (无缓解)")"
             
-            if !medicineNote?.isEmpty ?? true, let medicineNote = medicineNote {
-                description += "\n用药备注: \(medicineNote)"
+            if let note = medicineNote, !note.isEmpty {
+                description += "\n用药备注: \(note)"
             }
         }
         
@@ -277,11 +278,11 @@ extension HeadacheRecord {
             description += "\n持续时间: \(durationText)"
         }
         
-        if !timeNote?.isEmpty ?? true, let timeNote = timeNote {
-            description += "\n时间备注: \(timeNote)"
+        if let note = timeNote, !note.isEmpty {
+            description += "\n时间备注: \(note)"
         }
         
-        if !note?.isEmpty ?? true, let note = note {
+        if let note = note, !note.isEmpty {
             description += "\n备注: \(note)"
         }
         

@@ -507,7 +507,8 @@ struct TriggerCorrelationCard: View {
             }
         }
         
-        return triggerIntensities.compactMap { trigger, intensities in
+        return triggerIntensities
+            .compactMap { (trigger, intensities) -> (String, Double)? in
             guard intensities.count >= 2 else { return nil }
             let averageIntensity = Double(intensities.reduce(0, +)) / Double(intensities.count)
             return (trigger, averageIntensity)
@@ -782,9 +783,9 @@ struct PersonalInsightsCard: View {
             let recentRecords = records.prefix(10)
             let olderRecords = records.suffix(10)
             
-            if recentRecords.count > olderRecords.count * 1.5 {
+            if Double(recentRecords.count) > Double(olderRecords.count) * 1.5 {
                 insights.append("最近头痛频率有所增加，注意观察新的触发因素")
-            } else if recentRecords.count < olderRecords.count * 0.7 {
+            } else if Double(recentRecords.count) < Double(olderRecords.count) * 0.7 {
                 insights.append("头痛频率在减少，您的管理策略很有效")
             }
         }
