@@ -5,6 +5,22 @@
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>remote-notification</string>
+		<string>background-fetch</string>
 	</array>
+	
+	<!-- 位置权限 -->
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>头痛日记需要获取您的位置信息来获取当地天气数据，分析天气与头痛的关联性，并提供个性化的天气预警服务。</string>
+	
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>头痛日记需要获取您的位置信息来持续监控天气变化，及时发送头痛风险预警通知。</string>
+	
+	<!-- WeatherKit权限 -->
+	<key>NSWeatherServiceUsageDescription</key>
+	<string>头痛日记需要访问天气数据来分析天气变化与您头痛发作的关联性，并提供基于天气的头痛风险预警。</string>
+	
+	<!-- 通知权限说明 -->
+	<key>NSUserNotificationsUsageDescription</key>
+	<string>头痛日记需要发送通知来提醒您记录头痛状态，以及当检测到可能引发头痛的天气变化时发送预警通知。</string>
 </dict>
 </plist>
