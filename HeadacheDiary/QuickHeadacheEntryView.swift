@@ -23,6 +23,10 @@ struct QuickHeadacheEntryView: View {
     @State private var showError = false
     @State private var errorMessage = ""
     
+    // 编辑模式状态
+    @State private var existingRecord: HeadacheRecord?
+    @State private var isEditMode = false
+    
     // 固定的默认值 - 以天为单位，使用今天的开始时间
     private var todayTimestamp: Date {
         Calendar.current.startOfDay(for: Date())
@@ -47,20 +51,31 @@ struct QuickHeadacheEntryView: View {
                     // 标题和说明
                     VStack(spacing: 12) {
                         HStack {
-                            Image(systemName: "clock.badge")
+                            Image(systemName: isEditMode ? "pencil.circle" : "clock.badge")
                                 .foregroundColor(.orange)
                                 .font(.title)
-                            Text("快速记录")
+                            Text(isEditMode ? "编辑快速记录" : "快速记录")
                                 .font(.title2.bold())
                         }
                         
                         VStack(spacing: 6) {
-                            Text("记录今天的轻微头痛")
+                            Text(isEditMode ? "修改今天的轻微头痛记录" : "记录今天的轻微头痛")
                                 .font(.headline)
                                 .foregroundColor(.primary)
                             Text("强度2级 • 若有若无症状")
                                 .font(.subheadline)
                                 .foregroundColor(.secondary)
+                            
+                            // 显示编辑模式提示
+                            if isEditMode {
+                                Text("今天已有记录，点击保存将更新现有记录")
+                                    .font(.caption)
+                                    .foregroundColor(.blue)
+                                    .padding(.horizontal, 12)
+                                    .padding(.vertical, 4)
+                                    .background(Color.blue.opacity(0.1))
+                                    .cornerRadius(8)
+                            }
                         }
                     }
                     .padding(20)
@@ -131,8 +146,8 @@ struct QuickHeadacheEntryView: View {
                                         .tint(.white)
                                     Text("保存中...")
                                 } else {
-                                    Image(systemName: "checkmark.circle.fill")
-                                    Text("保存今天的记录")
+                                    Image(systemName: isEditMode ? "checkmark.circle.fill" : "plus.circle.fill")
+                                    Text(isEditMode ? "更新今天的记录" : "保存今天的记录")
                                 }
                             }
                             .font(.headline)
@@ -144,6 +159,27 @@ struct QuickHeadacheEntryView: View {
                         }
                         .disabled(isSaving)
                         
+                        // 删除按钮（仅编辑模式显示）
+                        if isEditMode {
+                            Button(action: deleteQuickEntry) {
+                                HStack {
+                                    Image(systemName: "trash")
+                                    Text("删除今天的记录")
+                                }
+                                .font(.subheadline)
+                                .foregroundColor(.red)
+                                .frame(maxWidth: .infinity)
+                                .padding()
+                                .background(Color.red.opacity(0.1))
+                                .cornerRadius(12)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 12)
+                                        .stroke(Color.red.opacity(0.3), lineWidth: 1)
+                                )
+                            }
+                            .disabled(isSaving)
+                        }
+                        
                         // 提示信息
                         Text("记录日期：\(formattedDate)")
                             .font(.caption)
@@ -153,7 +189,7 @@ struct QuickHeadacheEntryView: View {
                 }
                 .padding()
             }
-            .navigationTitle("快速记录")
+            .navigationTitle(isEditMode ? "编辑快速记录" : "快速记录")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
@@ -165,6 +201,9 @@ struct QuickHeadacheEntryView: View {
             } message: {
                 Text(errorMessage)
             }
+            .onAppear {
+                checkForExistingQuickRecord()
+            }
         }
     }
     
@@ -174,16 +213,92 @@ struct QuickHeadacheEntryView: View {
         return formatter.string(from: todayTimestamp)
     }
     
+    // 检查今天是否已有快速记录
+    private func checkForExistingQuickRecord() {
+        let request: NSFetchRequest<HeadacheRecord> = HeadacheRecord.fetchRequest()
+        
+        // 查找今天的快速记录
+        let startOfDay = Calendar.current.startOfDay(for: Date())
+        let endOfDay = Calendar.current.date(byAdding: .day, value: 1, to: startOfDay)!
+        
+        request.predicate = NSPredicate(format: "timestamp >= %@ AND timestamp < %@ AND note CONTAINS[c] %@",
+                                      startOfDay as NSDate,
+                                      endOfDay as NSDate,
+                                      "快速记录")
+        request.fetchLimit = 1
+        
+        do {
+            let results = try viewContext.fetch(request)
+            if let existingRecord = results.first {
+                // 找到现有记录，进入编辑模式
+                self.existingRecord = existingRecord
+                self.isEditMode = true
+                loadExistingRecordData(existingRecord)
+                print("✅ 找到今天的快速记录，进入编辑模式")
+            } else {
+                // 没有找到记录，保持新建模式
+                self.existingRecord = nil
+                self.isEditMode = false
+                print("✅ 今天没有快速记录，保持新建模式")
+            }
+        } catch {
+            print("❌ 查找现有快速记录失败: \(error)")
+        }
+    }
+    
+    // 加载现有记录的数据
+    private func loadExistingRecordData(_ record: HeadacheRecord) {
+        // 加载位置信息
+        selectedLocations.removeAll()
+        if record.locationForehead { selectedLocations.insert(.forehead) }
+        if record.locationLeftSide { selectedLocations.insert(.leftSide) }
+        if record.locationRightSide { selectedLocations.insert(.rightSide) }
+        if record.locationTemple { selectedLocations.insert(.temple) }
+        if record.locationFace { selectedLocations.insert(.face) }
+        
+        // 加载触发因素
+        if let triggersString = record.triggers,
+           let firstTrigger = triggersString.components(separatedBy: ",").first,
+           let trigger = HeadacheTrigger(rawValue: firstTrigger.trimmingCharacters(in: .whitespaces)) {
+            selectedTrigger = trigger
+        }
+        
+        // 加载备注（去除"快速记录 - "前缀）
+        if let note = record.note {
+            if note.hasPrefix("快速记录 - 今天的轻微头痛，若有若无；") {
+                quickNote = String(note.dropFirst("快速记录 - 今天的轻微头痛，若有若无；".count))
+            } else if note.hasPrefix("快速记录 - 今天的轻微头痛，若有若无") {
+                quickNote = ""
+            } else if note.hasPrefix("快速记录") {
+                // 处理其他格式的快速记录备注
+                let components = note.components(separatedBy: "；")
+                if components.count > 1 {
+                    quickNote = components[1]
+                } else {
+                    quickNote = ""
+                }
+            }
+        }
+    }
+    
     private func saveQuickEntry() {
         isSaving = true
         
         DispatchQueue.main.async {
             do {
-                let record = HeadacheRecord(context: viewContext)
+                let record: HeadacheRecord
                 
-                // 以天为单位的时间戳（今天的开始时间）
-                record.timestamp = todayTimestamp
-                record.intensity = defaultIntensity
+                if let existingRecord = existingRecord {
+                    // 编辑模式：更新现有记录
+                    record = existingRecord
+                    print("✅ 更新现有的快速记录")
+                } else {
+                    // 新建模式：创建新记录
+                    record = HeadacheRecord(context: viewContext)
+                    record.timestamp = todayTimestamp
+                    record.intensity = defaultIntensity
+                    print("✅ 创建新的快速记录")
+                }
                 
                 // 位置信息
                 record.locationForehead = selectedLocations.contains(.forehead)
@@ -215,7 +330,7 @@ struct QuickHeadacheEntryView: View {
                 
                 try viewContext.save()
                 
-                print("✅ 快速记录保存成功: 日期=\(todayTimestamp), 强度=\(record.intensity), 触发因素=\(selectedTrigger.displayName)")
+                print("✅ 快速记录保存成功: 日期=\(todayTimestamp), 强度=\(record.intensity), 触发因素=\(selectedTrigger.displayName), 模式=\(isEditMode ? "编辑" : "新建")")
                 
                 isSaving = false
                 
@@ -229,6 +344,34 @@ struct QuickHeadacheEntryView: View {
                 errorMessage = "保存失败：\(error.localizedDescription)"
                 showError = true
                 print("❌ 快速记录保存失败：\(error)")
+            }
+        }
+    }
+    
+    // 删除快速记录
+    private func deleteQuickEntry() {
+        guard let existingRecord = existingRecord else { return }
+        
+        isSaving = true
+        
+        DispatchQueue.main.async {
+            do {
+                viewContext.delete(existingRecord)
+                try viewContext.save()
+                
+                print("✅ 快速记录删除成功")
+                
+                isSaving = false
+                
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                    dismiss()
+                }
+                
+            } catch {
+                isSaving = false
+                errorMessage = "删除失败：\(error.localizedDescription)"
+                showError = true
+                print("❌ 快速记录删除失败：\(error)")
             }
         }
     }
