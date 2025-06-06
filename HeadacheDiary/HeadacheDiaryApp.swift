@@ -122,7 +122,7 @@ struct HeadacheDiaryApp: App {
         print("✅ 天气服务初始化完成")
     }
     
-    // 新增：发送每日预报（如果需要）
+    // 发送每日预报（如果需要）
     private func sendDailyForecastIfNeeded() async {
         let calendar = Calendar.current
         let today = calendar.startOfDay(for: Date())
@@ -137,7 +137,8 @@ struct HeadacheDiaryApp: App {
             let riskLevel = weatherWarningManager.tomorrowsRisk
             
             if weatherWarningManager.settings.enableDailyForecast {
-                NotificationManager.shared.sendDailyWeatherForecast(
+                // Fixed method call to be async
+                await NotificationManager.shared.sendDailyWeatherForecast(
                     forecast: forecast,
                     riskLevel: riskLevel
                 )

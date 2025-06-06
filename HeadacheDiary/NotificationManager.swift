@@ -10,10 +10,133 @@ import Foundation
 import UserNotifications
 import CoreData
 
+@MainActor
 class NotificationManager: ObservableObject {
+    // In NotificationManager.swift - Fix main actor issues
     static let shared = NotificationManager()
     
     private init() {}
+    
+    nonisolated func handleWeatherWarningResponse(action: String, warningId: String) {
+        Task { @MainActor in
+            switch action {
+            case "view_weather_warning":
+                // 打开天气分析页面
+                NotificationCenter.default.post(
+                    name: .openWeatherAnalysis,
+                    object: nil,
+                    userInfo: ["warningId": warningId]
+                )
+            case "quick_record_headache":
+                // 打开快速记录页面
+                NotificationCenter.default.post(
+                    name: .openQuickRecord,
+                    object: nil,
+                    userInfo: ["source": "weather_warning"]
+                )
+            case "dismiss_weather_warning":
+                // 标记预警为已读 - Fixed method call
+                if let uuid = UUID(uuidString: warningId) {
+                    await WeatherWarningManager.shared.markWarningAsRead(uuid)
+                }
+            default:
+                break
+            }
+        }
+    }
+    
+    
+    // Fix the method to be async and main actor
+    func sendWeatherWarningNotification(
+        title: String,
+        message: String,
+        riskLevel: HeadacheRisk,
+        warningId: String
+    ) async {
+        let content = UNMutableNotificationContent()
+        content.title = title
+        content.body = message
+        content.sound = .default
+        content.badge = 1
+        
+        // 根据风险级别设置中断级别
+        switch riskLevel {
+        case .low:
+            content.interruptionLevel = .passive
+        case .moderate:
+            content.interruptionLevel = .active
+        case .high, .veryHigh:
+            content.interruptionLevel = .timeSensitive
+        }
+        
+        content.userInfo = [
+            "type": "weather_warning",
+            "warningId": warningId,
+            "riskLevel": riskLevel.rawValue
+        ]
+        
+        content.categoryIdentifier = "weather_warning_category"
+        
+        let request = UNNotificationRequest(
+            identifier: "weather_warning_\(warningId)",
+            content: content,
+            trigger: nil // 立即发送
+        )
+        
+        do {
+            try await UNUserNotificationCenter.current().add(request)
+            print("✅ 发送天气预警通知成功: \(title)")
+        } catch {
+            print("❌ 发送天气预警通知失败: \(error)")
+        }
+    }
+    
+    // Fix the method to be async and main actor
+    func sendDailyWeatherForecast(forecast: String, riskLevel: HeadacheRisk) async {
+        let content = UNMutableNotificationContent()
+        content.title = "今日头痛风险预报"
+        content.body = forecast
+        content.sound = .default
+        
+        // 根据风险级别设置不同的标识符和内容
+        let riskEmoji: String
+        switch riskLevel {
+        case .low:
+            riskEmoji = "✅"
+            content.interruptionLevel = .passive
+        case .moderate:
+            riskEmoji = "⚠️"
+            content.interruptionLevel = .active
+        case .high:
+            riskEmoji = "🔶"
+            content.interruptionLevel = .timeSensitive
+        case .veryHigh:
+            riskEmoji = "🔴"
+            content.interruptionLevel = .timeSensitive
+        }
+        
+        content.title = "\(riskEmoji) \(content.title)"
+        
+        content.userInfo = [
+            "type": "weather_forecast",
+            "riskLevel": riskLevel.rawValue
+        ]
+        
+        content.categoryIdentifier = "weather_forecast_category"
+        
+        let request = UNNotificationRequest(
+            identifier: "daily_weather_forecast_\(Date().timeIntervalSince1970)",
+            content: content,
+            trigger: nil
+        )
+        
+        do {
+            try await UNUserNotificationCenter.current().add(request)
+            print("✅ 发送天气预报通知成功")
+        } catch {
+            print("❌ 发送天气预报通知失败: \(error)")
+        }
+    }
     
     // 请求通知权限
     func requestNotificationPermission() {
@@ -103,14 +226,14 @@ class NotificationManager: ObservableObject {
     }
     
     // 为未结束的头痛安排3小时间隔的提醒
-    func scheduleHeadacheReminders(for record: HeadacheRecord) {
+    func scheduleHeadacheReminders(for record: HeadacheRecord) async {
         guard let objectIDString = record.objectID.uriRepresentation().absoluteString.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) else {
             print("❌ 无法获取记录ID")
             return
         }
         
         // 清除该记录的现有通知
-        cancelHeadacheReminders(for: objectIDString)
+        await cancelHeadacheReminders(for: objectIDString)
         
         // 安排多个提醒（最多安排8次，即24小时）
         for i in 1...8 {
@@ -254,21 +377,41 @@ class NotificationManager: ObservableObject {
     }
     
     // 取消特定记录的所有提醒
-    func cancelHeadacheReminders(for recordID: String) {
-        let identifiers = (1...8).map { "headache_reminder_\(recordID)_\($0)" }
-        UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: identifiers)
-        print("✅ 已取消记录 \(recordID) 的所有提醒")
+    func cancelHeadacheReminders(for recordID: String) async {
+            let identifiers = (1...8).map { "headache_reminder_\(recordID)_\($0)" }
+            
+            await withCheckedContinuation { continuation in
+                UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: identifiers)
+                print("✅ 已取消记录 \(recordID) 的所有提醒")
+                continuation.resume()
+            }
+    }
+    
+    // Add this missing method as nonisolated
+    nonisolated func handleWeatherForecastResponse(action: String) {
+            Task { @MainActor in
+                switch action {
+                case "check_weather_detail":
+                    // 打开天气分析页面
+                    NotificationCenter.default.post(name: .openWeatherAnalysis, object: nil)
+                default:
+                    break
+                }
+            }
     }
     
     // 取消所有头痛提醒
-    func cancelAllHeadacheReminders() {
-        UNUserNotificationCenter.current().getPendingNotificationRequests { requests in
-            let headacheReminderIDs = requests
-                .filter { $0.identifier.hasPrefix("headache_reminder_") }
-                .map { $0.identifier }
-            
-            UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: headacheReminderIDs)
-            print("✅ 已取消所有头痛提醒通知")
+    func cancelAllHeadacheReminders() async {
+        await withCheckedContinuation { continuation in
+            UNUserNotificationCenter.current().getPendingNotificationRequests { requests in
+                let headacheReminderIDs = requests
+                    .filter { $0.identifier.hasPrefix("headache_reminder_") }
+                    .map { $0.identifier }
+                
+                UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: headacheReminderIDs)
+                print("✅ 已取消所有头痛提醒通知")
+                continuation.resume()
+            }
         }
     }
     
@@ -285,55 +428,23 @@ class NotificationManager: ObservableObject {
     }
     
     // 处理用户点击"头痛已结束"的操作
-    func handleHeadacheEndAction(recordID: String) {
-        // 这里需要访问Core Data来更新记录
-        // 由于NotificationManager是独立的，我们需要通过通知或回调来处理
-        let userInfo = ["recordID": recordID]
-        NotificationCenter.default.post(name: .headacheEnded, object: nil, userInfo: userInfo)
-        
-        // 取消该记录的后续提醒
-        cancelHeadacheReminders(for: recordID)
+    nonisolated func handleHeadacheEndAction(recordID: String) {
+            Task { @MainActor in
+                // This needs to access Core Data to update record
+                // Since NotificationManager is independent, we use notification pattern
+                let userInfo = ["recordID": recordID]
+                NotificationCenter.default.post(name: .headacheEnded, object: nil, userInfo: userInfo)
+                
+                // Cancel subsequent reminders
+                await cancelHeadacheReminders(for: recordID)
+            }
     }
     
     // 处理用户点击"还在疼痛"的操作
-    func handleHeadacheContinueAction(recordID: String) {
-        // 暂时不需要特殊处理，让后续的提醒继续
-        print("用户表示头痛仍在继续，将继续提醒")
-    }
-    
-    // 新增：处理天气预警通知响应
-    func handleWeatherWarningResponse(action: String, warningId: String) {
-        switch action {
-        case "view_weather_warning":
-            // 打开天气分析页面
-            NotificationCenter.default.post(
-                name: .openWeatherAnalysis,
-                object: nil,
-                userInfo: ["warningId": warningId]
-            )
-        case "quick_record_headache":
-            // 打开快速记录页面
-            NotificationCenter.default.post(
-                name: .openQuickRecord,
-                object: nil,
-                userInfo: ["source": "weather_warning"]
-            )
-        case "dismiss_weather_warning":
-            // 标记预警为已读
-            WeatherWarningManager.shared.markWarningAsRead(UUID(uuidString: warningId) ?? UUID())
-        default:
-            break
-        }
-    }
-    
-    // 新增：处理天气预报通知响应
-    func handleWeatherForecastResponse(action: String) {
-        switch action {
-        case "check_weather_detail":
-            // 打开天气分析页面
-            NotificationCenter.default.post(name: .openWeatherAnalysis, object: nil)
-        default:
-            break
+    nonisolated func handleHeadacheContinueAction(recordID: String) {
+        Task { @MainActor in
+            // Let subsequent reminders continue - no special handling needed
+            print("用户表示头痛仍在继续，将继续提醒")
         }
     }
 }
@@ -346,21 +457,20 @@ extension Notification.Name {
 }
 
 // 通知代理，处理用户与通知的交互
+// In NotificationManager.swift - Fix the NotificationDelegate class
+
 class NotificationDelegate: NSObject, UNUserNotificationCenterDelegate {
     
-    // 应用在前台时如何显示通知
+    // Application in foreground notification presentation
     func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification, withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
-        // 这里使用 UNNotificationPresentationOptions，可以使用新的选项
         if #available(iOS 14.0, *) {
-            // iOS 14.0+ 使用新的选项替代已弃用的 .alert
             completionHandler([.banner, .list, .sound, .badge])
         } else {
-            // iOS 14.0 以下继续使用 .alert
             completionHandler([.alert, .sound, .badge])
         }
     }
     
-    // 处理用户点击通知或通知按钮的操作
+    // Handle user notification interactions
     func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse, withCompletionHandler completionHandler: @escaping () -> Void) {
         let userInfo = response.notification.request.content.userInfo
         
@@ -390,11 +500,12 @@ class NotificationDelegate: NSObject, UNUserNotificationCenterDelegate {
         
         switch response.actionIdentifier {
         case "end_headache":
+            // Now calling the nonisolated method - this should work
             NotificationManager.shared.handleHeadacheEndAction(recordID: recordID)
         case "continue_headache":
+            // Now calling the nonisolated method - this should work
             NotificationManager.shared.handleHeadacheContinueAction(recordID: recordID)
         case UNNotificationDefaultActionIdentifier:
-            // 用户点击了通知本身，可以打开应用到特定页面
             print("用户点击了头痛提醒通知")
         default:
             break
@@ -406,6 +517,7 @@ class NotificationDelegate: NSObject, UNUserNotificationCenterDelegate {
             return
         }
         
+        // Now calling the nonisolated method - this should work
         NotificationManager.shared.handleWeatherWarningResponse(
             action: response.actionIdentifier,
             warningId: warningId
@@ -413,6 +525,9 @@ class NotificationDelegate: NSObject, UNUserNotificationCenterDelegate {
     }
     
     private func handleWeatherForecastResponse(response: UNNotificationResponse) {
+        // This method needs to be added to NotificationManager as nonisolated as well
         NotificationManager.shared.handleWeatherForecastResponse(action: response.actionIdentifier)
     }
 }
+
+

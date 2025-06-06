@@ -42,7 +42,7 @@ struct WeatherWarningSettings: Codable {
 }
 
 // 预警类型
-enum WeatherWarningType: String, CaseIterable {
+enum WeatherWarningType: String, CaseIterable, Codable {
     case pressureChange = "pressure_change"
     case temperatureChange = "temperature_change"
     case highHumidity = "high_humidity"
@@ -73,7 +73,7 @@ enum WeatherWarningType: String, CaseIterable {
     }
 }
 
-// 预警记录
+// Fixed WeatherWarning struct with proper Codable implementation
 struct WeatherWarning: Identifiable, Codable {
     let id: UUID
     let type: WeatherWarningType
@@ -91,6 +91,33 @@ struct WeatherWarning: Identifiable, Codable {
         self.riskLevel = riskLevel
         self.weatherData = weatherData
         self.isRead = isRead
+    }
+    
+    // Custom Codable implementation if needed
+    enum CodingKeys: String, CodingKey {
+        case id, type, timestamp, message, riskLevel, weatherData, isRead
+    }
+    
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(UUID.self, forKey: .id)
+        type = try container.decode(WeatherWarningType.self, forKey: .type)
+        timestamp = try container.decode(Date.self, forKey: .timestamp)
+        message = try container.decode(String.self, forKey: .message)
+        riskLevel = try container.decode(HeadacheRisk.self, forKey: .riskLevel)
+        weatherData = try container.decode(WeatherRecord.self, forKey: .weatherData)
+        isRead = try container.decode(Bool.self, forKey: .isRead)
+    }
+    
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(id, forKey: .id)
+        try container.encode(type, forKey: .type)
+        try container.encode(timestamp, forKey: .timestamp)
+        try container.encode(message, forKey: .message)
+        try container.encode(riskLevel, forKey: .riskLevel)
+        try container.encode(weatherData, forKey: .weatherData)
+        try container.encode(isRead, forKey: .isRead)
     }
 }
 
@@ -170,7 +197,7 @@ class WeatherWarningManager: ObservableObject {
             .store(in: &cancellables)
     }
     
-    private func checkForWarnings(weather: WeatherRecord) async {
+    public func checkForWarnings(weather: WeatherRecord) async {
         guard settings.isEnabled else { return }
         
         var potentialWarnings: [WeatherWarning] = []
@@ -291,7 +318,7 @@ class WeatherWarningManager: ObservableObject {
         print("✅ 添加天气预警: \(warning.type.title)")
     }
     
-    func markWarningAsRead(_ warningId: UUID) {
+    public func markWarningAsRead(_ warningId: UUID) {
         if let index = warnings.firstIndex(where: { $0.id == warningId }) {
             let updatedWarning = WeatherWarning(
                 type: warnings[index].type,

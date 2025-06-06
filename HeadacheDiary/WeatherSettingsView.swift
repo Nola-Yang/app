@@ -392,9 +392,11 @@ struct WeatherSettingsView: View {
     }
     
     private func clearWeatherHistory() {
-        // 清除天气历史数据
-        weatherService.weatherHistory.removeAll()
-        UserDefaults.standard.removeObject(forKey: "WeatherHistory")
+        // Clear weather history data
+        Task { @MainActor in
+            weatherService.weatherHistory.removeAll()
+            UserDefaults.standard.removeObject(forKey: "WeatherHistory")
+        }
     }
 }
 
@@ -515,14 +517,14 @@ struct OverallWarningStatsCard: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
             
             HStack {
-                StatCard(
+                WeatherStatCard(  // Use the renamed version
                     title: "总预警数",
                     value: "\(statistics.totalWarnings)",
                     subtitle: "最近30天",
                     color: .blue
                 )
                 
-                StatCard(
+                WeatherStatCard(  // Use the renamed version
                     title: "周平均",
                     value: "\(statistics.averageWarningsPerWeek.formatted(.number.precision(.fractionLength(1))))",
                     subtitle: "次/周",
@@ -530,9 +532,9 @@ struct OverallWarningStatsCard: View {
                 )
                 
                 if let mostCommon = statistics.mostCommonWarningType {
-                    StatCard(
+                    WeatherStatCard(  // Use the renamed version
                         title: "最常见",
-                        value: mostCommon.title.prefix(4) + "...",
+                        value: String(mostCommon.title.prefix(4)) + "...",
                         subtitle: "类型",
                         color: .purple
                     )
@@ -545,6 +547,7 @@ struct OverallWarningStatsCard: View {
         .shadow(radius: 2)
     }
 }
+
 
 struct WarningTypeDistributionCard: View {
     let statistics: WeatherWarningStatistics
@@ -677,7 +680,7 @@ struct WarningTrendCard: View {
     }
 }
 
-struct StatCard: View {
+struct WeatherStatCard: View {  // Renamed to avoid conflict
     let title: String
     let value: String
     let subtitle: String

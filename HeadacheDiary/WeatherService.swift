@@ -77,8 +77,7 @@ enum WeatherCondition: String, CaseIterable {
     }
 }
 
-// 头痛风险级别
-enum HeadacheRisk: Int, CaseIterable {
+enum HeadacheRisk: Int, CaseIterable, Codable {
     case low = 1
     case moderate = 2
     case high = 3
@@ -392,29 +391,30 @@ class WeatherService: ObservableObject {
     
     // 获取明天的天气预测
     func fetchTomorrowWeatherForecast() async -> WeatherRecord? {
-        guard isLocationAuthorized, let location = locationManager.location else { return nil }
-        
-        do {
-            let weather = try await weatherService.weather(for: location)
-            guard let tomorrowForecast = weather.dailyForecast.first else { return nil }
+            guard isLocationAuthorized, let location = locationManager.location else { return nil }
             
-            let tomorrow = Calendar.current.date(byAdding: .day, value: 1, to: Date())!
-            
-            return WeatherRecord(
-                date: tomorrow,
-                location: location.coordinate,
-                temperature: tomorrowForecast.highTemperature.value,
-                humidity: 0, // 日预报中可能没有详细湿度
-                pressure: 0, // 日预报中可能没有详细气压
-                condition: mapWeatherCondition(tomorrowForecast.condition).rawValue,
-                uvIndex: tomorrowForecast.uvIndex.value,
-                windSpeed: tomorrowForecast.wind.speed.value * 3.6,
-                precipitationChance: tomorrowForecast.precipitationChance * 100
-            )
-        } catch {
-            print("❌ 获取明天天气预报失败: \(error)")
-            return nil
-        }
+            do {
+                let weather = try await weatherService.weather(for: location)
+                guard let tomorrowForecast = weather.dailyForecast.first else { return nil }
+                
+                let tomorrow = Calendar.current.date(byAdding: .day, value: 1, to: Date())!
+                
+                return WeatherRecord(
+                    date: tomorrow,
+                    location: location.coordinate,
+                    temperature: tomorrowForecast.highTemperature.value,
+                    humidity: 0, // Daily forecast might not have detailed humidity
+                    pressure: 0, // Daily forecast might not have detailed pressure
+                    // FIX: Change from mapWeatherCondition to mapWeatherKitCondition
+                    condition: mapWeatherKitCondition(tomorrowForecast.condition).rawValue,
+                    uvIndex: tomorrowForecast.uvIndex.value,
+                    windSpeed: tomorrowForecast.wind.speed.value * 3.6,
+                    precipitationChance: tomorrowForecast.precipitationChance * 100
+                )
+            } catch {
+                print("❌ 获取明天天气预报失败: \(error)")
+                return nil
+            }
     }
 }
 
@@ -511,7 +511,9 @@ extension CLLocationCoordinate2D: Codable {
     
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
-        latitude = try container.decode(Double.self, forKey: .latitude)
-        longitude = try container.decode(Double.self, forKey: .longitude)
+        let latitude = try container.decode(Double.self, forKey: .latitude)
+        let longitude = try container.decode(Double.self, forKey: .longitude)
+        self.init(latitude: latitude, longitude: longitude)
     }
 }
+
