@@ -57,6 +57,8 @@ struct AddEntryView: View {
     @State private var showError = false
     @State private var errorMessage = ""
     
+    @State private var medicationEntries: [MedicationEntry] = []
+    
     private var isEditing: Bool {
         editingRecord != nil
     }
@@ -261,100 +263,18 @@ struct AddEntryView: View {
     
     @ViewBuilder
     private func medicineStep() -> some View {
-        Form {
-            Section {
-                Toggle("是否服药", isOn: $tookMedicine)
+        ScrollView {
+            VStack(spacing: 20) {
+                Text("用药记录")
+                    .font(.headline)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.horizontal)
                 
-                if tookMedicine {
-                    DatePicker("服药时间", selection: $medicineTime, displayedComponents: [.date, .hourAndMinute])
-                    
-                    Picker("药物类型", selection: $medicineType) {
-                        ForEach(MedicineType.allCases, id: \.self) { medicine in
-                            Text(medicine.displayName).tag(medicine)
-                        }
-                    }
-                    .pickerStyle(SegmentedPickerStyle())
-                    
-                    Toggle("是否缓解", isOn: $medicineRelief)
-                }
-            } header: {
-                Text("基础用药信息")
-            }
-            
-            if tookMedicine {
-                // 已保存的自定义药物
-                let savedCustomMedicines = customOptionsManager.getCustomOptions(for: .medicine)
-                if !savedCustomMedicines.isEmpty {
-                    Section {
-                        ForEach(savedCustomMedicines, id: \.id) { option in
-                            Button(action: {
-                                if selectedCustomMedicines.contains(option.text) {
-                                    selectedCustomMedicines.remove(option.text)
-                                } else {
-                                    selectedCustomMedicines.insert(option.text)
-                                }
-                            }) {
-                                HStack {
-                                    Image(systemName: "person.badge.plus")
-                                        .foregroundColor(.purple)
-                                    Text(option.text)
-                                        .foregroundColor(.primary)
-                                    Spacer()
-                                    if selectedCustomMedicines.contains(option.text) {
-                                        Image(systemName: "checkmark.circle.fill")
-                                            .foregroundColor(.purple)
-                                    } else {
-                                        Image(systemName: "circle")
-                                            .foregroundColor(.gray)
-                                    }
-                                }
-                            }
-                        }
-                    } header: {
-                        Text("已保存的其他药物")
-                    }
-                }
+                // 新的用药记录组件
+                MedicationTrackingView(medicationEntries: $medicationEntries)
+                    .padding(.horizontal)
                 
-                // 临时添加的药物
-                Section {
-                    ForEach(temporaryCustomMedicines, id: \.self) { medicine in
-                        HStack {
-                            Image(systemName: "clock")
-                                .foregroundColor(.orange)
-                            Text(medicine)
-                            Spacer()
-                            Button("删除") {
-                                temporaryCustomMedicines.removeAll { $0 == medicine }
-                            }
-                            .font(.caption)
-                            .foregroundColor(.red)
-                        }
-                    }
-                    
-                    HStack {
-                        TextField("临时添加药物", text: $newCustomMedicine)
-                        Button("添加") {
-                            let trimmed = newCustomMedicine.trimmingCharacters(in: .whitespacesAndNewlines)
-                            if !trimmed.isEmpty && !temporaryCustomMedicines.contains(trimmed) {
-                                temporaryCustomMedicines.append(trimmed)
-                                newCustomMedicine = ""
-                            }
-                        }
-                        .disabled(newCustomMedicine.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
-                    }
-                } header: {
-                    Text("本次临时添加")
-                }
-                
-                // 用药备注
-                Section {
-                    TextField("用药详细备注", text: $medicineNote, axis: .vertical)
-                        .lineLimit(2...4)
-                } header: {
-                    Text("用药备注")
-                } footer: {
-                    Text("记录用药效果、副作用、服用方式等详细信息")
-                }
+                Spacer(minLength: 20)
             }
         }
     }
@@ -721,6 +641,23 @@ struct AddEntryView: View {
                 record.startTime = startTime
                 record.endTime = hasEndTime ? endTime : nil
                 record.timeNote = timeNote.isEmpty ? nil : timeNote
+                
+                // 保存用药记录
+                record.medicationEntries = medicationEntries
+                
+                // 更新缓存字段
+                record.totalDosageValue = medicationEntries.reduce(0) { $0 + $1.dosage }
+                record.hasMedicationTimeline = medicationEntries.count > 1
+                
+                // 为了兼容性，更新传统字段
+                record.tookMedicine = !medicationEntries.isEmpty
+                if let firstEntry = medicationEntries.first {
+                    record.medicineTime = firstEntry.time
+                    if !firstEntry.isCustomMedicine {
+                        record.medicineType = firstEntry.medicineType
+                    }
+                }
+                record.medicineRelief = medicationEntries.contains { $0.relief }
                 
                 // 保存到Core Data
                 try viewContext.save()

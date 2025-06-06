@@ -348,30 +348,61 @@ struct EnhancedTriggerStatsCard: View {
     }
 }
 
-// 增强的用药统计卡片（包括自定义药物）
+
 struct EnhancedMedicineStatsCard: View {
     let records: [HeadacheRecord]
     
-    private var medicineStats: (total: Int, relief: Int, predefined: [String: Int], custom: [String: Int]) {
-        let medicineRecords = records.filter { $0.tookMedicine }
-        let reliefCount = medicineRecords.filter { $0.medicineRelief }.count
+    private var medicineStats: (
+        totalEntries: Int,
+        totalDosage: Double,
+        averageDosage: Double,
+        effectiveEntries: Int,
+        effectivenessRate: Double,
+        medicineBreakdown: [String: (count: Int, dosage: Double, effectiveness: Double)]
+    ) {
+        var totalEntries = 0
+        var totalDosage: Double = 0
+        var effectiveEntries = 0
+        var medicineBreakdown: [String: (count: Int, dosage: Double, effectiveness: Int)] = [:]
         
-        var predefinedStats: [String: Int] = [:]
-        var customStats: [String: Int] = [:]
-        
-        for record in medicineRecords {
-            // 预定义药物
-            if let medicineName = record.medicineName {
-                predefinedStats[medicineName, default: 0] += 1
-            }
+        for record in records {
+            let entries = record.medicationEntries
             
-            // 自定义药物
-            for customMedicine in record.customMedicineNames {
-                customStats[customMedicine, default: 0] += 1
+            for entry in entries {
+                totalEntries += 1
+                totalDosage += entry.dosage
+                
+                if entry.relief {
+                    effectiveEntries += 1
+                }
+                
+                let medicineName = entry.displayName
+                let current = medicineBreakdown[medicineName] ?? (count: 0, dosage: 0, effectiveness: 0)
+                medicineBreakdown[medicineName] = (
+                    count: current.count + 1,
+                    dosage: current.dosage + entry.dosage,
+                    effectiveness: current.effectiveness + (entry.relief ? 1 : 0)
+                )
             }
         }
         
-        return (medicineRecords.count, reliefCount, predefinedStats, customStats)
+        let averageDosage = totalEntries > 0 ? totalDosage / Double(totalEntries) : 0
+        let effectivenessRate = totalEntries > 0 ? Double(effectiveEntries) / Double(totalEntries) * 100 : 0
+        
+        // 转换为最终格式
+        let finalBreakdown = medicineBreakdown.mapValues { stats in
+            let effectiveness = stats.count > 0 ? Double(stats.effectiveness) / Double(stats.count) * 100 : 0
+            return (count: stats.count, dosage: stats.dosage, effectiveness: effectiveness)
+        }
+        
+        return (
+            totalEntries: totalEntries,
+            totalDosage: totalDosage,
+            averageDosage: averageDosage,
+            effectiveEntries: effectiveEntries,
+            effectivenessRate: effectivenessRate,
+            medicineBreakdown: finalBreakdown
+        )
     }
     
     var body: some View {
@@ -382,76 +413,281 @@ struct EnhancedMedicineStatsCard: View {
             
             // 总体用药统计
             HStack {
-                VStack {
-                    Text("\(medicineStats.total)")
-                        .font(.title2.bold())
-                        .foregroundColor(.blue)
-                    Text("用药次数")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                }
-                .frame(maxWidth: .infinity)
+                MetricCard(
+                    title: "总用药次数",
+                    value: "\(medicineStats.totalEntries)",
+                    subtitle: "次",
+                    color: .blue
+                )
                 
-                VStack {
-                    Text(medicineStats.total > 0 ? "\(Int(Double(medicineStats.relief) / Double(medicineStats.total) * 100))%" : "0%")
-                        .font(.title2.bold())
-                        .foregroundColor(.green)
-                    Text("缓解率")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                }
-                .frame(maxWidth: .infinity)
+                MetricCard(
+                    title: "总剂量",
+                    value: "\(Int(medicineStats.totalDosage))",
+                    subtitle: "mg",
+                    color: .purple
+                )
+                
+                MetricCard(
+                    title: "平均剂量",
+                    value: "\(Int(medicineStats.averageDosage))",
+                    subtitle: "mg/次",
+                    color: .orange
+                )
+                
+                MetricCard(
+                    title: "有效率",
+                    value: String(format: "%.0f%%", medicineStats.effectivenessRate),
+                    subtitle: "缓解率",
+                    color: .green
+                )
             }
             
-            // 预定义药物统计
-            if !medicineStats.predefined.isEmpty {
+            // 按药物分组的详细统计
+            if !medicineStats.medicineBreakdown.isEmpty {
                 VStack(alignment: .leading, spacing: 8) {
-                    Text("常用药物:")
+                    Text("各药物详细统计:")
                         .font(.subheadline.bold())
                     
-                    HStack {
-                        ForEach(medicineStats.predefined.sorted(by: { $0.value > $1.value }), id: \.key) { medicine, count in
-                            VStack {
-                                Text("\(count)")
-                                    .font(.title2.bold())
-                                    .foregroundColor(medicine == "泰诺" ? .purple : .red)
+                    ForEach(medicineStats.medicineBreakdown.sorted(by: { $0.value.count > $1.value.count }), id: \.key) { medicine, stats in
+                        VStack(alignment: .leading, spacing: 4) {
+                            HStack {
                                 Text(medicine)
+                                    .font(.caption.bold())
+                                Spacer()
+                                Text("\(stats.count)次")
                                     .font(.caption)
                                     .foregroundColor(.secondary)
                             }
-                            .frame(maxWidth: .infinity)
+                            
+                            HStack {
+                                HStack {
+                                    Text("总剂量:")
+                                    Text("\(Int(stats.dosage))mg")
+                                        .foregroundColor(.purple)
+                                }
+                                
+                                Spacer()
+                                
+                                HStack {
+                                    Text("平均:")
+                                    Text("\(Int(stats.dosage / Double(stats.count)))mg")
+                                        .foregroundColor(.orange)
+                                }
+                                
+                                Spacer()
+                                
+                                HStack {
+                                    Text("有效率:")
+                                    Text("\(Int(stats.effectiveness))%")
+                                        .foregroundColor(stats.effectiveness >= 70 ? .green : stats.effectiveness >= 40 ? .orange : .red)
+                                }
+                            }
+                            .font(.caption2)
                         }
+                        .padding(8)
+                        .background(Color(.systemGray6))
+                        .cornerRadius(6)
                     }
                 }
             }
             
-            // 自定义药物统计
-            if !medicineStats.custom.isEmpty {
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("其他药物:")
-                        .font(.subheadline.bold())
-                    
-                    ForEach(medicineStats.custom.sorted(by: { $0.value > $1.value }), id: \.key) { medicine, count in
-                        HStack {
-                            HStack(spacing: 4) {
-                                Image(systemName: "person.badge.plus")
-                                    .foregroundColor(.purple)
-                                    .font(.caption)
-                                Text(medicine)
-                                    .foregroundColor(.purple)
-                            }
-                            Spacer()
-                            Text("\(count)次")
-                                .foregroundColor(.secondary)
-                        }
-                    }
-                }
+            // 用药趋势洞察
+            if medicineStats.totalEntries >= 3 {
+                MedicationInsightsView(records: records)
             }
         }
         .padding()
         .background(Color(.systemBackground))
         .cornerRadius(12)
         .shadow(radius: 2)
+    }
+}
+
+// 用药洞察视图
+struct MedicationInsightsView: View {
+    let records: [HeadacheRecord]
+    
+    private var insights: [String] {
+        var insights: [String] = []
+        
+        // 分析多次用药模式
+        let multiMedicationRecords = records.filter { $0.medicationEntries.count > 1 }
+        if !multiMedicationRecords.isEmpty {
+            let rate = Double(multiMedicationRecords.count) / Double(records.count) * 100
+            insights.append("有 \(Int(rate))% 的头痛需要多次用药")
+        }
+        
+        // 分析高剂量使用
+        let allEntries = records.flatMap { $0.medicationEntries }
+        let highDosageEntries = allEntries.filter { $0.dosage > 600 }
+        if !highDosageEntries.isEmpty {
+            let rate = Double(highDosageEntries.count) / Double(allEntries.count) * 100
+            insights.append("有 \(Int(rate))% 的用药使用了高剂量 (>600mg)")
+        }
+        
+        // 分析药物切换效果
+        let switchingRecords = records.filter { record in
+            let entries = record.medicationEntries
+            return entries.count > 1 && entries.first?.relief == false && entries.last?.relief == true
+        }
+        if !switchingRecords.isEmpty {
+            insights.append("换药策略在 \(switchingRecords.count) 次头痛中有效")
+        }
+        
+        return insights
+    }
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text("用药洞察:")
+                .font(.caption.bold())
+            
+            ForEach(insights, id: \.self) { insight in
+                HStack(alignment: .top) {
+                    Image(systemName: "lightbulb")
+                        .foregroundColor(.orange)
+                        .font(.caption)
+                        .padding(.top, 1)
+                    Text(insight)
+                        .font(.caption)
+                }
+            }
+        }
+        .padding(8)
+        .background(Color.orange.opacity(0.1))
+        .cornerRadius(6)
+    }
+}
+
+// 更新的HeadacheRecordRow，显示增强的用药信息
+extension HeadacheRecordRow {
+    private var medicationSummary: String? {
+        let entries = record.medicationEntries
+        guard !entries.isEmpty else { return nil }
+        
+        if entries.count == 1 {
+            let entry = entries[0]
+            return "\(entry.displayName) \(entry.dosageText)\(entry.relief ? " ✓" : " ✗")"
+        } else {
+            let effectiveCount = entries.filter { $0.relief }.count
+            let totalDosage = entries.reduce(0) { $0 + $1.dosage }
+            return "\(entries.count)次用药，共\(Int(totalDosage))mg，\(effectiveCount)次有效"
+        }
+    }
+    
+    // 在body中的用药信息部分替换为：
+    private var medicationInfoView: some View {
+        Group {
+            if let summary = medicationSummary {
+                HStack {
+                    Image(systemName: "pills")
+                        .foregroundColor(.green)
+                        .font(.caption)
+                    Text(summary)
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+            }
+        }
+    }
+}
+
+// 新增：详细的用药时间线视图
+struct MedicationTimelineView: View {
+    let record: HeadacheRecord
+    
+    private var entries: [MedicationEntry] {
+        record.medicationEntries.sorted { $0.time < $1.time }
+    }
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("用药时间线")
+                .font(.headline)
+            
+            if entries.isEmpty {
+                Text("未用药")
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+            } else {
+                ForEach(Array(entries.enumerated()), id: \.element.id) { index, entry in
+                    HStack {
+                        // 时间线指示器
+                        VStack {
+                            Circle()
+                                .fill(entry.relief ? Color.green : Color.red)
+                                .frame(width: 12, height: 12)
+                            
+                            if index < entries.count - 1 {
+                                Rectangle()
+                                    .fill(Color.gray.opacity(0.3))
+                                    .frame(width: 2, height: 30)
+                            }
+                        }
+                        
+                        // 用药详情
+                        VStack(alignment: .leading, spacing: 4) {
+                            HStack {
+                                Text(entry.time, formatter: timeOnlyFormatter)
+                                    .font(.caption.bold())
+                                Spacer()
+                                Text(entry.dosageText)
+                                    .font(.caption)
+                                    .padding(.horizontal, 6)
+                                    .padding(.vertical, 2)
+                                    .background(Color.blue.opacity(0.1))
+                                    .cornerRadius(4)
+                            }
+                            
+                            Text(entry.displayName)
+                                .font(.subheadline)
+                            
+                            if entry.relief {
+                                if let reliefTime = entry.reliefTime {
+                                    Text("缓解于 \(reliefTime, formatter: timeOnlyFormatter)")
+                                        .font(.caption2)
+                                        .foregroundColor(.green)
+                                } else {
+                                    Text("有效缓解")
+                                        .font(.caption2)
+                                        .foregroundColor(.green)
+                                }
+                            } else {
+                                Text("未缓解")
+                                    .font(.caption2)
+                                    .foregroundColor(.red)
+                            }
+                            
+                            if let note = entry.note, !note.isEmpty {
+                                Text(note)
+                                    .font(.caption2)
+                                    .foregroundColor(.secondary)
+                                    .italic()
+                            }
+                        }
+                        
+                        Spacer()
+                    }
+                    .padding(.bottom, index < entries.count - 1 ? 8 : 0)
+                }
+            }
+        }
+        .padding()
+        .background(Color(.systemGray6))
+        .cornerRadius(12)
+    }
+}
+
+private let timeOnlyFormatter: DateFormatter = {
+    let formatter = DateFormatter()
+    formatter.timeStyle = .short
+    return formatter
+}()
+
+// 在MonthlyView中使用MedicationTimelineView
+extension MonthlyView {
+    private func medicationDetailView(for record: HeadacheRecord) -> some View {
+        MedicationTimelineView(record: record)
     }
 }
 
