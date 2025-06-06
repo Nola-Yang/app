@@ -32,6 +32,11 @@ struct AddEntryView: View {
     @State private var startTime = Date()
     @State private var endTime = Date()
     
+    // 状态管理
+    @State private var isSaving = false
+    @State private var showError = false
+    @State private var errorMessage = ""
+    
     private var isEditing: Bool {
         editingRecord != nil
     }
@@ -48,25 +53,11 @@ struct AddEntryView: View {
                     .padding()
                 
                 TabView(selection: $currentStep) {
-                    // 步骤 1: 基本信息
-                    basicInfoStep()
-                        .tag(0)
-                    
-                    // 步骤 2: 疼痛位置
-                    locationStep()
-                        .tag(1)
-                    
-                    // 步骤 3: 用药信息
-                    medicineStep()
-                        .tag(2)
-                    
-                    // 步骤 4: 疼痛特征
-                    symptomsStep()
-                        .tag(3)
-                    
-                    // 步骤 5: 时间范围
-                    timeRangeStep()
-                        .tag(4)
+                    basicInfoStep().tag(0)
+                    locationStep().tag(1)
+                    medicineStep().tag(2)
+                    symptomsStep().tag(3)
+                    timeRangeStep().tag(4)
                 }
                 .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
                 
@@ -78,6 +69,7 @@ struct AddEntryView: View {
                                 currentStep -= 1
                             }
                         }
+                        .disabled(isSaving)
                     }
                     
                     Spacer()
@@ -89,11 +81,13 @@ struct AddEntryView: View {
                             }
                         }
                         .buttonStyle(.borderedProminent)
+                        .disabled(isSaving)
                     } else {
                         Button(isEditing ? "更新" : "保存") {
                             save()
                         }
                         .buttonStyle(.borderedProminent)
+                        .disabled(isSaving)
                     }
                 }
                 .padding()
@@ -113,9 +107,12 @@ struct AddEntryView: View {
                 }
             }
             .onAppear {
-                if let record = editingRecord {
-                    loadExistingData(from: record)
-                }
+                loadData()
+            }
+            .alert("保存失败", isPresented: $showError) {
+                Button("确定") { }
+            } message: {
+                Text(errorMessage)
             }
         }
     }
@@ -211,7 +208,9 @@ struct AddEntryView: View {
         }
     }
     
-    private func loadExistingData(from record: HeadacheRecord) {
+    private func loadData() {
+        guard let record = editingRecord else { return }
+        
         // 基本信息
         timestamp = record.timestamp ?? Date()
         intensity = Double(record.intensity)
@@ -245,59 +244,91 @@ struct AddEntryView: View {
     }
     
     private func save() {
-        let record = editingRecord ?? HeadacheRecord(context: viewContext)
+        isSaving = true
         
-        // 基本信息
-        record.timestamp = timestamp
-        record.intensity = Int16(intensity)
-        record.note = note.isEmpty ? nil : note
-        
-        // 疼痛位置
-        record.locationForehead = selectedLocations.contains(.forehead)
-        record.locationLeftSide = selectedLocations.contains(.leftSide)
-        record.locationRightSide = selectedLocations.contains(.rightSide)
-        record.locationTemple = selectedLocations.contains(.temple)
-        record.locationFace = selectedLocations.contains(.face)
-        
-        // 用药信息
-        record.tookMedicine = tookMedicine
-        if tookMedicine {
-            record.medicineTime = medicineTime
-            record.medicineType = medicineType.rawValue
-            record.medicineRelief = medicineRelief
-        } else {
-            record.medicineTime = nil
-            record.medicineType = nil
-            record.medicineRelief = false
-        }
-        
-        // 疼痛特征
-        record.isVascular = isVascular
-        record.hasTinnitus = hasTinnitus
-        record.hasThrobbing = hasThrobbing
-        
-        // 时间范围
-        record.startTime = startTime
-        record.endTime = endTime
-        
-        do {
-            try viewContext.save()
-            dismiss()
-        } catch {
-            print("Failed to save record: \(error)")
+        // 使用延迟确保UI更新
+        DispatchQueue.main.async {
+            do {
+                let record = editingRecord ?? HeadacheRecord(context: viewContext)
+                
+                // 保存所有数据
+                record.timestamp = timestamp
+                record.intensity = Int16(intensity)
+                record.note = note.isEmpty ? nil : note
+                
+                // 疼痛位置
+                record.locationForehead = selectedLocations.contains(.forehead)
+                record.locationLeftSide = selectedLocations.contains(.leftSide)
+                record.locationRightSide = selectedLocations.contains(.rightSide)
+                record.locationTemple = selectedLocations.contains(.temple)
+                record.locationFace = selectedLocations.contains(.face)
+                
+                // 用药信息
+                record.tookMedicine = tookMedicine
+                if tookMedicine {
+                    record.medicineTime = medicineTime
+                    record.medicineType = medicineType.rawValue
+                    record.medicineRelief = medicineRelief
+                } else {
+                    record.medicineTime = nil
+                    record.medicineType = nil
+                    record.medicineRelief = false
+                }
+                
+                // 疼痛特征
+                record.isVascular = isVascular
+                record.hasTinnitus = hasTinnitus
+                record.hasThrobbing = hasThrobbing
+                
+                // 时间范围
+                record.startTime = startTime
+                record.endTime = endTime
+                
+                // 保存到Core Data
+                try viewContext.save()
+                
+                print("✅ 保存成功: 强度=\(record.intensity)")
+                
+                isSaving = false
+                
+                // 延迟关闭，确保保存完成
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                    dismiss()
+                }
+                
+            } catch {
+                isSaving = false
+                errorMessage = "保存失败：\(error.localizedDescription)"
+                showError = true
+                print("❌ 保存失败：\(error)")
+            }
         }
     }
     
     private func deleteRecord() {
         guard let record = editingRecord else { return }
         
-        viewContext.delete(record)
+        isSaving = true
         
-        do {
-            try viewContext.save()
-            dismiss()
-        } catch {
-            print("Failed to delete record: \(error)")
+        DispatchQueue.main.async {
+            do {
+                viewContext.delete(record)
+                try viewContext.save()
+                
+                print("✅ 删除成功")
+                
+                isSaving = false
+                
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                    dismiss()
+                }
+                
+            } catch {
+                isSaving = false
+                errorMessage = "删除失败：\(error.localizedDescription)"
+                showError = true
+                print("❌ 删除失败：\(error)")
+            }
         }
     }
 }

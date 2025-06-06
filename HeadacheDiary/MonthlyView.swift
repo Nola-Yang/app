@@ -17,13 +17,14 @@ struct MonthlyView: View {
     
     @State private var showAdd = false
     @State private var selectedRecord: HeadacheRecord?
+    @State private var refreshID = UUID() // 添加强制刷新机制
     
     var body: some View {
         NavigationView {
             List {
                 ForEach(groupedRecords, id: \.month) { monthGroup in
                     Section {
-                        ForEach(monthGroup.records) { record in
+                        ForEach(monthGroup.records, id: \.objectID) { record in // 使用objectID作为ID
                             HeadacheRecordRow(record: record)
                                 .onTapGesture {
                                     selectedRecord = record
@@ -40,6 +41,11 @@ struct MonthlyView: View {
                     }
                 }
             }
+            .id(refreshID) // 强制刷新列表
+            .refreshable { // 添加下拉刷新
+                refreshID = UUID()
+                viewContext.refreshAllObjects()
+            }
             .navigationTitle("头痛日记")
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
@@ -54,10 +60,29 @@ struct MonthlyView: View {
             .sheet(isPresented: $showAdd) {
                 AddEntryView()
                     .environment(\.managedObjectContext, viewContext)
+                    .onDisappear {
+                        // 添加记录后强制刷新
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                            refreshID = UUID()
+                            viewContext.refreshAllObjects()
+                        }
+                    }
             }
             .sheet(item: $selectedRecord) { record in
                 AddEntryView(editingRecord: record)
                     .environment(\.managedObjectContext, viewContext)
+                    .onDisappear {
+                        // 编辑后强制刷新
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                            refreshID = UUID()
+                            viewContext.refreshAllObjects()
+                        }
+                        selectedRecord = nil
+                    }
+            }
+            .onAppear {
+                // 页面出现时刷新
+                refreshID = UUID()
             }
         }
     }
@@ -82,9 +107,12 @@ struct MonthlyView: View {
             
             do {
                 try viewContext.save()
+                // 删除后强制刷新
+                refreshID = UUID()
             } catch {
                 let nsError = error as NSError
-                fatalError("Unresolved error \(nsError), \(nsError.userInfo)")
+                print("删除失败: \(nsError), \(nsError.userInfo)")
+                // 不再使用fatalError，改为打印错误
             }
         }
     }
@@ -143,6 +171,176 @@ struct MonthHeader: View {
         .padding(.vertical, 2)
     }
 }
+
+// 添加HeadacheRecordRow组件（如果还没有的话）
+struct HeadacheRecordRow: View {
+    @ObservedObject var record: HeadacheRecord
+    @State private var refreshTrigger = UUID()
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            // 时间和强度
+            HStack {
+                if let date = record.timestamp {
+                    Text(date, formatter: itemFormatter)
+                        .font(.headline)
+                }
+                Spacer()
+                IntensityBadge(intensity: Int(record.intensity))
+            }
+            
+            // 疼痛位置
+            if !selectedLocations.isEmpty {
+                HStack {
+                    Image(systemName: "location")
+                        .foregroundColor(.blue)
+                        .font(.caption)
+                    Text(selectedLocations.joined(separator: ", "))
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+            }
+            
+            // 用药信息
+            if record.tookMedicine {
+                HStack {
+                    Image(systemName: "pills")
+                        .foregroundColor(.green)
+                        .font(.caption)
+                    if let medicineType = record.medicineType {
+                        let medicine = MedicineType(rawValue: medicineType)
+                        Text(medicine?.displayName ?? "未知药物")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                    if record.medicineRelief {
+                        Image(systemName: "checkmark.circle.fill")
+                            .foregroundColor(.green)
+                            .font(.caption)
+                    }
+                }
+            }
+            
+            // 症状标签 - 确保响应变化
+            HStack {
+                if record.isVascular {
+                    SymptomTag(text: "血管性", color: .red)
+                }
+                if record.hasTinnitus {
+                    SymptomTag(text: "耳鸣", color: .orange)
+                }
+                if record.hasThrobbing {
+                    SymptomTag(text: "跳动", color: .purple)
+                }
+            }
+            .id(refreshTrigger) // 强制刷新症状标签
+            
+            // 备注
+            if let note = record.note, !note.isEmpty {
+                Text(note)
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                    .lineLimit(2)
+            }
+            
+            // 持续时间
+            if let startTime = record.startTime, let endTime = record.endTime {
+                HStack {
+                    Image(systemName: "clock")
+                        .foregroundColor(.gray)
+                        .font(.caption)
+                    Text(durationText(from: startTime, to: endTime))
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+            }
+        }
+        .padding(.vertical, 4)
+        .onReceive(NotificationCenter.default.publisher(for: .NSManagedObjectContextDidSave)) { _ in
+            // 监听Core Data保存事件，强制刷新UI
+            DispatchQueue.main.async {
+                refreshTrigger = UUID()
+            }
+        }
+        .onChange(of: record.hasThrobbing) { _ in
+            refreshTrigger = UUID()
+        }
+        .onChange(of: record.isVascular) { _ in
+            refreshTrigger = UUID()
+        }
+        .onChange(of: record.hasTinnitus) { _ in
+            refreshTrigger = UUID()
+        }
+    }
+    
+    private var selectedLocations: [String] {
+        var locations: [String] = []
+        if record.locationForehead { locations.append("额头") }
+        if record.locationLeftSide { locations.append("左侧") }
+        if record.locationRightSide { locations.append("右侧") }
+        if record.locationTemple { locations.append("太阳穴") }
+        if record.locationFace { locations.append("面部") }
+        return locations
+    }
+    
+    private func durationText(from start: Date, to end: Date) -> String {
+        let duration = end.timeIntervalSince(start)
+        let hours = Int(duration) / 3600
+        let minutes = Int(duration) % 3600 / 60
+        
+        if hours > 0 {
+            return "\(hours)小时\(minutes)分钟"
+        } else {
+            return "\(minutes)分钟"
+        }
+    }
+}
+
+// 支持组件
+struct IntensityBadge: View {
+    let intensity: Int
+    
+    var body: some View {
+        Text("\(intensity)")
+            .font(.caption.bold())
+            .foregroundColor(.white)
+            .frame(width: 24, height: 24)
+            .background(intensityColor)
+            .clipShape(Circle())
+    }
+    
+    private var intensityColor: Color {
+        switch intensity {
+        case 1...3: return .green
+        case 4...6: return .yellow
+        case 7...8: return .orange
+        case 9...10: return .red
+        default: return .gray
+        }
+    }
+}
+
+struct SymptomTag: View {
+    let text: String
+    let color: Color
+    
+    var body: some View {
+        Text(text)
+            .font(.caption2)
+            .padding(.horizontal, 6)
+            .padding(.vertical, 2)
+            .background(color.opacity(0.2))
+            .foregroundColor(color)
+            .clipShape(Capsule())
+    }
+}
+
+private let itemFormatter: DateFormatter = {
+    let formatter = DateFormatter()
+    formatter.dateStyle = .short
+    formatter.timeStyle = .short
+    return formatter
+}()
 
 #Preview {
     MonthlyView()

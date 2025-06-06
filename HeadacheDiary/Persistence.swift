@@ -6,6 +6,7 @@
 //
 
 import CoreData
+import Foundation
 
 struct PersistenceController {
     static let shared = PersistenceController()
@@ -49,8 +50,10 @@ struct PersistenceController {
         
         do {
             try viewContext.save()
+            print("预览数据创建成功")
         } catch {
             let nsError = error as NSError
+            print("预览数据创建失败: \(nsError), \(nsError.userInfo)")
             fatalError("Unresolved error \(nsError), \(nsError.userInfo)")
         }
         return result
@@ -67,16 +70,57 @@ struct PersistenceController {
         
         // 配置CloudKit
         container.persistentStoreDescriptions.forEach { storeDescription in
+            // 启用持久化历史跟踪
             storeDescription.setOption(true as NSNumber, forKey: NSPersistentHistoryTrackingKey)
+            // 启用远程更改通知
             storeDescription.setOption(true as NSNumber, forKey: NSPersistentStoreRemoteChangeNotificationPostOptionKey)
+            
+            // 调试信息
+            print("配置存储描述: \(storeDescription)")
         }
         
         container.loadPersistentStores(completionHandler: { (storeDescription, error) in
             if let error = error as NSError? {
+                print("Core Data 加载失败: \(error), \(error.userInfo)")
                 fatalError("Unresolved error \(error), \(error.userInfo)")
+            } else {
+                print("Core Data 加载成功: \(storeDescription)")
             }
         })
         
+        // 配置视图上下文
         container.viewContext.automaticallyMergesChangesFromParent = true
+        
+        // 设置合并策略 - 这很重要！
+        container.viewContext.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
+        
+        // 启用调试
+        container.viewContext.name = "MainContext"
+        
+        // 添加保存通知监听
+        NotificationCenter.default.addObserver(
+            forName: .NSManagedObjectContextDidSave,
+            object: container.viewContext,
+            queue: .main
+        ) { notification in
+            print("Core Data 保存通知: \(notification)")
+        }
+    }
+    
+    // 手动保存方法，用于调试
+    func save() {
+        let context = container.viewContext
+        
+        guard context.hasChanges else {
+            print("没有变化需要保存")
+            return
+        }
+        
+        do {
+            try context.save()
+            print("手动保存成功")
+        } catch {
+            print("手动保存失败: \(error)")
+        }
     }
 }
