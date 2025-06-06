@@ -5,7 +5,6 @@
 //  Created by 俟岳安 on 2025-06-06.
 //
 
-
 import Foundation
 import WeatherKit
 import CoreLocation
@@ -113,7 +112,7 @@ enum HeadacheRisk: Int, CaseIterable, Codable {
 
 // 天气服务类
 @MainActor
-class WeatherService: ObservableObject {
+class WeatherService: NSObject, ObservableObject {
     static let shared = WeatherService()
     
     @Published var currentWeather: WeatherRecord?
@@ -130,7 +129,8 @@ class WeatherService: ObservableObject {
     
     private var cancellables = Set<AnyCancellable>()
     
-    init() {
+    override init() {
+        super.init()
         locationManager.delegate = self
         loadWeatherHistory()
         requestLocationPermission()
@@ -192,7 +192,7 @@ class WeatherService: ObservableObject {
     }
     
     private func createWeatherRecord(from weather: Weather, location: CLLocationCoordinate2D) -> WeatherRecord {
-        let currentCondition = mapWeatherCondition(weather.currentWeather.condition)
+        let currentCondition = mapWeatherKitCondition(weather.currentWeather.condition)
         
         // 计算温度和气压变化
         let temperatureChange = calculateTemperatureChange(current: weather.currentWeather.temperature.value)
@@ -213,10 +213,25 @@ class WeatherService: ObservableObject {
         )
     }
     
-    private func mapWeatherCondition(_ condition: WeatherCondition) -> WeatherCondition {
-        // 这里需要根据WeatherKit的实际条件进行映射
-        // 这是一个简化的映射示例
-        return .sunny // 实际实现中需要根据condition参数进行具体映射
+    // FIXED: Add the missing mapWeatherKitCondition function
+    private func mapWeatherKitCondition(_ condition: WeatherKit.WeatherCondition) -> WeatherCondition {
+        switch condition {
+        case .clear:
+            return .sunny
+        case .cloudy, .mostlyCloudy, .partlyCloudy:
+            return .cloudy
+        case .rain, .drizzle, .heavyRain:
+            return .rainy
+        case .thunderstorms:
+            return .stormy
+        case .snow, .heavySnow, .blizzard:
+            return .snowy
+        case .windy:
+            return .windy
+        default:
+            // For any other conditions, default to cloudy
+            return .cloudy
+        }
     }
     
     private func calculateTemperatureChange(current: Double) -> Double {
@@ -391,30 +406,29 @@ class WeatherService: ObservableObject {
     
     // 获取明天的天气预测
     func fetchTomorrowWeatherForecast() async -> WeatherRecord? {
-            guard isLocationAuthorized, let location = locationManager.location else { return nil }
+        guard isLocationAuthorized, let location = locationManager.location else { return nil }
+        
+        do {
+            let weather = try await weatherService.weather(for: location)
+            guard let tomorrowForecast = weather.dailyForecast.first else { return nil }
             
-            do {
-                let weather = try await weatherService.weather(for: location)
-                guard let tomorrowForecast = weather.dailyForecast.first else { return nil }
-                
-                let tomorrow = Calendar.current.date(byAdding: .day, value: 1, to: Date())!
-                
-                return WeatherRecord(
-                    date: tomorrow,
-                    location: location.coordinate,
-                    temperature: tomorrowForecast.highTemperature.value,
-                    humidity: 0, // Daily forecast might not have detailed humidity
-                    pressure: 0, // Daily forecast might not have detailed pressure
-                    // FIX: Change from mapWeatherCondition to mapWeatherKitCondition
-                    condition: mapWeatherKitCondition(tomorrowForecast.condition).rawValue,
-                    uvIndex: tomorrowForecast.uvIndex.value,
-                    windSpeed: tomorrowForecast.wind.speed.value * 3.6,
-                    precipitationChance: tomorrowForecast.precipitationChance * 100
-                )
-            } catch {
-                print("❌ 获取明天天气预报失败: \(error)")
-                return nil
-            }
+            let tomorrow = Calendar.current.date(byAdding: .day, value: 1, to: Date())!
+            
+            return WeatherRecord(
+                date: tomorrow,
+                location: location.coordinate,
+                temperature: tomorrowForecast.highTemperature.value,
+                humidity: 0, // Daily forecast might not have detailed humidity
+                pressure: 0, // Daily forecast might not have detailed pressure
+                condition: mapWeatherKitCondition(tomorrowForecast.condition).rawValue,
+                uvIndex: tomorrowForecast.uvIndex.value,
+                windSpeed: tomorrowForecast.wind.speed.value * 3.6,
+                precipitationChance: tomorrowForecast.precipitationChance * 100
+            )
+        } catch {
+            print("❌ 获取明天天气预报失败: \(error)")
+            return nil
+        }
     }
 }
 
@@ -516,4 +530,3 @@ extension CLLocationCoordinate2D: Codable {
         self.init(latitude: latitude, longitude: longitude)
     }
 }
-
