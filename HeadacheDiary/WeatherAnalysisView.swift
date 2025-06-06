@@ -101,22 +101,18 @@ struct WeatherAnalysisView: View {
     
     private func performCorrelationAnalysis() {
         isAnalyzing = true
-        
-        DispatchQueue.global(qos: .userInitiated).async {
-            let cutoffDate = Calendar.current.date(byAdding: .day, value: -selectedTimeRange.days, to: Date()) ?? Date()
-            let filteredRecords = headacheRecords.filter { record in
-                guard let timestamp = record.timestamp else { return false }
-                return timestamp >= cutoffDate
-            }
-            
-            let result = weatherService.analyzeWeatherHeadacheCorrelation(with: Array(filteredRecords))
-            
-            DispatchQueue.main.async {
-                correlationResult = result
-                isAnalyzing = false
-            }
+        let cutoff = Calendar.current.date(byAdding: .day,
+                                           value: -selectedTimeRange.days,
+                                           to: Date()) ?? Date()
+        let filtered = headacheRecords.filter { rec in
+            guard let ts = rec.timestamp else { return false }
+            return ts >= cutoff
         }
+        correlationResult = weatherService
+            .analyzeWeatherHeadacheCorrelation(with: Array(filtered))
+        isAnalyzing = false
     }
+
 }
 
 // 当前天气状况卡片

@@ -473,9 +473,8 @@ struct WeatherCorrelationResult {
 }
 
 // MARK: - CLLocationManagerDelegate
-
 extension WeatherService: CLLocationManagerDelegate {
-    func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
+    nonisolated func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         guard let location = locations.first else { return }
         
         Task {
@@ -483,22 +482,29 @@ extension WeatherService: CLLocationManagerDelegate {
         }
     }
     
-    func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
-        errorMessage = "定位失败: \(error.localizedDescription)"
-        print("❌ 定位失败: \(error)")
+    nonisolated func locationManager(_ manager: CLLocationManager,
+                                         didFailWithError error: Error) {
+            Task { @MainActor [weak self] in
+                self?.errorMessage = "定位失败: \(error.localizedDescription)"
+                print("❌ 定位失败: \(error)")
+            }
     }
     
-    func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
-        switch manager.authorizationStatus {
-        case .authorizedWhenInUse, .authorizedAlways:
-            isLocationAuthorized = true
-            requestCurrentLocationWeather()
-        case .denied, .restricted:
-            isLocationAuthorized = false
-            errorMessage = "需要位置权限来获取天气数据"
-        default:
-            break
-        }
+    nonisolated func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
+            Task { @MainActor [weak self] in
+                guard let self = self else { return }
+
+                switch manager.authorizationStatus {
+                case .authorizedWhenInUse, .authorizedAlways:
+                    self.isLocationAuthorized = true
+                    self.requestCurrentLocationWeather()
+                case .denied, .restricted:
+                    self.isLocationAuthorized = false
+                    self.errorMessage = "需要位置权限来获取天气数据"
+                default:
+                    break
+                }
+            }
     }
 }
 

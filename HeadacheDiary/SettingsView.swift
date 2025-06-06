@@ -483,7 +483,9 @@ struct NotificationSettingsView: View {
                 .foregroundColor(.blue)
                 
                 Button("清除所有待发送通知") {
-                    NotificationManager.shared.cancelAllHeadacheReminders()
+                    Task {
+                        await NotificationManager.shared.cancelAllHeadacheReminders()
+                    }
                 }
                 .foregroundColor(.red)
             } header: {

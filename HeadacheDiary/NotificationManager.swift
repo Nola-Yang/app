@@ -10,7 +10,6 @@ import Foundation
 import UserNotifications
 import CoreData
 
-@MainActor
 class NotificationManager: ObservableObject {
     // In NotificationManager.swift - Fix main actor issues
     static let shared = NotificationManager()
@@ -35,9 +34,8 @@ class NotificationManager: ObservableObject {
                     userInfo: ["source": "weather_warning"]
                 )
             case "dismiss_weather_warning":
-                // 标记预警为已读 - Fixed method call
                 if let uuid = UUID(uuidString: warningId) {
-                    await WeatherWarningManager.shared.markWarningAsRead(uuid)
+                    WeatherWarningManager.shared.markWarningAsRead(uuid)
                 }
             default:
                 break
@@ -46,7 +44,7 @@ class NotificationManager: ObservableObject {
     }
     
     
-    // Fix the method to be async and main actor
+    @MainActor
     func sendWeatherWarningNotification(
         title: String,
         message: String,
@@ -91,7 +89,7 @@ class NotificationManager: ObservableObject {
         }
     }
     
-    // Fix the method to be async and main actor
+    @MainActor
     func sendDailyWeatherForecast(forecast: String, riskLevel: HeadacheRisk) async {
         let content = UNMutableNotificationContent()
         content.title = "今日头痛风险预报"
@@ -138,7 +136,7 @@ class NotificationManager: ObservableObject {
         }
     }
     
-    // 请求通知权限
+    @MainActor
     func requestNotificationPermission() {
         UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge]) { granted, error in
             DispatchQueue.main.async {
@@ -278,52 +276,6 @@ class NotificationManager: ObservableObject {
                 print("❌ 安排通知失败: \(error.localizedDescription)")
             } else {
                 print("✅ 成功安排通知: \(identifier)")
-            }
-        }
-    }
-    
-    // 新增：发送天气预警通知
-    func sendWeatherWarningNotification(
-        title: String,
-        message: String,
-        riskLevel: HeadacheRisk,
-        warningId: String
-    ) {
-        let content = UNMutableNotificationContent()
-        content.title = title
-        content.body = message
-        content.sound = .default
-        content.badge = 1
-        
-        // 根据风险级别设置中断级别
-        switch riskLevel {
-        case .low:
-            content.interruptionLevel = .passive
-        case .moderate:
-            content.interruptionLevel = .active
-        case .high, .veryHigh:
-            content.interruptionLevel = .timeSensitive
-        }
-        
-        content.userInfo = [
-            "type": "weather_warning",
-            "warningId": warningId,
-            "riskLevel": riskLevel.rawValue
-        ]
-        
-        content.categoryIdentifier = "weather_warning_category"
-        
-        let request = UNNotificationRequest(
-            identifier: "weather_warning_\(warningId)",
-            content: content,
-            trigger: nil // 立即发送
-        )
-        
-        UNUserNotificationCenter.current().add(request) { error in
-            if let error = error {
-                print("❌ 发送天气预警通知失败: \(error)")
-            } else {
-                print("✅ 发送天气预警通知成功: \(title)")
             }
         }
     }
