@@ -17,32 +17,46 @@ struct MonthlyView: View {
     
     @State private var showAdd = false
     @State private var selectedRecord: HeadacheRecord?
-    @State private var refreshID = UUID() // 添加强制刷新机制
+    @State private var refreshID = UUID()
+    @State private var expandedMonths: Set<String> = [] // 追踪展开的月份
     
     var body: some View {
         NavigationView {
             List {
-                ForEach(groupedRecords, id: \.month) { monthGroup in
+                ForEach(groupedRecords, id: \.monthKey) { monthGroup in
                     Section {
-                        ForEach(monthGroup.records, id: \.objectID) { record in // 使用objectID作为ID
-                            HeadacheRecordRow(record: record)
-                                .onTapGesture {
-                                    selectedRecord = record
-                                }
-                        }
-                        .onDelete { offsets in
-                            deleteItems(offsets: offsets, from: monthGroup.records)
-                        }
-                    } header: {
-                        MonthHeader(
+                        // 月份标题 - 可点击展开/收起
+                        MonthHeaderExpandable(
                             month: monthGroup.month,
-                            count: monthGroup.records.count
-                        )
+                            count: monthGroup.records.count,
+                            isExpanded: expandedMonths.contains(monthGroup.monthKey)
+                        ) {
+                            withAnimation(.easeInOut(duration: 0.3)) {
+                                if expandedMonths.contains(monthGroup.monthKey) {
+                                    expandedMonths.remove(monthGroup.monthKey)
+                                } else {
+                                    expandedMonths.insert(monthGroup.monthKey)
+                                }
+                            }
+                        }
+                        
+                        // 只有展开时才显示记录
+                        if expandedMonths.contains(monthGroup.monthKey) {
+                            ForEach(monthGroup.records, id: \.objectID) { record in
+                                HeadacheRecordRow(record: record)
+                                    .onTapGesture {
+                                        selectedRecord = record
+                                    }
+                            }
+                            .onDelete { offsets in
+                                deleteItems(offsets: offsets, from: monthGroup.records)
+                            }
+                        }
                     }
                 }
             }
-            .id(refreshID) // 强制刷新列表
-            .refreshable { // 添加下拉刷新
+            .id(refreshID)
+            .refreshable {
                 refreshID = UUID()
                 viewContext.refreshAllObjects()
             }
@@ -61,7 +75,6 @@ struct MonthlyView: View {
                 AddEntryView()
                     .environment(\.managedObjectContext, viewContext)
                     .onDisappear {
-                        // 添加记录后强制刷新
                         DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
                             refreshID = UUID()
                             viewContext.refreshAllObjects()
@@ -72,7 +85,6 @@ struct MonthlyView: View {
                 AddEntryView(editingRecord: record)
                     .environment(\.managedObjectContext, viewContext)
                     .onDisappear {
-                        // 编辑后强制刷新
                         DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
                             refreshID = UUID()
                             viewContext.refreshAllObjects()
@@ -81,8 +93,10 @@ struct MonthlyView: View {
                     }
             }
             .onAppear {
-                // 页面出现时刷新
                 refreshID = UUID()
+                // 默认展开当前月份
+                let currentMonthKey = monthKeyForDate(Date())
+                expandedMonths.insert(currentMonthKey)
             }
         }
     }
@@ -97,8 +111,14 @@ struct MonthlyView: View {
         }
         
         return grouped.map { (month, records) in
-            MonthGroup(month: month, records: Array(records))
+            MonthGroup(month: month, records: Array(records), monthKey: monthKeyForDate(month))
         }.sorted { $0.month > $1.month }
+    }
+    
+    private func monthKeyForDate(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM"
+        return formatter.string(from: date)
     }
     
     private func deleteItems(offsets: IndexSet, from records: [HeadacheRecord]) {
@@ -107,12 +127,10 @@ struct MonthlyView: View {
             
             do {
                 try viewContext.save()
-                // 删除后强制刷新
                 refreshID = UUID()
             } catch {
                 let nsError = error as NSError
                 print("删除失败: \(nsError), \(nsError.userInfo)")
-                // 不再使用fatalError，改为打印错误
             }
         }
     }
@@ -121,11 +139,15 @@ struct MonthlyView: View {
 struct MonthGroup {
     let month: Date
     let records: [HeadacheRecord]
+    let monthKey: String
 }
 
-struct MonthHeader: View {
+// 可展开的月份标题
+struct MonthHeaderExpandable: View {
     let month: Date
     let count: Int
+    let isExpanded: Bool
+    let onTap: () -> Void
     
     private var monthFormatter: DateFormatter {
         let formatter = DateFormatter()
@@ -147,32 +169,40 @@ struct MonthHeader: View {
     }
     
     var body: some View {
-        HStack {
-            Text(monthFormatter.string(from: month))
-                .font(.headline)
-                .foregroundColor(.primary)
-            
-            Spacer()
-            
-            HStack(spacing: 4) {
-                Text("\(count)次")
-                    .font(.subheadline.bold())
-                    .foregroundColor(.white)
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 4)
-                    .background(headerColor)
-                    .clipShape(Capsule())
+        Button(action: onTap) {
+            HStack {
+                Image(systemName: isExpanded ? "chevron.down" : "chevron.right")
+                    .foregroundColor(.blue)
+                    .font(.caption.bold())
                 
-                Circle()
-                    .fill(headerColor)
-                    .frame(width: 12, height: 12)
+                Text(monthFormatter.string(from: month))
+                    .font(.headline)
+                    .foregroundColor(.primary)
+                
+                Spacer()
+                
+                HStack(spacing: 4) {
+                    Text("\(count)次")
+                        .font(.subheadline.bold())
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4)
+                        .background(headerColor)
+                        .clipShape(Capsule())
+                    
+                    Circle()
+                        .fill(headerColor)
+                        .frame(width: 12, height: 12)
+                }
             }
+            .padding(.vertical, 8)
+            .contentShape(Rectangle()) // 整个区域都可点击
         }
-        .padding(.vertical, 2)
+        .buttonStyle(PlainButtonStyle())
     }
 }
 
-// 添加HeadacheRecordRow组件（如果还没有的话）
+// 头痛记录行组件
 struct HeadacheRecordRow: View {
     @ObservedObject var record: HeadacheRecord
     @State private var refreshTrigger = UUID()
@@ -221,11 +251,8 @@ struct HeadacheRecordRow: View {
                 }
             }
             
-            // 症状标签 - 确保响应变化
+            // 症状标签
             HStack {
-                if record.isVascular {
-                    SymptomTag(text: "血管性", color: .red)
-                }
                 if record.hasTinnitus {
                     SymptomTag(text: "耳鸣", color: .orange)
                 }
@@ -233,7 +260,7 @@ struct HeadacheRecordRow: View {
                     SymptomTag(text: "跳动", color: .purple)
                 }
             }
-            .id(refreshTrigger) // 强制刷新症状标签
+            .id(refreshTrigger)
             
             // 备注
             if let note = record.note, !note.isEmpty {
@@ -243,7 +270,7 @@ struct HeadacheRecordRow: View {
                     .lineLimit(2)
             }
             
-            // 持续时间
+            // 持续时间 - 只有设置了结束时间才显示
             if let startTime = record.startTime, let endTime = record.endTime {
                 HStack {
                     Image(systemName: "clock")
@@ -253,23 +280,22 @@ struct HeadacheRecordRow: View {
                         .font(.caption)
                         .foregroundColor(.secondary)
                 }
+            } else if let startTime = record.startTime, record.endTime == nil {
+                HStack {
+                    Image(systemName: "clock")
+                        .foregroundColor(.orange)
+                        .font(.caption)
+                    Text("进行中...")
+                        .font(.caption)
+                        .foregroundColor(.orange)
+                }
             }
         }
         .padding(.vertical, 4)
         .onReceive(NotificationCenter.default.publisher(for: .NSManagedObjectContextDidSave)) { _ in
-            // 监听Core Data保存事件，强制刷新UI
             DispatchQueue.main.async {
                 refreshTrigger = UUID()
             }
-        }
-        .onChange(of: record.hasThrobbing) { _ in
-            refreshTrigger = UUID()
-        }
-        .onChange(of: record.isVascular) { _ in
-            refreshTrigger = UUID()
-        }
-        .onChange(of: record.hasTinnitus) { _ in
-            refreshTrigger = UUID()
         }
     }
     

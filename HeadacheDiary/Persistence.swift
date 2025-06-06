@@ -38,8 +38,20 @@ struct PersistenceController {
                 record.medicineRelief = i % 4 != 0 // 大部分时候有缓解
             }
             
-            // 随机设置症状
-            record.isVascular = i % 5 == 0
+            // 随机设置触发因素（替代isVascular）
+            var sampleTriggers: [HeadacheTrigger] = []
+            if i % 2 == 0 { sampleTriggers.append(.sleepDeprivation) }
+            if i % 3 == 0 { sampleTriggers.append(.stress) }
+            if i % 4 == 0 { sampleTriggers.append(.coldWind) }
+            if i % 5 == 0 { sampleTriggers.append(.screenTime) }
+            if i % 6 == 0 { sampleTriggers.append(.socialInteraction) }
+            if i % 7 == 0 { sampleTriggers.append(.weather) }
+            
+            if !sampleTriggers.isEmpty {
+                record.triggers = sampleTriggers.map { $0.rawValue }.joined(separator: ",")
+            }
+            
+            // 随机设置症状（移除isVascular）
             record.hasTinnitus = i % 7 == 0
             record.hasThrobbing = i % 4 == 0
             

@@ -7,7 +7,7 @@ struct AddEntryView: View {
     let editingRecord: HeadacheRecord?
     
     @State private var currentStep = 0
-    private let totalSteps = 5
+    private let totalSteps = 6 // 更新为6步
     
     // 基本信息
     @State private var timestamp: Date = Date()
@@ -23,14 +23,17 @@ struct AddEntryView: View {
     @State private var medicineType: MedicineType = .tylenol
     @State private var medicineRelief = false
     
-    // 疼痛特征
-    @State private var isVascular = false
+    // 触发因素 (新增)
+    @State private var selectedTriggers: Set<HeadacheTrigger> = []
+    
+    // 疼痛特征 (移除isVascular)
     @State private var hasTinnitus = false
     @State private var hasThrobbing = false
     
     // 时间范围
     @State private var startTime = Date()
     @State private var endTime = Date()
+    @State private var hasEndTime = false
     
     // 状态管理
     @State private var isSaving = false
@@ -56,8 +59,9 @@ struct AddEntryView: View {
                     basicInfoStep().tag(0)
                     locationStep().tag(1)
                     medicineStep().tag(2)
-                    symptomsStep().tag(3)
-                    timeRangeStep().tag(4)
+                    triggerStep().tag(3)      // 新增触发因素步骤
+                    symptomsStep().tag(4)     // 移动到第4步
+                    timeRangeStep().tag(5)    // 移动到第5步
                 }
                 .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
                 
@@ -120,7 +124,7 @@ struct AddEntryView: View {
     @ViewBuilder
     private func basicInfoStep() -> some View {
         Form {
-            Section("基本信息") {
+            Section {
                 DatePicker("记录时间", selection: $timestamp, displayedComponents: [.date, .hourAndMinute])
                 
                 VStack(alignment: .leading) {
@@ -131,6 +135,8 @@ struct AddEntryView: View {
                 
                 TextField("备注", text: $note, axis: .vertical)
                     .lineLimit(3...6)
+            } header: {
+                Text("基本信息")
             }
         }
     }
@@ -138,7 +144,7 @@ struct AddEntryView: View {
     @ViewBuilder
     private func locationStep() -> some View {
         Form {
-            Section("疼痛位置 (可多选)") {
+            Section {
                 ForEach(HeadacheLocation.allCases, id: \.self) { location in
                     Button(action: {
                         if selectedLocations.contains(location) {
@@ -161,6 +167,8 @@ struct AddEntryView: View {
                         }
                     }
                 }
+            } header: {
+                Text("疼痛位置 (可多选)")
             }
         }
     }
@@ -168,7 +176,7 @@ struct AddEntryView: View {
     @ViewBuilder
     private func medicineStep() -> some View {
         Form {
-            Section("用药信息") {
+            Section {
                 Toggle("是否服药", isOn: $tookMedicine)
                 
                 if tookMedicine {
@@ -183,6 +191,39 @@ struct AddEntryView: View {
                     
                     Toggle("是否缓解", isOn: $medicineRelief)
                 }
+            } header: {
+                Text("用药信息")
+            }
+        }
+    }
+    
+    @ViewBuilder
+    private func triggerStep() -> some View {
+        Form {
+            Section {
+                LazyVGrid(columns: [
+                    GridItem(.flexible()),
+                    GridItem(.flexible())
+                ], spacing: 12) {
+                    ForEach(HeadacheTrigger.allCases, id: \.self) { trigger in
+                        SimpleTriggerButton(
+                            trigger: trigger,
+                            isSelected: selectedTriggers.contains(trigger)
+                        ) {
+                            if selectedTriggers.contains(trigger) {
+                                selectedTriggers.remove(trigger)
+                            } else {
+                                selectedTriggers.insert(trigger)
+                            }
+                        }
+                    }
+                }
+                .padding(.vertical, 8)
+            } header: {
+                Text("可能的触发因素 (可多选)")
+            } footer: {
+                Text("选择您认为可能引发这次头痛的因素，有助于找出头痛模式")
+                    .font(.caption)
             }
         }
     }
@@ -190,10 +231,12 @@ struct AddEntryView: View {
     @ViewBuilder
     private func symptomsStep() -> some View {
         Form {
-            Section("疼痛特征") {
-                Toggle("血管性疼痛", isOn: $isVascular)
+            Section {
+                // 移除了血管性头痛选项
                 Toggle("伴随耳鸣", isOn: $hasTinnitus)
                 Toggle("明显血管跳动", isOn: $hasThrobbing)
+            } header: {
+                Text("疼痛特征")
             }
         }
     }
@@ -201,9 +244,26 @@ struct AddEntryView: View {
     @ViewBuilder
     private func timeRangeStep() -> some View {
         Form {
-            Section("疼痛时间范围") {
+            Section {
                 DatePicker("开始时间", selection: $startTime, displayedComponents: [.date, .hourAndMinute])
-                DatePicker("结束时间", selection: $endTime, displayedComponents: [.date, .hourAndMinute])
+                
+                Toggle("记录结束时间", isOn: $hasEndTime)
+                
+                if hasEndTime {
+                    DatePicker("结束时间", selection: $endTime, displayedComponents: [.date, .hourAndMinute])
+                } else {
+                    Text("未结束 - 将在后续提醒中询问")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                        .padding(.top, 8)
+                }
+            } header: {
+                Text("疼痛时间范围")
+            } footer: {
+                if !hasEndTime {
+                    Text("如果头痛还在持续，系统会每3小时提醒你更新状态")
+                        .font(.caption)
+                }
             }
         }
     }
@@ -233,20 +293,32 @@ struct AddEntryView: View {
         }
         medicineRelief = record.medicineRelief
         
-        // 疼痛特征
-        isVascular = record.isVascular
+        // 触发因素
+        selectedTriggers.removeAll()
+        if let triggersString = record.triggers {
+            let triggerStrings = triggersString.components(separatedBy: ",")
+            for triggerString in triggerStrings {
+                if let trigger = HeadacheTrigger(rawValue: triggerString.trimmingCharacters(in: .whitespaces)) {
+                    selectedTriggers.insert(trigger)
+                }
+            }
+        }
+        
+        // 疼痛特征 (移除isVascular)
         hasTinnitus = record.hasTinnitus
         hasThrobbing = record.hasThrobbing
         
         // 时间范围
         startTime = record.startTime ?? timestamp
-        endTime = record.endTime ?? timestamp
+        hasEndTime = record.endTime != nil
+        if hasEndTime {
+            endTime = record.endTime ?? timestamp
+        }
     }
     
     private func save() {
         isSaving = true
         
-        // 使用延迟确保UI更新
         DispatchQueue.main.async {
             do {
                 let record = editingRecord ?? HeadacheRecord(context: viewContext)
@@ -275,23 +347,30 @@ struct AddEntryView: View {
                     record.medicineRelief = false
                 }
                 
-                // 疼痛特征
-                record.isVascular = isVascular
+                // 触发因素
+                let triggersArray = Array(selectedTriggers).map { $0.rawValue }
+                record.triggers = triggersArray.isEmpty ? nil : triggersArray.joined(separator: ",")
+                
+                // 疼痛特征 (移除isVascular)
                 record.hasTinnitus = hasTinnitus
                 record.hasThrobbing = hasThrobbing
                 
                 // 时间范围
                 record.startTime = startTime
-                record.endTime = endTime
+                record.endTime = hasEndTime ? endTime : nil
                 
                 // 保存到Core Data
                 try viewContext.save()
                 
-                print("✅ 保存成功: 强度=\(record.intensity)")
+                // 如果没有结束时间，安排通知提醒
+                if !hasEndTime && editingRecord == nil {
+                    scheduleHeadacheReminders(for: record)
+                }
+                
+                print("✅ 保存成功: 强度=\(record.intensity), 有结束时间=\(hasEndTime)")
                 
                 isSaving = false
                 
-                // 延迟关闭，确保保存完成
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                     dismiss()
                 }
@@ -329,6 +408,64 @@ struct AddEntryView: View {
                 showError = true
                 print("❌ 删除失败：\(error)")
             }
+        }
+    }
+    
+    private func scheduleHeadacheReminders(for record: HeadacheRecord) {
+        NotificationManager.shared.scheduleHeadacheReminders(for: record)
+    }
+}
+
+// 简化的触发因素按钮组件（如果TriggerButton不可用）
+struct SimpleTriggerButton: View {
+    let trigger: HeadacheTrigger
+    let isSelected: Bool
+    let action: () -> Void
+    
+    var body: some View {
+        Button(action: action) {
+            VStack(spacing: 8) {
+                Image(systemName: trigger.icon)
+                    .font(.title2)
+                    .foregroundColor(isSelected ? .white : getTriggerColor(trigger.color))
+                
+                Text(trigger.displayName)
+                    .font(.caption)
+                    .foregroundColor(isSelected ? .white : .primary)
+                    .multilineTextAlignment(.center)
+                    .lineLimit(2)
+            }
+            .frame(maxWidth: .infinity, minHeight: 80)
+            .background(
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(isSelected ? getTriggerColor(trigger.color) : getTriggerColor(trigger.color).opacity(0.1))
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 12)
+                    .stroke(
+                        isSelected ? getTriggerColor(trigger.color) : Color.gray.opacity(0.3),
+                        lineWidth: isSelected ? 2 : 1
+                    )
+            )
+        }
+        .buttonStyle(PlainButtonStyle())
+    }
+    
+    private func getTriggerColor(_ colorName: String) -> Color {
+        switch colorName {
+        case "blue": return .blue
+        case "purple": return .purple
+        case "green": return .green
+        case "red": return .red
+        case "orange": return .orange
+        case "pink": return .pink
+        case "yellow": return .yellow
+        case "gray": return .gray
+        case "brown": return .brown
+        case "mint": return .mint
+        case "cyan": return .cyan
+        case "indigo": return .indigo
+        default: return .blue
         }
     }
 }

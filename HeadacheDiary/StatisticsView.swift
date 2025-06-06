@@ -29,6 +29,9 @@ struct StatisticsView: View {
                     // 常见位置
                     LocationStatsCard(records: Array(records))
                     
+                    // 触发因素统计
+                    TriggerStatsCard(records: Array(records))
+                    
                     // 用药效果
                     MedicineStatsCard(records: Array(records))
                 }
@@ -200,6 +203,61 @@ struct LocationStatsCard: View {
                     Spacer()
                     Text("\(count)次")
                         .foregroundColor(.secondary)
+                }
+            }
+        }
+        .padding()
+        .background(Color(.systemBackground))
+        .cornerRadius(12)
+        .shadow(radius: 2)
+    }
+}
+
+// 触发因素统计卡片
+struct TriggerStatsCard: View {
+    let records: [HeadacheRecord]
+    
+    private var triggerStats: [(HeadacheTrigger, Int)] {
+        var stats: [HeadacheTrigger: Int] = [:]
+        
+        for record in records {
+            guard let triggersString = record.triggers else { continue }
+            let triggerStrings = triggersString.components(separatedBy: ",")
+            for triggerString in triggerStrings {
+                if let trigger = HeadacheTrigger(rawValue: triggerString.trimmingCharacters(in: .whitespaces)) {
+                    stats[trigger, default: 0] += 1
+                }
+            }
+        }
+        
+        return stats.sorted { $0.value > $1.value }.prefix(10).map { ($0.key, $0.value) }
+    }
+    
+    var body: some View {
+        VStack(spacing: 12) {
+            Text("常见触发因素")
+                .font(.headline)
+                .frame(maxWidth: .infinity, alignment: .leading)
+            
+            if triggerStats.isEmpty {
+                Text("暂无触发因素数据")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                    .frame(maxWidth: .infinity, alignment: .center)
+                    .padding()
+            } else {
+                ForEach(triggerStats, id: \.0) { trigger, count in
+                    HStack {
+                        HStack(spacing: 8) {
+                            Image(systemName: trigger.icon)
+                                .foregroundColor(Color(trigger.color))
+                                .font(.caption)
+                            Text(trigger.displayName)
+                        }
+                        Spacer()
+                        Text("\(count)次")
+                            .foregroundColor(.secondary)
+                    }
                 }
             }
         }

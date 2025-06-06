@@ -5,11 +5,6 @@ import CoreData
 struct ContentView: View {
     var body: some View {
         TabView {
-            ListView()
-                .tabItem {
-                    Image(systemName: "list.bullet")
-                    Text("列表")
-                }
             
             MonthlyView()
                 .tabItem {
