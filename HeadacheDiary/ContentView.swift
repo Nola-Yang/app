@@ -1,11 +1,10 @@
 import SwiftUI
 import CoreData
 
-// 完整的ContentView，包含所有必要组件
+// 修改后的ContentView，包含设置页面
 struct ContentView: View {
     var body: some View {
         TabView {
-            
             MonthlyView()
                 .tabItem {
                     Image(systemName: "calendar")
@@ -17,84 +16,21 @@ struct ContentView: View {
                     Image(systemName: "chart.bar")
                     Text("统计")
                 }
+            
+            SettingsView()
+                .tabItem {
+                    Image(systemName: "gearshape")
+                    Text("设置")
+                }
+        }
+        .onAppear {
+            // 确保应用启动时通知权限已请求
+            NotificationManager.shared.requestNotificationPermission()
         }
     }
 }
 
-// ListView组件
-struct ListView: View {
-    @Environment(\.managedObjectContext) private var viewContext
-    
-    @FetchRequest(
-        sortDescriptors: [NSSortDescriptor(keyPath: \HeadacheRecord.timestamp, ascending: false)],
-        animation: .default)
-    private var records: FetchedResults<HeadacheRecord>
-    
-    @State private var showAdd = false
-    @State private var selectedRecord: HeadacheRecord?
-    @State private var refreshID = UUID()
-    
-    var body: some View {
-        NavigationView {
-            List {
-                ForEach(records, id: \.objectID) { record in
-                    HeadacheRecordRow(record: record)
-                        .onTapGesture {
-                            selectedRecord = record
-                        }
-                }
-                .onDelete(perform: deleteItems)
-            }
-            .refreshable {
-                refreshID = UUID()
-                viewContext.refreshAllObjects()
-            }
-            .navigationTitle("全部记录")
-            .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    EditButton()
-                }
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button(action: { showAdd = true }) {
-                        Image(systemName: "plus")
-                    }
-                }
-            }
-            .sheet(isPresented: $showAdd) {
-                AddEntryView()
-                    .environment(\.managedObjectContext, viewContext)
-                    .onDisappear {
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-                            refreshID = UUID()
-                            viewContext.refreshAllObjects()
-                        }
-                    }
-            }
-            .sheet(item: $selectedRecord) { record in
-                AddEntryView(editingRecord: record)
-                    .environment(\.managedObjectContext, viewContext)
-                    .onDisappear {
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-                            refreshID = UUID()
-                            viewContext.refreshAllObjects()
-                        }
-                        selectedRecord = nil
-                    }
-            }
-        }
-    }
-    
-    private func deleteItems(offsets: IndexSet) {
-        withAnimation {
-            offsets.map { records[$0] }.forEach(viewContext.delete)
-            
-            do {
-                try viewContext.save()
-                refreshID = UUID()
-            } catch {
-                let nsError = error as NSError
-                print("删除失败: \(nsError), \(nsError.userInfo)")
-            }
-        }
-    }
+#Preview {
+    ContentView()
+        .environment(\.managedObjectContext, PersistenceController.preview.container.viewContext)
 }

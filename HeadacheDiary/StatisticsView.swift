@@ -26,14 +26,20 @@ struct StatisticsView: View {
                     // 月度趋势
                     MonthlyTrendCard(records: Array(records))
                     
-                    // 常见位置
-                    LocationStatsCard(records: Array(records))
+                    // 疼痛位置统计（包括自定义）
+                    EnhancedLocationStatsCard(records: Array(records))
                     
-                    // 触发因素统计
-                    TriggerStatsCard(records: Array(records))
+                    // 触发因素统计（包括自定义）
+                    EnhancedTriggerStatsCard(records: Array(records))
                     
-                    // 用药效果
-                    MedicineStatsCard(records: Array(records))
+                    // 用药效果统计（包括自定义）
+                    EnhancedMedicineStatsCard(records: Array(records))
+                    
+                    // 症状统计（包括自定义）
+                    SymptomsStatsCard(records: Array(records))
+                    
+                    // 备注分析
+                    NotesAnalysisCard(records: Array(records))
                 }
                 .padding()
             }
@@ -65,16 +71,23 @@ struct OverallStatsCard: View {
         }.count
     }
     
+    private var ongoingCount: Int {
+        records.filter { $0.isOngoing }.count
+    }
+    
     var body: some View {
         VStack(spacing: 12) {
             Text("整体概况")
                 .font(.headline)
                 .frame(maxWidth: .infinity, alignment: .leading)
             
-            HStack(spacing: 20) {
+            HStack(spacing: 15) {
                 StatItem(title: "总记录", value: "\(totalCount)次", color: .blue)
                 StatItem(title: "平均强度", value: String(format: "%.1f", averageIntensity), color: .orange)
                 StatItem(title: "本月", value: "\(thisMonthCount)次", color: monthColor(count: thisMonthCount))
+                if ongoingCount > 0 {
+                    StatItem(title: "进行中", value: "\(ongoingCount)次", color: .red)
+                }
             }
         }
         .padding()
@@ -173,19 +186,25 @@ struct MonthlyTrendCard: View {
     }
 }
 
-// 位置统计卡片
-struct LocationStatsCard: View {
+// 增强的位置统计卡片（包括自定义位置）
+struct EnhancedLocationStatsCard: View {
     let records: [HeadacheRecord]
     
-    private var locationStats: [(String, Int)] {
+    private var allLocationStats: [(String, Int)] {
         var stats: [String: Int] = [:]
         
         for record in records {
+            // 预定义位置
             if record.locationForehead { stats["额头", default: 0] += 1 }
             if record.locationLeftSide { stats["左侧", default: 0] += 1 }
             if record.locationRightSide { stats["右侧", default: 0] += 1 }
             if record.locationTemple { stats["太阳穴", default: 0] += 1 }
             if record.locationFace { stats["面部", default: 0] += 1 }
+            
+            // 自定义位置
+            for customLocation in record.customLocationNames {
+                stats[customLocation, default: 0] += 1
+            }
         }
         
         return stats.sorted { $0.value > $1.value }
@@ -193,70 +212,30 @@ struct LocationStatsCard: View {
     
     var body: some View {
         VStack(spacing: 12) {
-            Text("常见位置")
+            Text("疼痛位置分布")
                 .font(.headline)
                 .frame(maxWidth: .infinity, alignment: .leading)
             
-            ForEach(locationStats, id: \.0) { location, count in
-                HStack {
-                    Text(location)
-                    Spacer()
-                    Text("\(count)次")
-                        .foregroundColor(.secondary)
-                }
-            }
-        }
-        .padding()
-        .background(Color(.systemBackground))
-        .cornerRadius(12)
-        .shadow(radius: 2)
-    }
-}
-
-// 触发因素统计卡片
-struct TriggerStatsCard: View {
-    let records: [HeadacheRecord]
-    
-    private var triggerStats: [(HeadacheTrigger, Int)] {
-        var stats: [HeadacheTrigger: Int] = [:]
-        
-        for record in records {
-            guard let triggersString = record.triggers else { continue }
-            let triggerStrings = triggersString.components(separatedBy: ",")
-            for triggerString in triggerStrings {
-                if let trigger = HeadacheTrigger(rawValue: triggerString.trimmingCharacters(in: .whitespaces)) {
-                    stats[trigger, default: 0] += 1
-                }
-            }
-        }
-        
-        return stats.sorted { $0.value > $1.value }.prefix(10).map { ($0.key, $0.value) }
-    }
-    
-    var body: some View {
-        VStack(spacing: 12) {
-            Text("常见触发因素")
-                .font(.headline)
-                .frame(maxWidth: .infinity, alignment: .leading)
-            
-            if triggerStats.isEmpty {
-                Text("暂无触发因素数据")
+            if allLocationStats.isEmpty {
+                Text("暂无位置数据")
                     .font(.caption)
                     .foregroundColor(.secondary)
                     .frame(maxWidth: .infinity, alignment: .center)
                     .padding()
             } else {
-                ForEach(triggerStats, id: \.0) { trigger, count in
+                ForEach(allLocationStats, id: \.0) { location, count in
                     HStack {
-                        HStack(spacing: 8) {
-                            Image(systemName: trigger.icon)
-                                .foregroundColor(Color(trigger.color))
-                                .font(.caption)
-                            Text(trigger.displayName)
-                        }
+                        Text(location)
                         Spacer()
-                        Text("\(count)次")
-                            .foregroundColor(.secondary)
+                        HStack(spacing: 8) {
+                            Text("\(count)次")
+                                .foregroundColor(.secondary)
+                            
+                            // 百分比显示
+                            Text("(\(Int(Double(count) / Double(records.count) * 100))%)")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
                     }
                 }
             }
@@ -268,17 +247,131 @@ struct TriggerStatsCard: View {
     }
 }
 
-// 用药统计卡片
-struct MedicineStatsCard: View {
+// 增强的触发因素统计卡片（包括自定义）
+struct EnhancedTriggerStatsCard: View {
     let records: [HeadacheRecord]
     
-    private var medicineStats: (total: Int, relief: Int, tylenol: Int, ibuprofen: Int) {
+    private var allTriggerStats: [(String, Int, Bool)] {
+        var stats: [String: Int] = [:]
+        var isCustom: [String: Bool] = [:]
+        
+        for record in records {
+            // 预定义触发因素
+            for trigger in record.triggerObjects {
+                stats[trigger.displayName, default: 0] += 1
+                isCustom[trigger.displayName] = false
+            }
+            
+            // 自定义触发因素
+            for customTrigger in record.customTriggerNames {
+                stats[customTrigger, default: 0] += 1
+                isCustom[customTrigger] = true
+            }
+        }
+        
+        return stats.map { (name, count) in (name, count, isCustom[name] ?? false) }
+            .sorted { $0.1 > $1.1 }
+            .prefix(12)
+            .map { ($0.0, $0.1, $0.2) }
+    }
+    
+    var body: some View {
+        VStack(spacing: 12) {
+            Text("触发因素分析")
+                .font(.headline)
+                .frame(maxWidth: .infinity, alignment: .leading)
+            
+            if allTriggerStats.isEmpty {
+                Text("暂无触发因素数据")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                    .frame(maxWidth: .infinity, alignment: .center)
+                    .padding()
+            } else {
+                ForEach(allTriggerStats, id: \.0) { triggerName, count, isCustomTrigger in
+                    HStack {
+                        HStack(spacing: 8) {
+                            if isCustomTrigger {
+                                Image(systemName: "person.badge.plus")
+                                    .foregroundColor(.purple)
+                                    .font(.caption)
+                            } else {
+                                Image(systemName: getIconForTrigger(triggerName))
+                                    .foregroundColor(getColorForTrigger(triggerName))
+                                    .font(.caption)
+                            }
+                            Text(triggerName)
+                                .foregroundColor(isCustomTrigger ? .purple : .primary)
+                        }
+                        Spacer()
+                        HStack(spacing: 8) {
+                            Text("\(count)次")
+                                .foregroundColor(.secondary)
+                            
+                            Text("(\(Int(Double(count) / Double(records.count) * 100))%)")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+                    }
+                }
+            }
+        }
+        .padding()
+        .background(Color(.systemBackground))
+        .cornerRadius(12)
+        .shadow(radius: 2)
+    }
+    
+    private func getIconForTrigger(_ triggerName: String) -> String {
+        // 简化版本的图标匹配，实际可以做更完整的映射
+        switch triggerName {
+        case "吹冷风": return "wind"
+        case "睡眠不足": return "bed.double"
+        case "社交活动": return "person.2"
+        case "压力/焦虑": return "brain.head.profile"
+        case "月经期": return "calendar.badge.clock"
+        case "补剂漏服(CoQ10等)": return "pills.circle"
+        default: return "exclamationmark.triangle"
+        }
+    }
+    
+    private func getColorForTrigger(_ triggerName: String) -> Color {
+        switch triggerName {
+        case "吹冷风": return .blue
+        case "睡眠不足": return .purple
+        case "社交活动": return .green
+        case "压力/焦虑": return .red
+        case "月经期": return .pink
+        case "补剂漏服(CoQ10等)": return .teal
+        default: return .orange
+        }
+    }
+}
+
+// 增强的用药统计卡片（包括自定义药物）
+struct EnhancedMedicineStatsCard: View {
+    let records: [HeadacheRecord]
+    
+    private var medicineStats: (total: Int, relief: Int, predefined: [String: Int], custom: [String: Int]) {
         let medicineRecords = records.filter { $0.tookMedicine }
         let reliefCount = medicineRecords.filter { $0.medicineRelief }.count
-        let tylenolCount = medicineRecords.filter { $0.medicineType == MedicineType.tylenol.rawValue }.count
-        let ibuprofenCount = medicineRecords.filter { $0.medicineType == MedicineType.ibuprofen.rawValue }.count
         
-        return (medicineRecords.count, reliefCount, tylenolCount, ibuprofenCount)
+        var predefinedStats: [String: Int] = [:]
+        var customStats: [String: Int] = [:]
+        
+        for record in medicineRecords {
+            // 预定义药物
+            if let medicineName = record.medicineName {
+                predefinedStats[medicineName, default: 0] += 1
+            }
+            
+            // 自定义药物
+            for customMedicine in record.customMedicineNames {
+                customStats[customMedicine, default: 0] += 1
+            }
+        }
+        
+        return (medicineRecords.count, reliefCount, predefinedStats, customStats)
     }
     
     var body: some View {
@@ -287,6 +380,7 @@ struct MedicineStatsCard: View {
                 .font(.headline)
                 .frame(maxWidth: .infinity, alignment: .leading)
             
+            // 总体用药统计
             HStack {
                 VStack {
                     Text("\(medicineStats.total)")
@@ -309,27 +403,196 @@ struct MedicineStatsCard: View {
                 .frame(maxWidth: .infinity)
             }
             
+            // 预定义药物统计
+            if !medicineStats.predefined.isEmpty {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("常用药物:")
+                        .font(.subheadline.bold())
+                    
+                    HStack {
+                        ForEach(medicineStats.predefined.sorted(by: { $0.value > $1.value }), id: \.key) { medicine, count in
+                            VStack {
+                                Text("\(count)")
+                                    .font(.title2.bold())
+                                    .foregroundColor(medicine == "泰诺" ? .purple : .red)
+                                Text(medicine)
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
+                            .frame(maxWidth: .infinity)
+                        }
+                    }
+                }
+            }
+            
+            // 自定义药物统计
+            if !medicineStats.custom.isEmpty {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("其他药物:")
+                        .font(.subheadline.bold())
+                    
+                    ForEach(medicineStats.custom.sorted(by: { $0.value > $1.value }), id: \.key) { medicine, count in
+                        HStack {
+                            HStack(spacing: 4) {
+                                Image(systemName: "person.badge.plus")
+                                    .foregroundColor(.purple)
+                                    .font(.caption)
+                                Text(medicine)
+                                    .foregroundColor(.purple)
+                            }
+                            Spacer()
+                            Text("\(count)次")
+                                .foregroundColor(.secondary)
+                        }
+                    }
+                }
+            }
+        }
+        .padding()
+        .background(Color(.systemBackground))
+        .cornerRadius(12)
+        .shadow(radius: 2)
+    }
+}
+
+// 新增：症状统计卡片
+struct SymptomsStatsCard: View {
+    let records: [HeadacheRecord]
+    
+    private var symptomStats: [(String, Int, Bool)] {
+        var stats: [String: Int] = [:]
+        var isCustom: [String: Bool] = [:]
+        
+        for record in records {
+            // 预定义症状
+            for symptom in record.symptomTags {
+                stats[symptom, default: 0] += 1
+                isCustom[symptom] = false
+            }
+            
+            // 自定义症状
+            for customSymptom in record.customSymptomNames {
+                stats[customSymptom, default: 0] += 1
+                isCustom[customSymptom] = true
+            }
+        }
+        
+        return stats.map { (name, count) in (name, count, isCustom[name] ?? false) }
+            .sorted { $0.1 > $1.1 }
+    }
+    
+    var body: some View {
+        VStack(spacing: 12) {
+            Text("症状分析")
+                .font(.headline)
+                .frame(maxWidth: .infinity, alignment: .leading)
+            
+            if symptomStats.isEmpty {
+                Text("暂无症状数据")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                    .frame(maxWidth: .infinity, alignment: .center)
+                    .padding()
+            } else {
+                ForEach(symptomStats, id: \.0) { symptomName, count, isCustomSymptom in
+                    HStack {
+                        HStack(spacing: 8) {
+                            if isCustomSymptom {
+                                Image(systemName: "person.badge.plus")
+                                    .foregroundColor(.teal)
+                                    .font(.caption)
+                            } else {
+                                Image(systemName: symptomName == "耳鸣" ? "ear" : "heart.pulse")
+                                    .foregroundColor(symptomName == "耳鸣" ? .orange : .purple)
+                                    .font(.caption)
+                            }
+                            Text(symptomName)
+                                .foregroundColor(isCustomSymptom ? .teal : .primary)
+                        }
+                        Spacer()
+                        HStack(spacing: 8) {
+                            Text("\(count)次")
+                                .foregroundColor(.secondary)
+                            
+                            Text("(\(Int(Double(count) / Double(records.count) * 100))%)")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+                    }
+                }
+            }
+        }
+        .padding()
+        .background(Color(.systemBackground))
+        .cornerRadius(12)
+        .shadow(radius: 2)
+    }
+}
+
+// 新增：备注分析卡片
+struct NotesAnalysisCard: View {
+    let records: [HeadacheRecord]
+    
+    private var noteStats: (hasNotes: Int, hasDetailedNotes: Int) {
+        let hasNotesCount = records.filter { record in
+            ![record.note, record.medicineNote, record.triggerNote, record.symptomNote, record.timeNote]
+                .compactMap { $0 }.filter { !$0.isEmpty }.isEmpty
+        }.count
+        
+        let hasDetailedNotesCount = records.filter { record in
+            let noteCount = [record.note, record.medicineNote, record.triggerNote, record.symptomNote, record.timeNote]
+                .compactMap { $0 }.filter { !$0.isEmpty }.count
+            return noteCount >= 2
+        }.count
+        
+        return (hasNotesCount, hasDetailedNotesCount)
+    }
+    
+    var body: some View {
+        VStack(spacing: 12) {
+            Text("记录详细度")
+                .font(.headline)
+                .frame(maxWidth: .infinity, alignment: .leading)
+            
             HStack {
                 VStack {
-                    Text("\(medicineStats.tylenol)")
+                    Text("\(noteStats.hasNotes)")
                         .font(.title2.bold())
-                        .foregroundColor(.purple)
-                    Text("泰诺")
+                        .foregroundColor(.blue)
+                    Text("有备注记录")
                         .font(.caption)
                         .foregroundColor(.secondary)
+                        .multilineTextAlignment(.center)
                 }
                 .frame(maxWidth: .infinity)
                 
                 VStack {
-                    Text("\(medicineStats.ibuprofen)")
+                    Text(records.count > 0 ? "\(Int(Double(noteStats.hasNotes) / Double(records.count) * 100))%" : "0%")
                         .font(.title2.bold())
-                        .foregroundColor(.red)
-                    Text("布洛芬")
+                        .foregroundColor(.green)
+                    Text("备注完整度")
                         .font(.caption)
                         .foregroundColor(.secondary)
+                        .multilineTextAlignment(.center)
+                }
+                .frame(maxWidth: .infinity)
+                
+                VStack {
+                    Text("\(noteStats.hasDetailedNotes)")
+                        .font(.title2.bold())
+                        .foregroundColor(.purple)
+                    Text("详细记录")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                        .multilineTextAlignment(.center)
                 }
                 .frame(maxWidth: .infinity)
             }
+            
+            Text("详细的备注有助于发现头痛模式和改善治疗效果")
+                .font(.caption)
+                .foregroundColor(.secondary)
+                .frame(maxWidth: .infinity, alignment: .leading)
         }
         .padding()
         .background(Color(.systemBackground))

@@ -309,6 +309,14 @@ struct HeadacheRecordRow: View {
         return locations
     }
     
+    private var selectedTriggers: [HeadacheTrigger] {
+        guard let triggersString = record.triggers else { return [] }
+        let triggerStrings = triggersString.components(separatedBy: ",")
+        return triggerStrings.compactMap { triggerString in
+            HeadacheTrigger(rawValue: triggerString.trimmingCharacters(in: .whitespaces))
+        }
+    }
+    
     private func durationText(from start: Date, to end: Date) -> String {
         let duration = end.timeIntervalSince(start)
         let hours = Int(duration) / 3600
@@ -343,6 +351,24 @@ struct IntensityBadge: View {
         case 9...10: return .red
         default: return .gray
         }
+    }
+}
+
+struct TriggerTag: View {
+    let trigger: HeadacheTrigger
+    
+    var body: some View {
+        HStack(spacing: 4) {
+            Image(systemName: trigger.icon)
+                .font(.caption2)
+            Text(trigger.displayName)
+                .font(.caption2)
+        }
+        .padding(.horizontal, 6)
+        .padding(.vertical, 3)
+        .background(Color(trigger.color).opacity(0.2))
+        .foregroundColor(Color(trigger.color))
+        .clipShape(Capsule())
     }
 }
 
