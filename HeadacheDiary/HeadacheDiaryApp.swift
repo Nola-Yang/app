@@ -11,7 +11,7 @@ import CoreData
 
 @main
 struct HeadacheDiaryApp: App {
-    let persistenceController = PersistenceController.shared
+    var persistenceController = PersistenceController.shared
     private let notificationDelegate = NotificationDelegate()
     
     @StateObject private var weatherService = WeatherService.shared
@@ -19,6 +19,14 @@ struct HeadacheDiaryApp: App {
     @StateObject private var appStateManager = AppStateManager.shared
     
     init() {
+        UNUserNotificationCenter.current().setBadgeCount(0) { error in
+        if let error = error {
+            print("❌ 清除Badge失败: \(error)")
+        } else {
+            print("✅ Badge已清除")
+        }
+        }
+
         // 设置通知代理
         UNUserNotificationCenter.current().delegate = notificationDelegate
         
@@ -98,8 +106,8 @@ struct HeadacheDiaryApp: App {
                 context: persistenceController.container.viewContext
             )
         }
-        
         print("✅ 头痛日记应用启动完成")
+        
     }
     
     // 应用变为活跃状态时的处理
@@ -135,26 +143,8 @@ struct HeadacheDiaryApp: App {
                 context: persistenceController.container.viewContext
             )
         }
-        updateAppBadge()
     }
     
-    private func updateAppBadge() {
-        let context = persistenceController.container.viewContext
-        
-        context.perform {
-            let request: NSFetchRequest<HeadacheRecord> = HeadacheRecord.fetchRequest()
-            request.predicate = NSPredicate(format: "endTime == nil")
-            
-            do {
-                let ongoingCount = try context.count(for: request)
-                DispatchQueue.main.async {
-                    UIApplication.shared.applicationIconBadgeNumber = ongoingCount
-                }
-            } catch {
-                print("❌ 更新徽章失败: \(error)")
-            }
-        }
-    }
     
     // 初始化天气服务
     private func initializeWeatherServices() async {

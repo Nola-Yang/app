@@ -18,10 +18,12 @@ class NotificationManager: ObservableObject {
     // MARK: - 通知权限管理
     @MainActor
     func requestNotificationPermission() {
-        UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge, .provisional, .criticalAlert]) { granted, error in
+        UNUserNotificationCenter.current().requestAuthorization(
+            options: [.alert, .sound, .provisional] 
+        ) { granted, error in
             DispatchQueue.main.async {
                 if granted {
-                    print("✅ 通知权限已获得")
+                    print("✅ 通知权限已获得（不包括Badge）")
                     self.registerNotificationCategories()
                 } else {
                     print("❌ 通知权限被拒绝: \(error?.localizedDescription ?? "未知错误")")
@@ -664,9 +666,9 @@ class NotificationDelegate: NSObject, UNUserNotificationCenterDelegate {
     // Application in foreground notification presentation
     func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification, withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
         if #available(iOS 14.0, *) {
-            completionHandler([.banner, .list, .sound, .badge])
+            completionHandler([.banner, .list, .sound])
         } else {
-            completionHandler([.alert, .sound, .badge])
+            completionHandler([.alert, .sound])
         }
     }
     
