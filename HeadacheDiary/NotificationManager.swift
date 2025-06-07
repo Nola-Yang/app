@@ -38,9 +38,9 @@ class NotificationManager: ObservableObject {
         
         // 头痛提醒类别
         let endHeadacheAction = UNNotificationAction(
-            identifier: "end_headache",
-            title: "头痛已结束",
-            options: [.foreground, .authenticationRequired]
+                identifier: "end_headache_confirm",
+                title: "结束头痛记录",
+                options: []
         )
         
         let continueHeadacheAction = UNNotificationAction(
@@ -53,6 +53,19 @@ class NotificationManager: ObservableObject {
             identifier: "headache_reminder_category",
             actions: [endHeadacheAction, continueHeadacheAction],
             intentIdentifiers: [],
+            options: []
+        )
+        
+        let confirmationCategory = UNNotificationCategory(
+            identifier: "headache_confirmation_category",
+            actions: [endHeadacheAction],
+            intentIdentifiers: [],
+            options: []
+        )
+        
+        let endHeadacheConfirmAction = UNNotificationAction(
+            identifier: "end_headache_confirm",
+            title: "结束头痛记录",
             options: []
         )
         categories.insert(headacheCategory)
@@ -366,7 +379,11 @@ class NotificationManager: ObservableObject {
             
             // Cancel subsequent reminders
             await cancelHeadacheReminders(for: recordID)
-            sendConfirmationNotification(title: "头痛已结束", body: "记录已更新", recordID: recordID)
+            sendConfirmationNotification(
+                title: "头痛已结束",
+                body: "点击查看详情，或使用按钮重新结束记录",
+                recordID: recordID
+            )
         }
     }
     
@@ -432,6 +449,7 @@ class NotificationManager: ObservableObject {
         content.title = title
         content.body = body
         content.sound = .default
+        content.categoryIdentifier = "headache_confirmation_category"
         
         content.userInfo = [
             "type": "confirmation",
@@ -845,14 +863,29 @@ class NotificationDelegate: NSObject, UNUserNotificationCenterDelegate {
     private func handleConfirmationNotification(response: UNNotificationResponse, userInfo: [AnyHashable: Any]) {
         let actionIdentifier = response.actionIdentifier
         
+        guard let recordID = userInfo["recordID"] as? String else {
+            print("❌ 确认通知缺少recordID")
+            return
+        }
+        
         switch actionIdentifier {
+        case "end_headache_confirm":
+            // 用户点击了"结束头痛记录"按钮
+            endHeadacheFromConfirmation(recordID: recordID)
+            print("✅ 用户通过确认通知结束头痛记录")
+            
         case UNNotificationDefaultActionIdentifier:
-            if let recordID = userInfo["recordID"] as? String {
-                openHeadacheRecord(recordID: recordID)
-            }
+            // 用户直接点击通知 - 跳转到编辑页面
+            openHeadacheEditPage(recordID: recordID)
+            print("✅ 用户点击确认通知，跳转到编辑页面")
+            
+        case UNNotificationDismissActionIdentifier:
+            print("📱 用户删除了确认通知")
             
         default:
-            break
+            // 默认行为：跳转到编辑页面
+            openHeadacheEditPage(recordID: recordID)
+            print("📱 默认行为：跳转到编辑页面")
         }
     }
     
@@ -862,6 +895,30 @@ class NotificationDelegate: NSObject, UNUserNotificationCenterDelegate {
             let userInfo = ["recordID": recordID]
             NotificationCenter.default.post(
                 name: .openHeadacheEdit,
+                object: nil,
+                userInfo: userInfo
+            )
+        }
+    }
+
+    // 专门用于编辑页面跳转
+    private func openHeadacheEditPage(recordID: String) {
+        DispatchQueue.main.async {
+            let userInfo = ["recordID": recordID]
+            NotificationCenter.default.post(
+                name: .openHeadacheEdit,
+                object: nil,
+                userInfo: userInfo
+            )
+        }
+    }
+
+    // 从确认通知结束头痛记录
+    private func endHeadacheFromConfirmation(recordID: String) {
+        DispatchQueue.main.async {
+            let userInfo = ["recordID": recordID, "source": "confirmation"]
+            NotificationCenter.default.post(
+                name: .headacheEnded,
                 object: nil,
                 userInfo: userInfo
             )

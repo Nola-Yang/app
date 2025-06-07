@@ -188,10 +188,27 @@ class AppStateManager: ObservableObject {
     private func handleOpenHeadacheEdit(notification: Foundation.Notification) {
         DispatchQueue.main.async {
             if let recordID = notification.userInfo?["recordID"] as? String {
-                print("📱 主页点击 - 导航到头痛记录编辑页面: \(recordID)")
-                // 主页点击 - 使用编辑模式
+                let source = notification.userInfo?["source"] as? String ?? "unknown"
+                print("📱 通知点击 - 导航到头痛记录编辑页面: \(recordID), 来源: \(source)")
                 self.navigateToHeadacheUpdate(recordID: recordID, mode: .fullEdit)
             }
+        }
+    }
+    
+    nonisolated func handleHeadacheEndAction(recordID: String) {
+        Task { @MainActor in
+            let userInfo = ["recordID": recordID]
+            NotificationCenter.default.post(name: .headacheEnded, object: nil, userInfo: userInfo)
+            
+            // Cancel subsequent reminders
+            await NotificationManager.shared.cancelHeadacheReminders(for: recordID)
+            
+//            // 发送确认通知
+//            NotificationManager.shared.sendConfirmationNotification(
+//                title: "头痛已结束",
+//                body: "点击查看详情，或使用按钮重新结束记录",
+//                recordID: recordID
+//            )
         }
     }
     
