@@ -77,6 +77,12 @@ struct HeadacheDiaryApp: App {
         // 清理过期的通知
         HeadacheDiaryApp.cleanupExpiredNotifications()
         
+        Task {
+                await NotificationManager.shared.cleanupOrphanedNotifications(
+                    context: persistenceController.container.viewContext
+                )
+        }
+    
         // 初始化天气服务
         Task {
             await initializeWeatherServices()
@@ -91,10 +97,17 @@ struct HeadacheDiaryApp: App {
         print("✅ 头痛日记应用启动完成")
     }
     
-    // 新增：应用变为活跃状态时的处理
+    // 应用变为活跃状态时的处理
     private func handleAppBecomeActive() {
         // 刷新天气数据
         weatherService.requestCurrentLocationWeather()
+        
+        // 从后台返回时清理孤儿通知
+        Task {
+            await NotificationManager.shared.cleanupOrphanedNotifications(
+                context: persistenceController.container.viewContext
+            )
+        }
         
         // 检查是否有新的预警需要处理
         Task {

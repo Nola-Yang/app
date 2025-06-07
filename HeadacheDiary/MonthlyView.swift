@@ -334,6 +334,17 @@ struct MonthlyView: View {
     
     /// 删除单个记录（从滑动操作调用）
     private func deleteRecord(_ record: HeadacheRecord, from records: [HeadacheRecord]) {
+        // 获取记录的 URI 字符串作为通知标识符
+        let recordURI = record.objectID.uriRepresentation().absoluteString
+        let encodedRecordID = recordURI.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? recordURI
+        
+        // 先取消通知
+        Task {
+            await NotificationManager.shared.cancelHeadacheReminders(for: encodedRecordID)
+            print("✅ 已取消记录 \(record.objectID) 的所有通知")
+        }
+        
+        // 然后删除记录
         if let index = records.firstIndex(of: record) {
             let indexSet = IndexSet([index])
             deleteItems(offsets: indexSet, from: records)
@@ -405,14 +416,40 @@ struct MonthlyView: View {
     
     private func deleteItems(offsets: IndexSet, from records: [HeadacheRecord]) {
         withAnimation {
-            offsets.map { records[$0] }.forEach(viewContext.delete)
+            let recordsToDelete = offsets.map { records[$0] }
+            
+            // 在删除记录前先取消相关通知
+            for record in recordsToDelete {
+                // 获取记录的 URI 字符串作为通知标识符
+                let recordURI = record.objectID.uriRepresentation().absoluteString
+                let encodedRecordID = recordURI.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? recordURI
+                
+                // 异步取消该记录的所有通知
+                Task {
+                    await NotificationManager.shared.cancelHeadacheReminders(for: encodedRecordID)
+                    print("✅ 已取消记录 \(record.objectID) 的所有通知")
+                }
+            }
+            
+            // 删除记录
+            recordsToDelete.forEach(viewContext.delete)
             
             do {
                 try viewContext.save()
                 refreshID = UUID()
+                
+                showSuccessMessage("记录删除成功")
+                
+                Task {
+                    await NotificationManager.shared.cleanupOrphanedNotifications(
+                        context: viewContext
+                    )
+                }
+                
             } catch {
                 let nsError = error as NSError
                 print("删除失败: \(nsError), \(nsError.userInfo)")
+                showErrorMessage("删除失败：\(nsError.localizedDescription)")
             }
         }
     }

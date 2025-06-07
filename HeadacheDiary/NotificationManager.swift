@@ -534,3 +534,46 @@ class NotificationDelegate: NSObject, UNUserNotificationCenterDelegate {
 }
 
 
+extension NotificationManager {
+    
+    /// 清理所有已删除记录的通知
+    func cleanupOrphanedNotifications(context: NSManagedObjectContext) async {
+        let center = UNUserNotificationCenter.current()
+        let pendingRequests = await center.pendingNotificationRequests()
+        
+        var orphanedIdentifiers: [String] = []
+        
+        for request in pendingRequests {
+            // 检查头痛提醒通知
+            if request.identifier.hasPrefix("headache_reminder_"),
+               let recordIDString = request.content.userInfo["recordID"] as? String {
+                
+                // 检查记录是否仍然存在
+                if !recordExists(recordID: recordIDString, context: context) {
+                    orphanedIdentifiers.append(request.identifier)
+                }
+            }
+        }
+        
+        if !orphanedIdentifiers.isEmpty {
+            center.removePendingNotificationRequests(withIdentifiers: orphanedIdentifiers)
+            print("✅ 清理了 \(orphanedIdentifiers.count) 个孤儿通知")
+        }
+    }
+    
+    /// 检查记录是否存在
+    private func recordExists(recordID: String, context: NSManagedObjectContext) -> Bool {
+        guard let decodedString = recordID.removingPercentEncoding,
+              let url = URL(string: decodedString),
+              let objectID = context.persistentStoreCoordinator?.managedObjectID(forURIRepresentation: url) else {
+            return false
+        }
+        
+        do {
+            _ = try context.existingObject(with: objectID)
+            return true
+        } catch {
+            return false
+        }
+    }
+}

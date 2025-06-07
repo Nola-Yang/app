@@ -1052,6 +1052,15 @@ struct AddEntryView: View {
         
         isSaving = true
         
+        // 先取消通知
+        let recordURI = record.objectID.uriRepresentation().absoluteString
+        let encodedRecordID = recordURI.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? recordURI
+        
+        Task {
+            await NotificationManager.shared.cancelHeadacheReminders(for: encodedRecordID)
+            print("✅ 已取消记录 \(record.objectID) 的所有通知")
+        }
+        
         DispatchQueue.main.async {
             do {
                 viewContext.delete(record)

@@ -354,6 +354,15 @@ struct QuickHeadacheEntryView: View {
         
         isSaving = true
         
+        // 先取消通知
+        let recordURI = existingRecord.objectID.uriRepresentation().absoluteString
+        let encodedRecordID = recordURI.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? recordURI
+        
+        Task {
+            await NotificationManager.shared.cancelHeadacheReminders(for: encodedRecordID)
+            print("✅ 已取消快速记录 \(existingRecord.objectID) 的所有通知")
+        }
+        
         DispatchQueue.main.async {
             do {
                 viewContext.delete(existingRecord)
