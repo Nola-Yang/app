@@ -7,7 +7,8 @@ struct AddEntryView: View {
     @ObservedObject private var customOptionsManager = HeadacheCustomOptionsManager.shared
     @ObservedObject private var weatherService = WeatherService.shared  // 天气服务
     
-    let editingRecord: HeadacheRecord?
+    @State private var activeRecord: HeadacheRecord?   // 代替 let editingRecord
+    @State private var isEditMode = false
     
     @State private var currentStep = 0
     private let totalSteps = 7  // 增加天气信息步骤
@@ -69,11 +70,11 @@ struct AddEntryView: View {
     @State private var medicationEntries: [MedicationEntry] = []
     
     private var isEditing: Bool {
-        editingRecord != nil
+        activeRecord != nil
     }
     
     init(editingRecord: HeadacheRecord? = nil) {
-        self.editingRecord = editingRecord
+        self.activeRecord = activeRecord
     }
     
     var body: some View {
@@ -166,6 +167,9 @@ struct AddEntryView: View {
                 if !isEditing {
                     weatherService.requestCurrentLocationWeather()
                 }
+            }
+            .onChange(of: startTime) { newDate in
+                        checkSameDayRecord(for: newDate)
             }
             .alert("保存失败", isPresented: $showError) {
                 Button("确定") { }
@@ -792,7 +796,7 @@ struct AddEntryView: View {
     }
     
     private func loadData() {
-        guard let record = editingRecord else { return }
+        guard let record = activeRecord else { return }
         
         // 基本信息
         timestamp = record.timestamp ?? Date()
@@ -888,25 +892,34 @@ struct AddEntryView: View {
 
                 let record: HeadacheRecord
                 var isNewRecord = false
-                if let editing = editingRecord {
+                if let editing = activeRecord {
                     record = editing
                 } else {
                     let request: NSFetchRequest<HeadacheRecord> = HeadacheRecord.fetchRequest()
-                    request.predicate = NSPredicate(format: "timestamp >= %@ AND timestamp < %@", startOfDay as NSDate, endOfDay as NSDate)
+                    request.predicate = NSPredicate(
+                        format: "timestamp >= %@ AND timestamp < %@ AND (note == nil OR NOT (note CONTAINS[c] %@))",
+                        startOfDay as NSDate,
+                        endOfDay as NSDate,
+                        "快速记录")
                     request.fetchLimit = 1
                     if let existing = try viewContext.fetch(request).first {
                         record = existing
                     } else {
                         record = HeadacheRecord(context: viewContext)
-                        record.timestamp = startOfDay
+                        record.timestamp = startTime
                         isNewRecord = true
                     }
                 }
                 
                 // 保存基本信息
-                let updatingExisting = !isNewRecord && editingRecord == nil
-                record.timestamp = startOfDay
+                let updatingExisting = !isNewRecord && activeRecord == nil
                 record.intensity = max(record.intensity, Int16(intensity))
+                
+                let newSegment = TimeSegment(start: startTime,
+                                             end: hasEndTime ? endTime : nil)
+                var segments = record.timeSegments
+                segments.append(newSegment)
+                record.timeSegments = segments
                 
                 // 合并天气备注到总体备注
                 var finalNote = note
@@ -1057,8 +1070,6 @@ struct AddEntryView: View {
                 }
                 
                 // 时间范围
-                var segments = record.timeSegments
-                let newSegment = TimeSegment(start: startTime, end: hasEndTime ? endTime : nil)
                 if updatingExisting, let lastIndex = segments.indices.last, segments[lastIndex].end == nil {
                     segments[lastIndex].start = newSegment.start
                     segments[lastIndex].end = newSegment.end
@@ -1111,8 +1122,141 @@ struct AddEntryView: View {
             }
         }
     }
+
+    private func loadExistingData(from record: HeadacheRecord) {
+        // ===== 基本信息 =====
+        timestamp = record.timestamp ?? Date()
+        intensity = Double(record.intensity)
+        note = record.note ?? ""
+        
+        // ===== 疼痛位置 =====
+        selectedLocations = []
+        if record.locationForehead { selectedLocations.insert(.forehead) }
+        if record.locationLeftSide { selectedLocations.insert(.leftSide) }
+        if record.locationRightSide { selectedLocations.insert(.rightSide) }
+        if record.locationTemple { selectedLocations.insert(.temple) }
+        if record.locationFace { selectedLocations.insert(.face) }
+        
+        let savedLocs = Set(customOptionsManager.getCustomOptions(for: .location).map(\.text))
+        selectedCustomLocations = Set(record.customLocationNames.filter { savedLocs.contains($0) })
+        temporaryCustomLocations = record.customLocationNames.filter { !savedLocs.contains($0) }
+        
+        // ===== 用药信息 =====
+        if !record.medicationEntries.isEmpty {
+            medicationEntries = record.medicationEntries          // 新版时间线
+        } else {
+            tookMedicine   = record.tookMedicine
+            medicineTime   = record.medicineTime ?? Date()
+            medicineType   = MedicineType(rawValue: record.medicineType ?? "") ?? .tylenol
+            medicineRelief = record.medicineRelief
+            medicineNote   = record.medicineNote ?? ""
+        }
+        let savedMeds = Set(customOptionsManager.getCustomOptions(for: .medicine).map(\.text))
+        selectedCustomMedicines  = Set(record.customMedicineNames.filter { savedMeds.contains($0) })
+        temporaryCustomMedicines = record.customMedicineNames.filter { !savedMeds.contains($0) }
+        
+        // ===== 触发因素 =====
+        selectedTriggers = Set(record.triggerObjects)
+        let savedTriggers = Set(customOptionsManager.getCustomOptions(for: .trigger).map(\.text))
+        selectedCustomTriggers  = Set(record.customTriggerNames.filter { savedTriggers.contains($0) })
+        temporaryCustomTriggers = record.customTriggerNames.filter { !savedTriggers.contains($0) }
+        triggerNote = record.triggerNote ?? ""
+        
+        // ===== 症状 =====
+        hasTinnitus  = record.hasTinnitus
+        hasThrobbing = record.hasThrobbing
+        let savedSyms = Set(customOptionsManager.getCustomOptions(for: .symptom).map(\.text))
+        selectedCustomSymptoms  = Set(record.customSymptomNames.filter { savedSyms.contains($0) })
+        temporaryCustomSymptoms = record.customSymptomNames.filter { !savedSyms.contains($0) }
+        symptomNote = record.symptomNote ?? ""
+        
+        // ===== 时间范围 =====
+        startTime  = record.startTime ?? Date()
+        hasEndTime = record.endTime != nil
+        if hasEndTime { endTime = record.endTime ?? Date() }
+        timeNote = record.timeNote ?? ""
+        
+        // ===== 天气备注（如果你之前把天气信息塞进 note）=====
+        weatherNote = "" // 需要时自行解析 record.note
+    }
+
+    // MARK: - 清空表单，恢复到“新建”状态
+    private func clearForm() {
+        // 基本信息
+        timestamp = Date()
+        intensity = 5
+        note = ""
+        
+        // 疼痛位置
+        selectedLocations = []
+        selectedCustomLocations = []
+        temporaryCustomLocations = []
+        newCustomLocation = ""
+        
+        // 用药信息
+        tookMedicine = false
+        medicineTime = Date()
+        medicineType = .tylenol
+        medicineRelief = false
+        medicationEntries = []
+        selectedCustomMedicines = []
+        temporaryCustomMedicines = []
+        newCustomMedicine = ""
+        medicineNote = ""
+        
+        // 触发因素
+        selectedTriggers = []
+        selectedCustomTriggers = []
+        temporaryCustomTriggers = []
+        newCustomTrigger = ""
+        triggerNote = ""
+        
+        // 症状
+        hasTinnitus = false
+        hasThrobbing = false
+        selectedCustomSymptoms = []
+        temporaryCustomSymptoms = []
+        newCustomSymptom = ""
+        symptomNote = ""
+        
+        // 时间范围
+        startTime = Date()
+        hasEndTime = false
+        endTime = Date()
+        timeNote = ""
+        
+        // 天气
+        autoDetectWeather = true
+        weatherNote = ""
+        manualWeatherCondition = .sunny
+        manualTemperature = 20
+        manualHumidity = 50
+    }
+
     
-    // 新增：保存天气关联信息
+    private func checkSameDayRecord(for date: Date) {
+        let calendar = Calendar.current
+        let start = calendar.startOfDay(for: date)
+        let end   = calendar.date(byAdding: .day, value: 1, to: start)!
+        
+        let req: NSFetchRequest<HeadacheRecord> = HeadacheRecord.fetchRequest()
+        req.predicate = NSPredicate(format:
+            "timestamp >= %@ AND timestamp < %@ AND (note == nil OR NOT note BEGINSWITH[c] \"快速记录\")",
+            start as NSDate, end as NSDate)
+        req.fetchLimit = 1
+        
+        if let existing = try? viewContext.fetch(req).first {
+            activeRecord = existing
+            isEditMode = true
+            loadExistingData(from: existing)   // 复用你的 loadData() 逻辑
+        } else {
+            activeRecord = nil
+            isEditMode = false
+            clearForm()                        // 自行实现：把表单控件清零
+        }
+    }
+    
+    // 保存天气关联信息
     private func saveWeatherAssociation(for record: HeadacheRecord) {
         // 如果有当前天气数据，创建关联
         if let currentWeather = weatherService.currentWeather {
@@ -1144,7 +1288,7 @@ struct AddEntryView: View {
     }
     
     private func deleteRecord() {
-        guard let record = editingRecord else { return }
+        guard let record = activeRecord else { return }
         
         isSaving = true
         
