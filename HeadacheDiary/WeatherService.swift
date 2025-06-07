@@ -394,7 +394,7 @@ class WeatherService: NSObject, ObservableObject {
     
     func analyzeWeatherHeadacheCorrelation(with headacheRecords: [HeadacheRecord]) -> EnhancedWeatherCorrelationResult {
         // 直接调用增强版分析方法
-        performEnhancedCorrelationAnalysis(with: headacheRecords)
+        return performEnhancedCorrelationAnalysis(with: headacheRecords)
     }
     
     // 获取明天的天气预测
