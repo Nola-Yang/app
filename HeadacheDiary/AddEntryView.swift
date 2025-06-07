@@ -1,4 +1,5 @@
 import SwiftUI
+import CoreData
 
 struct AddEntryView: View {
     @Environment(\.managedObjectContext) private var viewContext
