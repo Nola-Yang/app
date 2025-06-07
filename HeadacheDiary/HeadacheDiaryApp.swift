@@ -15,6 +15,7 @@ struct HeadacheDiaryApp: App {
     
     @StateObject private var weatherService = WeatherService.shared
     @StateObject private var weatherWarningManager = WeatherWarningManager.shared
+    @StateObject private var appStateManager = AppStateManager.shared
     
     init() {
         // 设置通知代理
@@ -53,14 +54,17 @@ struct HeadacheDiaryApp: App {
             // 处理打开快速记录页面的请求
             print("📱 请求打开快速记录页面")
         }
+        
     }
     
     var body: some Scene {
         WindowGroup {
             ContentView()
                 .environment(\.managedObjectContext, persistenceController.container.viewContext)
-                .environmentObject(weatherService)  // 新增：注入天气服务
-                .environmentObject(weatherWarningManager)  // 新增：注入预警管理器
+                .environmentObject(weatherService)  // 注入天气服务
+                .environmentObject(weatherWarningManager)  // 注入预警管理器
+                .environmentObject(appStateManager)
+                .withNotificationNavigation()
                 .onAppear {
                     // 应用启动时的初始化
                     setupAppOnLaunch()
@@ -130,9 +134,28 @@ struct HeadacheDiaryApp: App {
                 context: persistenceController.container.viewContext
             )
         }
+        updateAppBadge()
     }
     
-    // 新增：初始化天气服务
+    private func updateAppBadge() {
+        let context = persistenceController.container.viewContext
+        
+        context.perform {
+            let request: NSFetchRequest<HeadacheRecord> = HeadacheRecord.fetchRequest()
+            request.predicate = NSPredicate(format: "endTime == nil")
+            
+            do {
+                let ongoingCount = try context.count(for: request)
+                DispatchQueue.main.async {
+                    UIApplication.shared.applicationIconBadgeNumber = ongoingCount
+                }
+            } catch {
+                print("❌ 更新徽章失败: \(error)")
+            }
+        }
+    }
+    
+    // 初始化天气服务
     private func initializeWeatherServices() async {
         // 请求位置权限
         weatherService.requestLocationPermission()
