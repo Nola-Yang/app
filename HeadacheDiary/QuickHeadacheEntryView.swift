@@ -287,7 +287,8 @@ struct QuickHeadacheEntryView: View {
         DispatchQueue.main.async {
             do {
                 let record: HeadacheRecord
-                
+                let updating = existingRecord != nil
+
                 if let existingRecord = existingRecord {
                     record = existingRecord
                     print("✅ 更新现有的快速记录")
@@ -300,21 +301,43 @@ struct QuickHeadacheEntryView: View {
                 record.intensity = max(record.intensity, defaultIntensity)
                 
                 // 位置信息
-                record.locationForehead = selectedLocations.contains(.forehead)
-                record.locationLeftSide = selectedLocations.contains(.leftSide)
-                record.locationRightSide = selectedLocations.contains(.rightSide)
-                record.locationTemple = selectedLocations.contains(.temple)
-                record.locationFace = selectedLocations.contains(.face)
-                
+                if updating {
+                    record.locationForehead = record.locationForehead || selectedLocations.contains(.forehead)
+                    record.locationLeftSide = record.locationLeftSide || selectedLocations.contains(.leftSide)
+                    record.locationRightSide = record.locationRightSide || selectedLocations.contains(.rightSide)
+                    record.locationTemple = record.locationTemple || selectedLocations.contains(.temple)
+                    record.locationFace = record.locationFace || selectedLocations.contains(.face)
+                } else {
+                    record.locationForehead = selectedLocations.contains(.forehead)
+                    record.locationLeftSide = selectedLocations.contains(.leftSide)
+                    record.locationRightSide = selectedLocations.contains(.rightSide)
+                    record.locationTemple = selectedLocations.contains(.temple)
+                    record.locationFace = selectedLocations.contains(.face)
+                }
+
                 // 触发因素
-                record.triggers = selectedTrigger.rawValue
+                if updating {
+                    var triggers = Set(record.triggerObjects)
+                    triggers.insert(selectedTrigger)
+                    record.setTriggers(Array(triggers))
+                } else {
+                    record.triggers = selectedTrigger.rawValue
+                }
                 
                 // 备注处理
                 var finalNote = "快速记录 - 今天的轻微头痛，若有若无"
                 if !quickNote.isEmpty {
                     finalNote += "；\(quickNote)"
                 }
-                record.note = finalNote
+                if updating {
+                    if let existing = record.note, !existing.isEmpty {
+                        record.note = existing + "\n" + finalNote
+                    } else {
+                        record.note = finalNote
+                    }
+                } else {
+                    record.note = finalNote
+                }
                 
                 // 固定的症状特征
                 record.setCustomSymptoms(["若有若无", "轻微不适"])
@@ -322,7 +345,14 @@ struct QuickHeadacheEntryView: View {
                 // 时间信息作为新的时间段
                 let segment = TimeSegment(start: todayTimestamp,
                                           end: Calendar.current.date(byAdding: .hour, value: 1, to: todayTimestamp))
-                record.addTimeSegment(segment)
+                var segments = record.timeSegments
+                if updating, let lastIndex = segments.indices.last, segments[lastIndex].end == nil {
+                    segments[lastIndex].start = segment.start
+                    segments[lastIndex].end = segment.end
+                } else {
+                    segments.append(segment)
+                }
+                record.timeSegments = segments
                 
                 // 用药信息 - 快速记录默认没有用药
                 record.tookMedicine = false
