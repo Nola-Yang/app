@@ -1,4 +1,5 @@
 import SwiftUI
+import CoreData
 
 struct AddEntryView: View {
     @Environment(\.managedObjectContext) private var viewContext
@@ -6,7 +7,8 @@ struct AddEntryView: View {
     @ObservedObject private var customOptionsManager = HeadacheCustomOptionsManager.shared
     @ObservedObject private var weatherService = WeatherService.shared  // 天气服务
     
-    let editingRecord: HeadacheRecord?
+    @State private var activeRecord: HeadacheRecord?   // 代替 let editingRecord
+    @State private var isEditMode = false
     
     @State private var currentStep = 0
     private let totalSteps = 7  // 增加天气信息步骤
@@ -68,11 +70,11 @@ struct AddEntryView: View {
     @State private var medicationEntries: [MedicationEntry] = []
     
     private var isEditing: Bool {
-        editingRecord != nil
+        activeRecord != nil
     }
     
     init(editingRecord: HeadacheRecord? = nil) {
-        self.editingRecord = editingRecord
+        self.activeRecord = activeRecord
     }
     
     var body: some View {
@@ -165,6 +167,9 @@ struct AddEntryView: View {
                 if !isEditing {
                     weatherService.requestCurrentLocationWeather()
                 }
+            }
+            .onChange(of: startTime) { newDate in
+                        checkSameDayRecord(for: newDate)
             }
             .alert("保存失败", isPresented: $showError) {
                 Button("确定") { }
@@ -791,7 +796,7 @@ struct AddEntryView: View {
     }
     
     private func loadData() {
-        guard let record = editingRecord else { return }
+        guard let record = activeRecord else { return }
         
         // 基本信息
         timestamp = record.timestamp ?? Date()
@@ -881,11 +886,40 @@ struct AddEntryView: View {
         
         DispatchQueue.main.async {
             do {
-                let record = editingRecord ?? HeadacheRecord(context: viewContext)
+                let calendar = Calendar.current
+                let startOfDay = calendar.startOfDay(for: startTime)
+                let endOfDay = calendar.date(byAdding: .day, value: 1, to: startOfDay)!
+
+                let record: HeadacheRecord
+                var isNewRecord = false
+                if let editing = activeRecord {
+                    record = editing
+                } else {
+                    let request: NSFetchRequest<HeadacheRecord> = HeadacheRecord.fetchRequest()
+                    request.predicate = NSPredicate(
+                        format: "timestamp >= %@ AND timestamp < %@ AND (note == nil OR NOT (note CONTAINS[c] %@))",
+                        startOfDay as NSDate,
+                        endOfDay as NSDate,
+                        "快速记录")
+                    request.fetchLimit = 1
+                    if let existing = try viewContext.fetch(request).first {
+                        record = existing
+                    } else {
+                        record = HeadacheRecord(context: viewContext)
+                        record.timestamp = startTime
+                        isNewRecord = true
+                    }
+                }
                 
                 // 保存基本信息
-                record.timestamp = timestamp
-                record.intensity = Int16(intensity)
+                let updatingExisting = !isNewRecord && activeRecord == nil
+                record.intensity = max(record.intensity, Int16(intensity))
+                
+                let newSegment = TimeSegment(start: startTime,
+                                             end: hasEndTime ? endTime : nil)
+                var segments = record.timeSegments
+                segments.append(newSegment)
+                record.timeSegments = segments
                 
                 // 合并天气备注到总体备注
                 var finalNote = note
@@ -896,75 +930,166 @@ struct AddEntryView: View {
                         finalNote = "天气相关：\(weatherNote)"
                     }
                 }
-                record.note = finalNote.isEmpty ? nil : finalNote
+                if updatingExisting {
+                    if !finalNote.isEmpty {
+                        if let existing = record.note, !existing.isEmpty {
+                            record.note = existing + "\n" + finalNote
+                        } else {
+                            record.note = finalNote
+                        }
+                    }
+                } else {
+                    record.note = finalNote.isEmpty ? nil : finalNote
+                }
                 
                 // 疼痛位置
-                record.locationForehead = selectedLocations.contains(.forehead)
-                record.locationLeftSide = selectedLocations.contains(.leftSide)
-                record.locationRightSide = selectedLocations.contains(.rightSide)
-                record.locationTemple = selectedLocations.contains(.temple)
-                record.locationFace = selectedLocations.contains(.face)
-                // 合并已保存的和临时的自定义位置
-                let allCustomLocations = Array(selectedCustomLocations) + temporaryCustomLocations
-                record.setCustomLocations(allCustomLocations)
+                if updatingExisting {
+                    record.locationForehead = record.locationForehead || selectedLocations.contains(.forehead)
+                    record.locationLeftSide = record.locationLeftSide || selectedLocations.contains(.leftSide)
+                    record.locationRightSide = record.locationRightSide || selectedLocations.contains(.rightSide)
+                    record.locationTemple = record.locationTemple || selectedLocations.contains(.temple)
+                    record.locationFace = record.locationFace || selectedLocations.contains(.face)
+
+                    let customSet = Set(record.customLocationNames)
+                        .union(selectedCustomLocations)
+                        .union(temporaryCustomLocations)
+                    record.setCustomLocations(Array(customSet))
+                } else {
+                    record.locationForehead = selectedLocations.contains(.forehead)
+                    record.locationLeftSide = selectedLocations.contains(.leftSide)
+                    record.locationRightSide = selectedLocations.contains(.rightSide)
+                    record.locationTemple = selectedLocations.contains(.temple)
+                    record.locationFace = selectedLocations.contains(.face)
+                    let allCustomLocations = Array(selectedCustomLocations) + temporaryCustomLocations
+                    record.setCustomLocations(allCustomLocations)
+                }
                 
                 // 用药信息 - 优先使用新的 medicationEntries
                 if !medicationEntries.isEmpty {
-                    record.medicationEntries = medicationEntries
-                    
-                    // 更新缓存字段
-                    record.totalDosageValue = medicationEntries.reduce(0) { $0 + $1.dosage }
-                    record.hasMedicationTimeline = medicationEntries.count > 1
-                    
-                    // 为了兼容性，更新传统字段
+                    var merged = updatingExisting ? record.medicationEntries : []
+                    merged.append(contentsOf: medicationEntries)
+                    record.medicationEntries = merged
+
+                    record.totalDosageValue = merged.reduce(0) { $0 + $1.dosage }
+                    record.hasMedicationTimeline = merged.count > 1
+
                     record.tookMedicine = true
-                    if let firstEntry = medicationEntries.first {
+                    if let firstEntry = merged.first {
                         record.medicineTime = firstEntry.time
                         if !firstEntry.isCustomMedicine {
                             record.medicineType = firstEntry.medicineType
                         }
                     }
-                    record.medicineRelief = medicationEntries.contains { $0.relief }
+                    record.medicineRelief = merged.contains { $0.relief }
                 } else {
                     // 使用传统字段（向后兼容）
-                    record.tookMedicine = tookMedicine
-                    if tookMedicine {
-                        record.medicineTime = medicineTime
-                        record.medicineType = medicineType.rawValue
-                        record.medicineRelief = medicineRelief
-                        // 合并已保存的和临时的自定义药物
-                        let allCustomMedicines = Array(selectedCustomMedicines) + temporaryCustomMedicines
-                        record.setCustomMedicines(allCustomMedicines)
-                        record.medicineNote = medicineNote.isEmpty ? nil : medicineNote
+                    if updatingExisting {
+                        record.tookMedicine = record.tookMedicine || tookMedicine
+                        if tookMedicine {
+                            if record.medicineTime == nil { record.medicineTime = medicineTime }
+                            if record.medicineType == nil { record.medicineType = medicineType.rawValue }
+                            record.medicineRelief = record.medicineRelief || medicineRelief
+                            let customSet = Set(record.customMedicineNames)
+                                .union(selectedCustomMedicines)
+                                .union(temporaryCustomMedicines)
+                            record.setCustomMedicines(Array(customSet))
+                            if !medicineNote.isEmpty {
+                                if let existing = record.medicineNote, !existing.isEmpty {
+                                    record.medicineNote = existing + "\n" + medicineNote
+                                } else {
+                                    record.medicineNote = medicineNote
+                                }
+                            }
+                        }
                     } else {
-                        record.medicineTime = nil
-                        record.medicineType = nil
-                        record.medicineRelief = false
-                        record.setCustomMedicines([])
-                        record.medicineNote = nil
+                        record.tookMedicine = tookMedicine
+                        if tookMedicine {
+                            record.medicineTime = medicineTime
+                            record.medicineType = medicineType.rawValue
+                            record.medicineRelief = medicineRelief
+                            let allCustomMedicines = Array(selectedCustomMedicines) + temporaryCustomMedicines
+                            record.setCustomMedicines(allCustomMedicines)
+                            record.medicineNote = medicineNote.isEmpty ? nil : medicineNote
+                        } else {
+                            record.medicineTime = nil
+                            record.medicineType = nil
+                            record.medicineRelief = false
+                            record.setCustomMedicines([])
+                            record.medicineNote = nil
+                        }
                     }
                 }
                 
                 // 触发因素
-                let triggersArray = Array(selectedTriggers).map { $0.rawValue }
-                record.triggers = triggersArray.isEmpty ? nil : triggersArray.joined(separator: ",")
-                // 合并已保存的和临时的自定义触发因素
-                let allCustomTriggers = Array(selectedCustomTriggers) + temporaryCustomTriggers
-                record.setCustomTriggers(allCustomTriggers)
-                record.triggerNote = triggerNote.isEmpty ? nil : triggerNote
+                if updatingExisting {
+                    var triggerSet = Set(record.triggerObjects)
+                    triggerSet.formUnion(selectedTriggers)
+                    record.setTriggers(Array(triggerSet))
+
+                    let customSet = Set(record.customTriggerNames)
+                        .union(selectedCustomTriggers)
+                        .union(temporaryCustomTriggers)
+                    record.setCustomTriggers(Array(customSet))
+
+                    if !triggerNote.isEmpty {
+                        if let existing = record.triggerNote, !existing.isEmpty {
+                            record.triggerNote = existing + "\n" + triggerNote
+                        } else {
+                            record.triggerNote = triggerNote
+                        }
+                    }
+                } else {
+                    let triggersArray = Array(selectedTriggers).map { $0.rawValue }
+                    record.triggers = triggersArray.isEmpty ? nil : triggersArray.joined(separator: ",")
+                    let allCustomTriggers = Array(selectedCustomTriggers) + temporaryCustomTriggers
+                    record.setCustomTriggers(allCustomTriggers)
+                    record.triggerNote = triggerNote.isEmpty ? nil : triggerNote
+                }
                 
                 // 疼痛特征
-                record.hasTinnitus = hasTinnitus
-                record.hasThrobbing = hasThrobbing
-                // 合并已保存的和临时的自定义症状
-                let allCustomSymptoms = Array(selectedCustomSymptoms) + temporaryCustomSymptoms
-                record.setCustomSymptoms(allCustomSymptoms)
-                record.symptomNote = symptomNote.isEmpty ? nil : symptomNote
+                if updatingExisting {
+                    record.hasTinnitus = record.hasTinnitus || hasTinnitus
+                    record.hasThrobbing = record.hasThrobbing || hasThrobbing
+                    let customSet = Set(record.customSymptomNames)
+                        .union(selectedCustomSymptoms)
+                        .union(temporaryCustomSymptoms)
+                    record.setCustomSymptoms(Array(customSet))
+                    if !symptomNote.isEmpty {
+                        if let existing = record.symptomNote, !existing.isEmpty {
+                            record.symptomNote = existing + "\n" + symptomNote
+                        } else {
+                            record.symptomNote = symptomNote
+                        }
+                    }
+                } else {
+                    record.hasTinnitus = hasTinnitus
+                    record.hasThrobbing = hasThrobbing
+                    let allCustomSymptoms = Array(selectedCustomSymptoms) + temporaryCustomSymptoms
+                    record.setCustomSymptoms(allCustomSymptoms)
+                    record.symptomNote = symptomNote.isEmpty ? nil : symptomNote
+                }
                 
                 // 时间范围
-                record.startTime = startTime
-                record.endTime = hasEndTime ? endTime : nil
-                record.timeNote = timeNote.isEmpty ? nil : timeNote
+                if updatingExisting, let lastIndex = segments.indices.last, segments[lastIndex].end == nil {
+                    segments[lastIndex].start = newSegment.start
+                    segments[lastIndex].end = newSegment.end
+                    segments[lastIndex] = segments[lastIndex]
+                } else {
+                    segments.append(newSegment)
+                }
+                record.timeSegments = segments
+
+                if updatingExisting {
+                    if !timeNote.isEmpty {
+                        if let existing = record.timeNote, !existing.isEmpty {
+                            record.timeNote = existing + "\n" + timeNote
+                        } else {
+                            record.timeNote = timeNote
+                        }
+                    }
+                } else {
+                    record.timeNote = timeNote.isEmpty ? nil : timeNote
+                }
                 
                 // 新增：保存天气关联信息
                 if autoDetectWeather && !isEditing {
@@ -974,9 +1099,10 @@ struct AddEntryView: View {
                 
                 // 保存到Core Data
                 try viewContext.save()
+                viewContext.refreshAllObjects()
                 
-                // 如果没有结束时间，安排通知提醒
-                if !hasEndTime && editingRecord == nil {
+                // 如果新的时间段没有结束时间，安排提醒
+                if !hasEndTime {
                     scheduleHeadacheReminders(for: record)
                 }
                 
@@ -996,8 +1122,141 @@ struct AddEntryView: View {
             }
         }
     }
+
+    private func loadExistingData(from record: HeadacheRecord) {
+        // ===== 基本信息 =====
+        timestamp = record.timestamp ?? Date()
+        intensity = Double(record.intensity)
+        note = record.note ?? ""
+        
+        // ===== 疼痛位置 =====
+        selectedLocations = []
+        if record.locationForehead { selectedLocations.insert(.forehead) }
+        if record.locationLeftSide { selectedLocations.insert(.leftSide) }
+        if record.locationRightSide { selectedLocations.insert(.rightSide) }
+        if record.locationTemple { selectedLocations.insert(.temple) }
+        if record.locationFace { selectedLocations.insert(.face) }
+        
+        let savedLocs = Set(customOptionsManager.getCustomOptions(for: .location).map(\.text))
+        selectedCustomLocations = Set(record.customLocationNames.filter { savedLocs.contains($0) })
+        temporaryCustomLocations = record.customLocationNames.filter { !savedLocs.contains($0) }
+        
+        // ===== 用药信息 =====
+        if !record.medicationEntries.isEmpty {
+            medicationEntries = record.medicationEntries          // 新版时间线
+        } else {
+            tookMedicine   = record.tookMedicine
+            medicineTime   = record.medicineTime ?? Date()
+            medicineType   = MedicineType(rawValue: record.medicineType ?? "") ?? .tylenol
+            medicineRelief = record.medicineRelief
+            medicineNote   = record.medicineNote ?? ""
+        }
+        let savedMeds = Set(customOptionsManager.getCustomOptions(for: .medicine).map(\.text))
+        selectedCustomMedicines  = Set(record.customMedicineNames.filter { savedMeds.contains($0) })
+        temporaryCustomMedicines = record.customMedicineNames.filter { !savedMeds.contains($0) }
+        
+        // ===== 触发因素 =====
+        selectedTriggers = Set(record.triggerObjects)
+        let savedTriggers = Set(customOptionsManager.getCustomOptions(for: .trigger).map(\.text))
+        selectedCustomTriggers  = Set(record.customTriggerNames.filter { savedTriggers.contains($0) })
+        temporaryCustomTriggers = record.customTriggerNames.filter { !savedTriggers.contains($0) }
+        triggerNote = record.triggerNote ?? ""
+        
+        // ===== 症状 =====
+        hasTinnitus  = record.hasTinnitus
+        hasThrobbing = record.hasThrobbing
+        let savedSyms = Set(customOptionsManager.getCustomOptions(for: .symptom).map(\.text))
+        selectedCustomSymptoms  = Set(record.customSymptomNames.filter { savedSyms.contains($0) })
+        temporaryCustomSymptoms = record.customSymptomNames.filter { !savedSyms.contains($0) }
+        symptomNote = record.symptomNote ?? ""
+        
+        // ===== 时间范围 =====
+        startTime  = record.startTime ?? Date()
+        hasEndTime = record.endTime != nil
+        if hasEndTime { endTime = record.endTime ?? Date() }
+        timeNote = record.timeNote ?? ""
+        
+        // ===== 天气备注（如果你之前把天气信息塞进 note）=====
+        weatherNote = "" // 需要时自行解析 record.note
+    }
+
+    // MARK: - 清空表单，恢复到“新建”状态
+    private func clearForm() {
+        // 基本信息
+        timestamp = Date()
+        intensity = 5
+        note = ""
+        
+        // 疼痛位置
+        selectedLocations = []
+        selectedCustomLocations = []
+        temporaryCustomLocations = []
+        newCustomLocation = ""
+        
+        // 用药信息
+        tookMedicine = false
+        medicineTime = Date()
+        medicineType = .tylenol
+        medicineRelief = false
+        medicationEntries = []
+        selectedCustomMedicines = []
+        temporaryCustomMedicines = []
+        newCustomMedicine = ""
+        medicineNote = ""
+        
+        // 触发因素
+        selectedTriggers = []
+        selectedCustomTriggers = []
+        temporaryCustomTriggers = []
+        newCustomTrigger = ""
+        triggerNote = ""
+        
+        // 症状
+        hasTinnitus = false
+        hasThrobbing = false
+        selectedCustomSymptoms = []
+        temporaryCustomSymptoms = []
+        newCustomSymptom = ""
+        symptomNote = ""
+        
+        // 时间范围
+        startTime = Date()
+        hasEndTime = false
+        endTime = Date()
+        timeNote = ""
+        
+        // 天气
+        autoDetectWeather = true
+        weatherNote = ""
+        manualWeatherCondition = .sunny
+        manualTemperature = 20
+        manualHumidity = 50
+    }
+
     
-    // 新增：保存天气关联信息
+    private func checkSameDayRecord(for date: Date) {
+        let calendar = Calendar.current
+        let start = calendar.startOfDay(for: date)
+        let end   = calendar.date(byAdding: .day, value: 1, to: start)!
+        
+        let req: NSFetchRequest<HeadacheRecord> = HeadacheRecord.fetchRequest()
+        req.predicate = NSPredicate(format:
+            "timestamp >= %@ AND timestamp < %@ AND (note == nil OR NOT note BEGINSWITH[c] \"快速记录\")",
+            start as NSDate, end as NSDate)
+        req.fetchLimit = 1
+        
+        if let existing = try? viewContext.fetch(req).first {
+            activeRecord = existing
+            isEditMode = true
+            loadExistingData(from: existing)   // 复用你的 loadData() 逻辑
+        } else {
+            activeRecord = nil
+            isEditMode = false
+            clearForm()                        // 自行实现：把表单控件清零
+        }
+    }
+    
+    // 保存天气关联信息
     private func saveWeatherAssociation(for record: HeadacheRecord) {
         // 如果有当前天气数据，创建关联
         if let currentWeather = weatherService.currentWeather {
@@ -1029,7 +1288,7 @@ struct AddEntryView: View {
     }
     
     private func deleteRecord() {
-        guard let record = editingRecord else { return }
+        guard let record = activeRecord else { return }
         
         isSaving = true
         
@@ -1037,6 +1296,7 @@ struct AddEntryView: View {
             do {
                 viewContext.delete(record)
                 try viewContext.save()
+                viewContext.refreshAllObjects()
                 
                 print("✅ 删除成功")
                 

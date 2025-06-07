@@ -392,58 +392,9 @@ class WeatherService: NSObject, ObservableObject {
     
     // MARK: - 历史关联分析
     
-    func analyzeWeatherHeadacheCorrelation(with headacheRecords: [HeadacheRecord]) -> WeatherCorrelationResult {
-        var correlations: [String: CorrelationData] = [:]
-        
-        // 分析不同天气条件下的头痛发生率
-        for weatherRecord in weatherHistory {
-            let dateString = DateFormatter.dayFormatter.string(from: weatherRecord.date)
-            let headacheOnThisDay = headacheRecords.contains { record in
-                guard let timestamp = record.timestamp else { return false }
-                return DateFormatter.dayFormatter.string(from: timestamp) == dateString
-            }
-            
-            let condition = weatherRecord.condition
-            if correlations[condition] == nil {
-                correlations[condition] = CorrelationData()
-            }
-            
-            correlations[condition]!.totalDays += 1
-            if headacheOnThisDay {
-                correlations[condition]!.headacheDays += 1
-            }
-            
-            // 收集天气参数
-            correlations[condition]!.temperatures.append(weatherRecord.temperature)
-            correlations[condition]!.pressures.append(weatherRecord.pressure)
-            correlations[condition]!.humidities.append(weatherRecord.humidity)
-        }
-        
-        // 计算相关性
-        var results: [WeatherConditionCorrelation] = []
-        for (condition, data) in correlations {
-            let headacheRate = data.totalDays > 0 ? Double(data.headacheDays) / Double(data.totalDays) * 100 : 0
-            let avgTemperature = data.temperatures.isEmpty ? 0 : data.temperatures.reduce(0, +) / Double(data.temperatures.count)
-            let avgPressure = data.pressures.isEmpty ? 0 : data.pressures.reduce(0, +) / Double(data.pressures.count)
-            let avgHumidity = data.humidities.isEmpty ? 0 : data.humidities.reduce(0, +) / Double(data.humidities.count)
-            
-            results.append(WeatherConditionCorrelation(
-                condition: condition,
-                headacheRate: headacheRate,
-                totalDays: data.totalDays,
-                headacheDays: data.headacheDays,
-                averageTemperature: avgTemperature,
-                averagePressure: avgPressure,
-                averageHumidity: avgHumidity
-            ))
-        }
-        
-        return WeatherCorrelationResult(
-            conditions: results.sorted { $0.headacheRate > $1.headacheRate },
-            analysisDate: Date(),
-            totalWeatherDays: weatherHistory.count,
-            totalHeadacheDays: headacheRecords.count
-        )
+    func analyzeWeatherHeadacheCorrelation(with headacheRecords: [HeadacheRecord]) -> EnhancedWeatherCorrelationResult {
+        // 直接调用增强版分析方法
+        return performEnhancedCorrelationAnalysis(with: headacheRecords)
     }
     
     // 获取明天的天气预测

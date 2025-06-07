@@ -550,8 +550,6 @@ class EnhancedRiskPredictionModel {
             recommendations.append("今日头痛风险较高，建议准备药物并避免触发因素")
         case .veryHigh:
             recommendations.append("今日头痛风险很高，建议采取预防措施并准备应急药物")
-        case .unknown:
-            return "数据不足，无法提供准确建议"
         }
         
         // 基于具体因素的建议
@@ -1054,7 +1052,7 @@ class PredictionAccuracyTracker {
     func updateActualOutcome(date: Date, hadHeadache: Bool) {
         var records = loadRecords()
         if let index = records.firstIndex(where: { Calendar.current.isDate($0.date, inSameDayAs: date) }) {
-            var record = records[index]
+            let record = records[index]
             records[index] = PredictionRecord(
                 date: record.date,
                 predictedRisk: record.predictedRisk,

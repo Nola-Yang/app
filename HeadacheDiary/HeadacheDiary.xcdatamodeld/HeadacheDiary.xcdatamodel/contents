@@ -17,6 +17,7 @@
         <attribute name="locationRightSide" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
         <attribute name="locationTemple" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
         <attribute name="medicationEntriesData" optional="YES" attributeType="Binary"/>
+        <attribute name="timeSegmentsData" optional="YES" attributeType="Binary"/>
         <attribute name="medicineNote" optional="YES" attributeType="String"/>
         <attribute name="medicineRelief" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
         <attribute name="medicineTime" optional="YES" attributeType="Date" usesScalarValueType="NO"/>

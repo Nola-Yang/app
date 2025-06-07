@@ -7,6 +7,7 @@
 
 import SwiftUI
 import UserNotifications
+import CoreData
 
 @main
 struct HeadacheDiaryApp: App {
@@ -76,6 +77,9 @@ struct HeadacheDiaryApp: App {
     private func setupAppOnLaunch() {
         // 清理过期的通知
         HeadacheDiaryApp.cleanupExpiredNotifications()
+
+        // 自动结束跨日头痛
+        HeadacheDiaryApp.autoEndStaleHeadaches()
         
         // 初始化天气服务
         Task {
@@ -213,6 +217,48 @@ struct HeadacheDiaryApp: App {
                 UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: expiredIdentifiers)
                 print("✅ 已清理 \(expiredIdentifiers.count) 个过期通知")
             }
+        }
+    }
+
+    // 自动结束跨日未完成的头痛记录
+    static func autoEndStaleHeadaches() {
+        let context = PersistenceController.shared.container.viewContext
+        let request: NSFetchRequest<HeadacheRecord> = HeadacheRecord.fetchRequest()
+        request.predicate = NSPredicate(format: "endTime == nil")
+
+        do {
+            let records = try context.fetch(request)
+            let calendar = Calendar.current
+            var changed = false
+
+            for record in records {
+                var segments = record.timeSegments
+                for i in segments.indices {
+                    if segments[i].end == nil {
+                        let start = segments[i].start
+                        if !calendar.isDate(start, inSameDayAs: Date()) {
+                            let endOfDay = calendar.date(bySettingHour: 23, minute: 59, second: 59, of: start)!
+                            segments[i].end = endOfDay
+                            changed = true
+                        }
+                    }
+                }
+                if changed {
+                    record.timeSegments = segments
+                    if let idString = record.objectID.uriRepresentation().absoluteString.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) {
+                        Task {
+                            await NotificationManager.shared.cancelHeadacheReminders(for: idString)
+                        }
+                    }
+                }
+            }
+
+            if changed {
+                try context.save()
+                print("✅ 自动结束跨日头痛记录")
+            }
+        } catch {
+            print("❌ 自动结束头痛记录失败: \(error)")
         }
     }
 }

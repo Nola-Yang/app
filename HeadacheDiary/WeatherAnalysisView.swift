@@ -18,7 +18,7 @@ struct WeatherAnalysisView: View {
     @StateObject private var weatherService = WeatherService.shared
     @StateObject private var warningManager = WeatherWarningManager.shared
     
-    @State private var correlationResult: WeatherCorrelationResult?
+    @State private var correlationResult: EnhancedWeatherCorrelationResult?
     @State private var isAnalyzing = false
     @State private var showSettings = false
     @State private var selectedTimeRange: TimeRange = .last30Days
@@ -168,9 +168,9 @@ struct WeatherAnalysisView: View {
             
             correlationResult = weatherService
                 .analyzeWeatherHeadacheCorrelation(with: Array(filtered))
-            
+
             isAnalyzing = false
-            print("✅ 天气关联分析完成，发现 \(correlationResult?.conditions.count ?? 0) 种天气条件")
+            print("✅ 天气关联分析完成，得到 \(correlationResult?.correlations.count ?? 0) 个因素")
         }
     }
 }
@@ -559,7 +559,7 @@ struct HeadacheRiskCard: View {
 
 // 天气关联分析卡片
 struct WeatherCorrelationCard: View {
-    let correlationResult: WeatherCorrelationResult?
+    let correlationResult: EnhancedWeatherCorrelationResult?
     let isAnalyzing: Bool
     @Binding var timeRange: WeatherAnalysisView.TimeRange
     let onAnalyze: () -> Void
@@ -611,74 +611,30 @@ struct WeatherCorrelationCard: View {
     }
     
     @ViewBuilder
-    private func correlationContent(_ result: WeatherCorrelationResult) -> some View {
+    private func correlationContent(_ result: EnhancedWeatherCorrelationResult) -> some View {
         VStack(spacing: 12) {
-            // 总体统计
+            Text(result.summary)
+                .font(.subheadline)
+
+            // 数据质量
             HStack {
-                VStack {
-                    Text("\(result.totalWeatherDays)")
-                        .font(.title3.bold())
-                        .foregroundColor(.blue)
-                    Text("天气记录")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                }
-                .frame(maxWidth: .infinity)
-                
-                VStack {
-                    Text("\(result.totalHeadacheDays)")
-                        .font(.title3.bold())
-                        .foregroundColor(.red)
-                    Text("头痛记录")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                }
-                .frame(maxWidth: .infinity)
-                
-                VStack {
-                    Text("\(result.overallHeadacheRate.formatted(.number.precision(.fractionLength(1))))%")
-                        .font(.title3.bold())
-                        .foregroundColor(.orange)
-                    Text("整体概率")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                }
-                .frame(maxWidth: .infinity)
+                Text("数据质量: \(result.dataQuality.qualityLevel.displayName)")
+                    .font(.caption)
+                Spacer()
+                Text("覆盖率 \(Int(result.dataQuality.coveragePercentage * 100))%")
+                    .font(.caption2)
+                    .foregroundColor(.secondary)
             }
-            
-            if !result.conditions.isEmpty {
+
+            if !result.correlations.isEmpty {
                 VStack(alignment: .leading, spacing: 8) {
-                    Text("各天气条件下的头痛概率:")
+                    Text("主要相关因素:")
                         .font(.subheadline.bold())
-                    
-                    ForEach(result.conditions.prefix(6), id: \.id) { condition in
-                        CorrelationRow(condition: condition)
+
+                    ForEach(result.correlations.prefix(5), id: \.weatherFactor) { corr in
+                        EnhancedCorrelationRow(correlation: corr)
                     }
                 }
-            }
-            
-            // 最高风险天气
-            if let highestRisk = result.highestRiskCondition {
-                VStack(alignment: .leading, spacing: 6) {
-                    Text("最容易引发头痛的天气:")
-                        .font(.caption.bold())
-                    
-                    HStack {
-                        if let conditionEnum = highestRisk.conditionEnum {
-                            Image(systemName: conditionEnum.icon)
-                                .foregroundColor(.red)
-                        }
-                        Text(highestRisk.conditionEnum?.displayName ?? highestRisk.condition)
-                            .font(.caption.bold())
-                        Spacer()
-                        Text("\(highestRisk.headacheRate.formatted(.number.precision(.fractionLength(1))))%")
-                            .font(.caption.bold())
-                            .foregroundColor(.red)
-                    }
-                }
-                .padding(8)
-                .background(Color.red.opacity(0.1))
-                .cornerRadius(8)
             }
         }
     }
@@ -708,42 +664,25 @@ struct WeatherCorrelationCard: View {
     }
 }
 
-struct CorrelationRow: View {
-    let condition: WeatherConditionCorrelation
-    
+struct EnhancedCorrelationRow: View {
+    let correlation: EnhancedWeatherCorrelation
+
     var body: some View {
         HStack {
-            HStack(spacing: 6) {
-                if let conditionEnum = condition.conditionEnum {
-                    Image(systemName: conditionEnum.icon)
-                        .foregroundColor(.blue)
-                        .font(.caption)
-                        .frame(width: 16)
-                }
-                Text(condition.conditionEnum?.displayName ?? condition.condition)
-                    .font(.caption)
-            }
-            
+            Text(correlation.weatherFactor.rawValue)
+                .font(.caption)
+
             Spacer()
-            
+
             VStack(alignment: .trailing, spacing: 2) {
-                Text("\(condition.headacheRate.formatted(.number.precision(.fractionLength(1))))%")
+                Text(String(format: "%.2f", correlation.correlation))
                     .font(.caption.bold())
-                    .foregroundColor(rateColor(condition.headacheRate))
-                
-                Text("\(condition.headacheDays)/\(condition.totalDays)天")
+                    .foregroundColor(.blue)
+
+                Text("n=\(correlation.sampleSize)")
                     .font(.caption2)
                     .foregroundColor(.secondary)
             }
-        }
-    }
-    
-    private func rateColor(_ rate: Double) -> Color {
-        switch rate {
-        case 0..<20: return .green
-        case 20..<40: return .yellow
-        case 40..<60: return .orange
-        default: return .red
         }
     }
 }
@@ -947,7 +886,7 @@ struct WeatherTrendChart: View {
 
 // 个性化建议卡片
 struct PersonalizedAdviceCard: View {
-    let correlationResult: WeatherCorrelationResult?
+    let correlationResult: EnhancedWeatherCorrelationResult?
     
     var body: some View {
         VStack(spacing: 16) {
@@ -961,8 +900,8 @@ struct PersonalizedAdviceCard: View {
             }
             
             VStack(alignment: .leading, spacing: 12) {
-                if let result = correlationResult, !result.conditions.isEmpty {
-                    ForEach(generateAdvice(from: result), id: \.self) { advice in
+                if let result = correlationResult, !result.insights.isEmpty {
+                    ForEach(result.insights, id: \.self) { advice in
                         HStack(alignment: .top, spacing: 8) {
                             Image(systemName: "checkmark.circle")
                                 .foregroundColor(.green)
@@ -983,41 +922,6 @@ struct PersonalizedAdviceCard: View {
         .background(Color(.systemBackground))
         .cornerRadius(12)
         .shadow(radius: 2)
-    }
-    
-    private func generateAdvice(from result: WeatherCorrelationResult) -> [String] {
-        var advice: [String] = []
-        
-        // 基于最高风险天气的建议
-        if let highestRisk = result.highestRiskCondition, highestRisk.headacheRate > 50 {
-            let conditionName = highestRisk.conditionEnum?.displayName ?? "该天气"
-            advice.append("在\(conditionName)时，您的头痛发生率为\(highestRisk.headacheRate.formatted(.number.precision(.fractionLength(1))))%，建议提前准备药物")
-        }
-        
-        // 基于温度的建议
-        if let avgTemp = result.conditions.first?.averageTemperature {
-            if avgTemp < 15 {
-                advice.append("低温天气时注意保暖，避免头部受凉")
-            } else if avgTemp > 30 {
-                advice.append("高温天气时注意防晒和补水，避免中暑")
-            }
-        }
-        
-        // 基于气压的建议
-        if let avgPressure = result.conditions.first?.averagePressure {
-            if avgPressure < 1000 {
-                advice.append("低气压天气时增加休息时间，避免剧烈运动")
-            }
-        }
-        
-        // 通用建议
-        if result.overallHeadacheRate > 30 {
-            advice.append("您对天气变化较为敏感，建议关注天气预报并提前防护")
-        }
-        
-        advice.append("保持规律作息和充足睡眠，有助于减少天气敏感性")
-        
-        return advice
     }
 }
 
