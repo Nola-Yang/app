@@ -1085,7 +1085,7 @@ struct AddEntryView: View {
     
     private func scheduleHeadacheReminders(for record: HeadacheRecord) {
         Task {
-            await NotificationManager.shared.scheduleHeadacheReminders(for: record)
+            await NotificationManager.shared.scheduleHeadacheReminder(for: record)
         }
     }
 }

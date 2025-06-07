@@ -351,8 +351,8 @@ struct HeadacheEditView: View {
         // 首先尝试UUID
         if let uuid = UUID(uuidString: recordID) {
             let request: NSFetchRequest<HeadacheRecord> = HeadacheRecord.fetchRequest()
-            request.predicate = NSPredicate(format: "id == %@", uuid as CVarArg)
-            request.fetchLimit = 1
+               request.predicate = NSPredicate(format: "timestamp != nil")
+               request.fetchLimit = 1
             
             do {
                 let records = try viewContext.fetch(request)
@@ -362,7 +362,7 @@ struct HeadacheEditView: View {
             }
         } else if let url = URL(string: recordID),
                   let objectID = viewContext.persistentStoreCoordinator?.managedObjectID(forURIRepresentation: url) {
-            // 尝试通过ObjectID加载
+            // 通过ObjectID加载
             do {
                 let record = try viewContext.existingObject(with: objectID) as? HeadacheRecord
                 self.record = record
@@ -440,10 +440,10 @@ struct QuickRecordView: View {
     
     private func saveRecord() {
         let newRecord = HeadacheRecord(context: viewContext)
-        newRecord.id = UUID()
         newRecord.startTime = Date()
+        newRecord.timestamp = Date()
         newRecord.intensity = Int16(intensity)
-        newRecord.notes = notes.isEmpty ? nil : notes
+        newRecord.note = notes.isEmpty ? nil : notes
         
         do {
             try viewContext.save()

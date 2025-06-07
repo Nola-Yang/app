@@ -130,12 +130,7 @@ class NotificationManager: ObservableObject {
         }
         
         // 获取记录ID字符串 - 修复版本
-        let recordIDString: String
-        if let uuid = record.id {
-            recordIDString = uuid.uuidString
-        } else {
-            recordIDString = record.objectID.uriRepresentation().absoluteString
-        }
+        let recordIDString = record.objectID.uriRepresentation().absoluteString
         
         let content = UNMutableNotificationContent()
         content.title = "头痛状态提醒"
@@ -184,12 +179,7 @@ class NotificationManager: ObservableObject {
     // MARK: - 发送快速结束提醒
     func sendQuickEndReminder(for record: HeadacheRecord) {
         // 获取记录ID字符串
-        let recordIDString: String
-        if let uuid = record.id {
-            recordIDString = uuid.uuidString
-        } else {
-            recordIDString = record.objectID.uriRepresentation().absoluteString
-        }
+        let recordIDString = record.objectID.uriRepresentation().absoluteString
         
         let content = UNMutableNotificationContent()
         content.title = "快速操作"

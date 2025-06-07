@@ -7,6 +7,7 @@
 
 import SwiftUI
 import UserNotifications
+import CoreData
 
 @main
 struct HeadacheDiaryApp: App {
