@@ -358,6 +358,7 @@ struct QuickHeadacheEntryView: View {
                 record.tookMedicine = false
                 
                 try viewContext.save()
+                viewContext.refreshAllObjects()
                 
                 print("✅ 快速记录保存成功: 日期=\(todayTimestamp), 强度=\(record.intensity), 触发因素=\(selectedTrigger.displayName), 模式=\(isEditMode ? "编辑" : "新建")")
                 
@@ -387,6 +388,7 @@ struct QuickHeadacheEntryView: View {
             do {
                 viewContext.delete(existingRecord)
                 try viewContext.save()
+                viewContext.refreshAllObjects()
                 
                 print("✅ 快速记录删除成功")
                 

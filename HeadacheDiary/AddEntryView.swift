@@ -1088,6 +1088,7 @@ struct AddEntryView: View {
                 
                 // 保存到Core Data
                 try viewContext.save()
+                viewContext.refreshAllObjects()
                 
                 // 如果新的时间段没有结束时间，安排提醒
                 if !hasEndTime {
@@ -1151,6 +1152,7 @@ struct AddEntryView: View {
             do {
                 viewContext.delete(record)
                 try viewContext.save()
+                viewContext.refreshAllObjects()
                 
                 print("✅ 删除成功")
                 
