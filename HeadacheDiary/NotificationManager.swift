@@ -406,8 +406,9 @@ extension Notification.Name {
     static let headacheEnded = Notification.Name("headacheEnded")
     static let openWeatherAnalysis = Notification.Name("openWeatherAnalysis")
     static let openQuickRecord = Notification.Name("openQuickRecord")
+    static let openHeadacheList = Notification.Name("openHeadacheList")
+    static let openHeadacheEdit = Notification.Name("openHeadacheEdit")
 }
-
 // 通知代理，处理用户与通知的交互
 // In NotificationManager.swift - Fix the NotificationDelegate class
 
@@ -438,11 +439,61 @@ class NotificationDelegate: NSObject, UNUserNotificationCenterDelegate {
             handleWeatherWarningResponse(response: response)
         case "weather_forecast":
             handleWeatherForecastResponse(response: response)
+        case "auto_end_headache":
+            handleAutoEndNotification(response: response)
+        case "yesterday_headache":
+            handleYesterdayHeadacheNotification(response: response)
         default:
             break
         }
         
         completionHandler()
+    }
+    
+    private func handleAutoEndNotification(response: UNNotificationResponse) {
+        DispatchQueue.main.async {
+            NotificationCenter.default.post(name: .openHeadacheList, object: nil)
+        }
+        print("📱 处理自动结束头痛通知")
+    }
+
+    private func handleYesterdayHeadacheNotification(response: UNNotificationResponse) {
+        let actionIdentifier = response.actionIdentifier
+        
+        switch actionIdentifier {
+        case "end_yesterday":
+            // 标记为昨晚已结束
+            if let recordIDString = response.notification.request.content.userInfo["recordID"] as? String {
+                DispatchQueue.main.async {
+                    AutoHeadacheManager.shared.endYesterdayRecord(
+                        recordID: recordIDString,
+                        context: PersistenceController.shared.container.viewContext
+                    )
+                }
+            }
+            print("📱 用户选择昨晚已结束")
+            
+        case "still_ongoing":
+            // 仍在继续，不做处理（记录会保持进行中状态）
+            print("📱 用户选择头痛仍在继续")
+            
+        case "update_record":
+            // 打开应用更新记录
+            DispatchQueue.main.async {
+                NotificationCenter.default.post(
+                    name: .openHeadacheEdit,
+                    object: nil,
+                    userInfo: response.notification.request.content.userInfo
+                )
+            }
+            print("📱 用户选择打开应用更新")
+            
+        default:
+            // 默认行为：打开应用
+            DispatchQueue.main.async {
+                NotificationCenter.default.post(name: .openHeadacheList, object: nil)
+            }
+        }
     }
     
     private func handleHeadacheReminderResponse(response: UNNotificationResponse) {

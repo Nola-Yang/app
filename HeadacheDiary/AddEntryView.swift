@@ -160,12 +160,31 @@ struct AddEntryView: View {
                 }
             }
             .onAppear {
+                if editingRecord == nil {
+                      startTime = timestamp
+                      endTime   = timestamp
+                }
+
                 loadData()
                 // 请求获取当前天气
                 if !isEditing {
                     weatherService.requestCurrentLocationWeather()
                 }
             }
+            .onChange(of: timestamp) { newTimestamp in
+                if startTime != newTimestamp {
+                    startTime = newTimestamp
+                    if !hasEndTime {
+                        endTime = newTimestamp
+                    }
+                }
+            }
+            .onChange(of: startTime) { newStart in
+                if timestamp != newStart {
+                  timestamp = newStart
+                }
+            }
+            
             .alert("保存失败", isPresented: $showError) {
                 Button("确定") { }
             } message: {

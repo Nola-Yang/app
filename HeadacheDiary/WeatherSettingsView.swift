@@ -462,6 +462,8 @@ struct WeatherSettingsView: View {
         case .authorized:
             // 已授权，重新检查状态
             checkNotificationPermission()
+        case .ephemeral:
+            break
         @unknown default:
             break
         }

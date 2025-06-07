@@ -36,6 +36,9 @@ struct ContentView: View {
             // 初始化天气服务
             WeatherService.shared.requestCurrentLocationWeather()
         }
+        
+        
+        
     }
 }
 

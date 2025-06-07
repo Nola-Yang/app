@@ -687,7 +687,7 @@ struct HeadacheRecordRow: View {
                         .font(.caption)
                         .foregroundColor(.secondary)
                 }
-            } else if let startTime = record.startTime, record.endTime == nil {
+            } else if let _ = record.startTime, record.endTime == nil {
                 HStack {
                     Image(systemName: "clock")
                         .foregroundColor(.orange)

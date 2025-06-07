@@ -82,6 +82,12 @@ struct HeadacheDiaryApp: App {
             await initializeWeatherServices()
         }
         
+        Task { @MainActor in
+            await AutoHeadacheManager.shared.checkAndAutoEndOverdueHeadaches(
+                context: persistenceController.container.viewContext
+            )
+        }
+        
         print("✅ 头痛日记应用启动完成")
     }
     
@@ -103,6 +109,13 @@ struct HeadacheDiaryApp: App {
                 windSpeed: 10,
                 precipitationChance: 0
             ))
+        }
+        
+        // 执行每日检查：自动结束跨天记录 + 提醒昨天记录
+        Task { @MainActor in
+            await AutoHeadacheManager.shared.performDailyCheck(
+                context: persistenceController.container.viewContext
+            )
         }
     }
     
