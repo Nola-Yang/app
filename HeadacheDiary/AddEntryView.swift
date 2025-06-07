@@ -881,11 +881,28 @@ struct AddEntryView: View {
         
         DispatchQueue.main.async {
             do {
-                let record = editingRecord ?? HeadacheRecord(context: viewContext)
+                let calendar = Calendar.current
+                let startOfDay = calendar.startOfDay(for: startTime)
+                let endOfDay = calendar.date(byAdding: .day, value: 1, to: startOfDay)!
+
+                let record: HeadacheRecord
+                if let editing = editingRecord {
+                    record = editing
+                } else {
+                    let request: NSFetchRequest<HeadacheRecord> = HeadacheRecord.fetchRequest()
+                    request.predicate = NSPredicate(format: "timestamp >= %@ AND timestamp < %@", startOfDay as NSDate, endOfDay as NSDate)
+                    request.fetchLimit = 1
+                    if let existing = try viewContext.fetch(request).first {
+                        record = existing
+                    } else {
+                        record = HeadacheRecord(context: viewContext)
+                        record.timestamp = startOfDay
+                    }
+                }
                 
                 // 保存基本信息
-                record.timestamp = timestamp
-                record.intensity = Int16(intensity)
+                record.timestamp = startOfDay
+                record.intensity = max(record.intensity, Int16(intensity))
                 
                 // 合并天气备注到总体备注
                 var finalNote = note
@@ -962,8 +979,7 @@ struct AddEntryView: View {
                 record.symptomNote = symptomNote.isEmpty ? nil : symptomNote
                 
                 // 时间范围
-                record.startTime = startTime
-                record.endTime = hasEndTime ? endTime : nil
+                record.addTimeSegment(TimeSegment(start: startTime, end: hasEndTime ? endTime : nil))
                 record.timeNote = timeNote.isEmpty ? nil : timeNote
                 
                 // 新增：保存天气关联信息
@@ -975,8 +991,8 @@ struct AddEntryView: View {
                 // 保存到Core Data
                 try viewContext.save()
                 
-                // 如果没有结束时间，安排通知提醒
-                if !hasEndTime && editingRecord == nil {
+                // 如果新的时间段没有结束时间，安排提醒
+                if !hasEndTime {
                     scheduleHeadacheReminders(for: record)
                 }
                 

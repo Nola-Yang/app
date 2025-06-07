@@ -289,16 +289,15 @@ struct QuickHeadacheEntryView: View {
                 let record: HeadacheRecord
                 
                 if let existingRecord = existingRecord {
-                    // 编辑模式：更新现有记录
                     record = existingRecord
                     print("✅ 更新现有的快速记录")
                 } else {
-                    // 新建模式：创建新记录
                     record = HeadacheRecord(context: viewContext)
                     record.timestamp = todayTimestamp
                     record.intensity = defaultIntensity
                     print("✅ 创建新的快速记录")
                 }
+                record.intensity = max(record.intensity, defaultIntensity)
                 
                 // 位置信息
                 record.locationForehead = selectedLocations.contains(.forehead)
@@ -320,10 +319,10 @@ struct QuickHeadacheEntryView: View {
                 // 固定的症状特征
                 record.setCustomSymptoms(["若有若无", "轻微不适"])
                 
-                // 时间信息 - 设置为今天，标记为已完成的记录
-                record.startTime = todayTimestamp
-                // 设置结束时间为同一天的稍后时间，表示这是一个完整的记录
-                record.endTime = Calendar.current.date(byAdding: .hour, value: 1, to: todayTimestamp)
+                // 时间信息作为新的时间段
+                let segment = TimeSegment(start: todayTimestamp,
+                                          end: Calendar.current.date(byAdding: .hour, value: 1, to: todayTimestamp))
+                record.addTimeSegment(segment)
                 
                 // 用药信息 - 快速记录默认没有用药
                 record.tookMedicine = false

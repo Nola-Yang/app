@@ -38,6 +38,7 @@ extension HeadacheRecord {
     
     // 新增：增强的用药记录
     @NSManaged public var medicationEntriesData: Data?  // 存储MedicationEntry数组的JSON数据
+    @NSManaged public var timeSegmentsData: Data?       // 存储TimeSegment数组的JSON数据
     @NSManaged public var totalDosageValue: Double      // 总剂量缓存
     @NSManaged public var hasMedicationTimeline: Bool   // 是否有多次用药时间线
     
