@@ -223,7 +223,7 @@ class NotificationManager: ObservableObject {
         print("✅ 已注册 \(categories.count) 个通知类别")
     }
     
-    // 为未结束的头痛安排3小时间隔的提醒
+    // 为未结束的头痛安排间隔的提醒
     func scheduleHeadacheReminders(for record: HeadacheRecord) async {
         guard let objectIDString = record.objectID.uriRepresentation().absoluteString.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) else {
             print("❌ 无法获取记录ID")
@@ -280,7 +280,47 @@ class NotificationManager: ObservableObject {
         }
     }
     
-    // 新增：发送每日天气预报通知
+    func cancelHeadacheReminders(for recordID: String) async {
+        // 支持1-3次提醒的取消
+        let identifiers = (1...3).map { "headache_reminder_\(recordID)_\($0)" }
+        
+        await withCheckedContinuation { continuation in
+            UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: identifiers)
+            print("✅ 已取消记录 \(recordID) 的所有待发送提醒")
+            continuation.resume()
+        }
+    }
+    
+    func validateAndSendReminder(for recordID: String, context: NSManagedObjectContext) async {
+        guard let decodedString = recordID.removingPercentEncoding,
+              let url = URL(string: decodedString),
+              let objectID = context.persistentStoreCoordinator?.managedObjectID(forURIRepresentation: url) else {
+            print("❌ 无法解析记录ID: \(recordID)")
+            return
+        }
+        
+        do {
+            guard let record = try context.existingObject(with: objectID) as? HeadacheRecord else {
+                print("❌ 找不到头痛记录")
+                return
+            }
+            
+            // 检查记录是否已经结束
+            if record.endTime != nil {
+                print("⚠️ 记录已结束，取消相关提醒")
+                await cancelHeadacheReminders(for: recordID)
+                return
+            }
+            
+            // 记录仍在进行中，可以发送提醒
+            print("✅ 记录仍在进行中，可以发送提醒")
+            
+        } catch {
+            print("❌ 验证记录状态失败: \(error)")
+        }
+    }
+    
+    // 发送每日天气预报通知
     func sendDailyWeatherForecast(forecast: String, riskLevel: HeadacheRisk) {
         let content = UNMutableNotificationContent()
         content.title = "今日头痛风险预报"
@@ -328,15 +368,46 @@ class NotificationManager: ObservableObject {
         }
     }
     
-    // 取消特定记录的所有提醒
-    func cancelHeadacheReminders(for recordID: String) async {
-            let identifiers = (1...8).map { "headache_reminder_\(recordID)_\($0)" }
+    static func cleanupExpiredNotifications() {
+        UNUserNotificationCenter.current().getPendingNotificationRequests { requests in
+            let now = Date()
+            var expiredIdentifiers: [String] = []
             
-            await withCheckedContinuation { continuation in
-                UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: identifiers)
-                print("✅ 已取消记录 \(recordID) 的所有提醒")
-                continuation.resume()
+            for request in requests {
+                // 头痛提醒通知：超过24小时的清理
+                if request.identifier.hasPrefix("headache_reminder_") {
+                    if let trigger = request.trigger as? UNTimeIntervalNotificationTrigger,
+                       let scheduleDate = trigger.nextTriggerDate(),
+                       scheduleDate.timeIntervalSince(now) < -24 * 60 * 60 {
+                        expiredIdentifiers.append(request.identifier)
+                    }
+                }
+                
+                // 天气预警通知：超过12小时的清理
+                if request.identifier.hasPrefix("weather_warning_") {
+                    if let trigger = request.trigger as? UNTimeIntervalNotificationTrigger,
+                       let scheduleDate = trigger.nextTriggerDate(),
+                       scheduleDate.timeIntervalSince(now) < -12 * 60 * 60 {
+                        expiredIdentifiers.append(request.identifier)
+                    }
+                }
+                
+                // 天气预报通知：超过当天的清理
+                if request.identifier.hasPrefix("daily_weather_forecast_") {
+                    let creationTime = Double(request.identifier.replacingOccurrences(of: "daily_weather_forecast_", with: "")) ?? 0
+                    let creationDate = Date(timeIntervalSince1970: creationTime)
+                    
+                    if now.timeIntervalSince(creationDate) > 6 * 60 * 60 { // 6小时后清理
+                        expiredIdentifiers.append(request.identifier)
+                    }
+                }
             }
+            
+            if !expiredIdentifiers.isEmpty {
+                UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: expiredIdentifiers)
+                print("✅ 已清理 \(expiredIdentifiers.count) 个过期通知")
+            }
+        }
     }
     
     // Add this missing method as nonisolated

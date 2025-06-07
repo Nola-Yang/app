@@ -57,32 +57,31 @@ extension HeadacheRecord {
     
     /// 获取进行中头痛记录的 fetch request
     static func ongoingFetchRequest() -> NSFetchRequest<HeadacheRecord> {
-            let req: NSFetchRequest<HeadacheRecord> = HeadacheRecord.fetchRequest()
-            req.predicate = NSPredicate(format: "endTime == nil")
-            req.sortDescriptors = [NSSortDescriptor(keyPath: \HeadacheRecord.startTime, ascending: false)]
-            return req
+        let req: NSFetchRequest<HeadacheRecord> = HeadacheRecord.fetchRequest()
+        req.predicate = NSPredicate(format: "endTime == nil")
+        req.sortDescriptors = [NSSortDescriptor(keyPath: \HeadacheRecord.startTime, ascending: false)]
+        return req
     }
     
     /// 获取需要自动结束的头痛记录（开始时间不是今天）
     static func recordsToAutoEndFetchRequest() -> NSFetchRequest<HeadacheRecord> {
-           let req: NSFetchRequest<HeadacheRecord> = HeadacheRecord.fetchRequest()
-           let todayStart = Calendar.current.startOfDay(for: Date())
-           req.predicate = NSPredicate(format: "startTime < %@ AND endTime == nil", todayStart as NSDate)
-           req.sortDescriptors = [NSSortDescriptor(keyPath: \HeadacheRecord.startTime, ascending: false)]
-           return req
+        let req: NSFetchRequest<HeadacheRecord> = HeadacheRecord.fetchRequest()
+        let todayStart = Calendar.current.startOfDay(for: Date())
+        req.predicate = NSPredicate(format: "startTime < %@ AND endTime == nil", todayStart as NSDate)
+        req.sortDescriptors = [NSSortDescriptor(keyPath: \HeadacheRecord.startTime, ascending: false)]
+        return req
     }
-       
     
     /// 获取昨天开始的进行中头痛记录（用于发送提醒）
     static func yesterdayOngoingFetchRequest() -> NSFetchRequest<HeadacheRecord> {
             let req: NSFetchRequest<HeadacheRecord> = HeadacheRecord.fetchRequest()
             let cal = Calendar.current
-            let todayStart     = cal.startOfDay(for: Date())
+            let todayStart = cal.startOfDay(for: Date())
             let yesterdayStart = cal.date(byAdding: .day, value: -1, to: todayStart)!
             req.predicate = NSPredicate(
                 format: "startTime >= %@ AND startTime < %@ AND endTime == nil",
                 yesterdayStart as NSDate,
-                todayStart     as NSDate
+                todayStart as NSDate
             )
             req.sortDescriptors = [NSSortDescriptor(keyPath: \HeadacheRecord.startTime, ascending: false)]
             return req
@@ -99,6 +98,10 @@ extension HeadacheRecord {
                 self.note = note
             }
         }
+        
+        Task {
+            await cancelRemindersForThisRecord()
+        }
     }
     
     /// 添加自动结束标记到备注
@@ -108,6 +111,10 @@ extension HeadacheRecord {
             note = existingNote + "\n" + autoEndNote
         } else {
             note = autoEndNote
+        }
+        
+        Task {
+            await cancelRemindersForThisRecord()
         }
     }
     
@@ -119,5 +126,24 @@ extension HeadacheRecord {
         } else {
             note = manualEndNote
         }
+        
+        Task {
+            await cancelRemindersForThisRecord()
+        }
+    }
+    
+    private func cancelRemindersForThisRecord() async {
+        guard let recordIDString = objectID.uriRepresentation().absoluteString.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) else {
+            print("❌ 无法获取记录ID用于取消通知")
+            return
+        }
+        
+        await NotificationManager.shared.cancelHeadacheReminders(for: recordIDString)
+        print("✅ 已取消记录的所有提醒通知")
+    }
+    
+    /// 新增：检查记录是否可以发送提醒
+    var canSendReminders: Bool {
+        return endTime == nil // 只有未结束的记录才能发送提醒
     }
 }

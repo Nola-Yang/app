@@ -454,7 +454,7 @@ struct NotificationSettingsView: View {
                     
                     VStack(alignment: .leading) {
                         Text("最大提醒次数: \(Int(maxReminders))次")
-                        Slider(value: $maxReminders, in: 3...12, step: 1)
+                        Slider(value: $maxReminders, in: 1...3, step: 1)
                     }
                 }
             } header: {
@@ -477,10 +477,10 @@ struct NotificationSettingsView: View {
             }
             
             Section {
-                Button("测试通知") {
-                    sendTestNotification()
-                }
-                .foregroundColor(.blue)
+//                Button("测试通知") {
+//                    sendTestNotification()
+//                }
+//                .foregroundColor(.blue)
                 
                 Button("清除所有待发送通知") {
                     Task {

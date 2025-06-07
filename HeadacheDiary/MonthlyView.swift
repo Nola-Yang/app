@@ -305,7 +305,8 @@ struct MonthlyView: View {
     /// 结束进行中的头痛
     private func endHeadache(_ record: HeadacheRecord) {
         withAnimation {
-            record.endTime = Date()
+            record.endNow()
+            record.addManualEndNote()
             
             do {
                 try viewContext.save()
@@ -323,6 +324,7 @@ struct MonthlyView: View {
                 
             } catch {
                 print("❌ 结束头痛记录失败: \(error)")
+                viewContext.rollback()
                 showErrorMessage("结束头痛记录失败")
                 
                 // 错误反馈
@@ -344,11 +346,21 @@ struct MonthlyView: View {
             print("✅ 已取消记录 \(record.objectID) 的所有通知")
         }
         
-        // 然后删除记录
-        if let index = records.firstIndex(of: record) {
-            let indexSet = IndexSet([index])
-            deleteItems(offsets: indexSet, from: records)
+        viewContext.delete(record)
+                    
+        do {
+            try viewContext.save()
+            print("✅ 头痛记录已删除")
+        } catch {
+            print("❌ 删除头痛记录失败: \(error)")
+            viewContext.rollback()
         }
+        
+//        // 然后删除记录
+//        if let index = records.firstIndex(of: record) {
+//            let indexSet = IndexSet([index])
+//            deleteItems(offsets: indexSet, from: records)
+//        }
     }
     
     
