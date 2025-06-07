@@ -42,19 +42,6 @@ struct ContentView: View {
         }
         .withNotificationNavigation() // 添加通知导航支持
         .environmentObject(appStateManager) // 注入状态管理器
-        .overlay {
-                    if appStateManager.showingHeadacheUpdate,
-                       let recordID = appStateManager.activeRecordID {
-                        HeadacheUpdateOverlay(
-                            recordID: recordID,
-                            mode: appStateManager.updateMode
-                        ) {
-                            // 关闭更新状态
-                            appStateManager.showingHeadacheUpdate = false
-                            appStateManager.activeRecordID = nil
-                        }
-                    }
-        }
     }
 }
 
@@ -94,6 +81,7 @@ enum HeadacheUpdateMode {
 // MARK: - 弹出页面类型
 enum PresentedSheet: Identifiable {
     case headacheEdit(recordID: String)
+    case headacheUpdate(recordID: String)
     case quickRecord
     case weatherAnalysis
     case settings
@@ -102,6 +90,8 @@ enum PresentedSheet: Identifiable {
         switch self {
         case .headacheEdit(let recordID):
             return "headacheEdit_\(recordID)"
+        case .headacheUpdate(let recordID):
+            return "headacheUpdate_\(recordID)"
         case .quickRecord:
             return "quickRecord"
         case .weatherAnalysis:
@@ -125,12 +115,13 @@ class AppStateManager: ObservableObject {
     @Published var showingHeadacheUpdate = false
     
     func navigateToHeadacheUpdate(recordID: String, mode: HeadacheUpdateMode = .inlineUpdate) {
-        DispatchQueue.main.async {
-            self.activeRecordID = recordID
-            self.updateMode = mode
-            self.navigationState = .headacheUpdate(recordID: recordID)
-            self.showingHeadacheUpdate = true
-        }
+            DispatchQueue.main.async {
+                self.activeRecordID = recordID
+                self.updateMode = mode
+                self.navigationState = .headacheUpdate(recordID: recordID)
+                
+                self.presentedSheet = .headacheUpdate(recordID: recordID)
+            }
     }
     
     private var cancellables = Set<AnyCancellable>()
@@ -141,20 +132,19 @@ class AppStateManager: ObservableObject {
     
     // MARK: - 设置通知观察者
     private func setupNotificationObservers() {
-        // 新增：观察头痛更新状态的通知
-       NotificationCenter.default.publisher(for: .openHeadacheUpdate)
+        // 观察头痛更新状态的通知
+        NotificationCenter.default.publisher(for: .openHeadacheUpdate)
            .sink { [weak self] notification in
                self?.handleOpenHeadacheUpdate(notification: notification)
            }
            .store(in: &cancellables)
         
-        // 观察打开头痛记录编辑页面的通知
         NotificationCenter.default.publisher(for: .openHeadacheEdit)
             .sink { [weak self] notification in
                 self?.handleOpenHeadacheEdit(notification: notification)
             }
             .store(in: &cancellables)
-        
+
         // 观察打开头痛记录列表的通知
         NotificationCenter.default.publisher(for: .openHeadacheList)
             .sink { [weak self] _ in
@@ -187,7 +177,8 @@ class AppStateManager: ObservableObject {
     private func handleOpenHeadacheUpdate(notification: Foundation.Notification) {
         DispatchQueue.main.async {
             if let recordID = notification.userInfo?["recordID"] as? String {
-                print("📱 进入头痛更新状态: \(recordID)")
+                print("📱 通知点击 - 进入头痛更新状态: \(recordID)")
+                // 通知点击 - 使用更新模式
                 self.navigateToHeadacheUpdate(recordID: recordID, mode: .inlineUpdate)
             }
         }
@@ -197,8 +188,9 @@ class AppStateManager: ObservableObject {
     private func handleOpenHeadacheEdit(notification: Foundation.Notification) {
         DispatchQueue.main.async {
             if let recordID = notification.userInfo?["recordID"] as? String {
-                print("📱 导航到头痛记录编辑页面: \(recordID)")
-                self.navigateToHeadacheUpdate(recordID: recordID, mode: .inlineUpdate)
+                print("📱 主页点击 - 导航到头痛记录编辑页面: \(recordID)")
+                // 主页点击 - 使用编辑模式
+                self.navigateToHeadacheUpdate(recordID: recordID, mode: .fullEdit)
             }
         }
     }
@@ -267,6 +259,7 @@ class AppStateManager: ObservableObject {
             self.presentedSheet = nil
             self.showingQuickRecord = false
             self.showingWeatherAnalysis = false
+            self.activeRecordID = nil
         }
     }
 }
@@ -281,6 +274,12 @@ struct NotificationNavigationModifier: ViewModifier {
                 switch sheet {
                 case .headacheEdit(let recordID):
                     HeadacheEditView(recordID: recordID)
+                case .headacheUpdate(let recordID):
+                    // 使用新的头痛更新视图
+                    HeadacheUpdateSheetView(
+                        recordID: recordID,
+                        mode: appStateManager.updateMode
+                    )
                 case .quickRecord:
                     QuickRecordView()
                 case .weatherAnalysis:
@@ -314,6 +313,321 @@ struct NotificationNavigationModifier: ViewModifier {
         case .headacheUpdate(recordID: let recordID):
             print("📱 处理头痛更新状态导航: \(recordID)")
             break
+        }
+    }
+}
+
+// MARK: - 新的头痛更新Sheet视图
+struct HeadacheUpdateSheetView: View {
+    let recordID: String
+    let mode: HeadacheUpdateMode
+    
+    @Environment(\.dismiss) private var dismiss
+    @Environment(\.managedObjectContext) private var viewContext
+    @StateObject private var appStateManager = AppStateManager.shared
+    
+    @State private var record: HeadacheRecord?
+    @State private var updatedIntensity: Int = 5
+    @State private var updatedNote: String = ""
+    @State private var isLoading = true
+    @State private var showingError = false
+    @State private var errorMessage = ""
+    
+    var body: some View {
+        ScrollView {
+            VStack(spacing: 20) {
+                if isLoading {
+                    // 加载状态
+                    VStack(spacing: 16) {
+                        ProgressView()
+                        Text("加载记录中...")
+                            .foregroundColor(.secondary)
+                    }
+                    .frame(height: 100)
+                } else if let record = record {
+                    // 记录信息显示
+                    VStack(alignment: .leading, spacing: 16) {
+                        // 头痛持续时间显示
+                        HStack {
+                            Text("开始时间:")
+                                .font(.subheadline)
+                                .foregroundColor(.secondary)
+                            Spacer()
+                            if let startTime = record.startTime {
+                                Text(startTime, style: .time)
+                                    .font(.subheadline)
+                                    .fontWeight(.medium)
+                            }
+                        }
+                        
+                        if let startTime = record.startTime {
+                            HStack {
+                                Text("持续时间:")
+                                    .font(.subheadline)
+                                    .foregroundColor(.secondary)
+                                Spacer()
+                                Text(formatDuration(from: startTime, to: Date()))
+                                    .font(.subheadline)
+                                    .fontWeight(.medium)
+                            }
+                        }
+                        
+                        Divider()
+                        
+                        // 疼痛强度更新
+                        VStack(alignment: .leading, spacing: 12) {
+                            HStack {
+                                Text("当前疼痛强度")
+                                    .font(.subheadline)
+                                    .fontWeight(.medium)
+                                Spacer()
+                                Text("原: \(record.intensity)")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
+                            
+                            // 疼痛强度选择器
+                            LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 5), spacing: 8) {
+                                ForEach(1...10, id: \.self) { intensity in
+                                    Button(action: {
+                                        updatedIntensity = intensity
+                                    }) {
+                                        Text("\(intensity)")
+                                            .font(.subheadline)
+                                            .fontWeight(.medium)
+                                            .frame(width: 36, height: 36)
+                                            .background(
+                                                updatedIntensity == intensity ?
+                                                Color.blue : Color.gray.opacity(0.2)
+                                            )
+                                            .foregroundColor(
+                                                updatedIntensity == intensity ?
+                                                .white : .primary
+                                            )
+                                            .clipShape(Circle())
+                                    }
+                                }
+                            }
+                        }
+                        
+                        // 备注更新
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("添加备注")
+                                .font(.subheadline)
+                                .fontWeight(.medium)
+                            
+                            TextField("记录当前感受或变化", text: $updatedNote, axis: .vertical)
+                                .textFieldStyle(RoundedBorderTextFieldStyle())
+                                .lineLimit(2...4)
+                        }
+                        
+                        Divider()
+                        
+                        // 快速操作按钮
+                        VStack(spacing: 12) {
+                            // 第一行：主要操作
+                            HStack(spacing: 12) {
+                                Button("头痛已结束") {
+                                    endHeadache()
+                                }
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 12)
+                                .background(Color.green)
+                                .foregroundColor(.white)
+                                .clipShape(RoundedRectangle(cornerRadius: 8))
+                                
+                                Button("保存更新") {
+                                    saveUpdates()
+                                }
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 12)
+                                .background(Color.blue)
+                                .foregroundColor(.white)
+                                .clipShape(RoundedRectangle(cornerRadius: 8))
+                            }
+                            
+                            // 第二行：次要操作
+                            HStack(spacing: 12) {
+                                Button("30分钟后提醒") {
+                                    scheduleReminder(minutes: 30)
+                                }
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 10)
+                                .background(Color.orange.opacity(0.8))
+                                .foregroundColor(.white)
+                                .clipShape(RoundedRectangle(cornerRadius: 8))
+                                
+                                Button("1小时后提醒") {
+                                    scheduleReminder(minutes: 60)
+                                }
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 10)
+                                .background(Color.orange.opacity(0.8))
+                                .foregroundColor(.white)
+                                .clipShape(RoundedRectangle(cornerRadius: 8))
+                            }
+                        }
+                    }
+                } else {
+                    // 错误状态
+                    VStack(spacing: 16) {
+                        Image(systemName: "exclamationmark.triangle")
+                            .font(.largeTitle)
+                            .foregroundColor(.orange)
+                        Text("无法加载记录")
+                            .font(.headline)
+                        Text(errorMessage)
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+                            .multilineTextAlignment(.center)
+                    }
+                    .frame(height: 150)
+                }
+            }
+            .padding()
+        }
+        .onAppear {
+            loadRecord()
+        }
+        .alert("操作失败", isPresented: $showingError) {
+            Button("确定") { }
+        } message: {
+            Text(errorMessage)
+        }
+    }
+    
+    // MARK: - 私有方法（从原Overlay复制）
+    
+    private func loadRecord() {
+        isLoading = true
+        
+        DispatchQueue.global(qos: .userInitiated).async {
+            var loadedRecord: HeadacheRecord?
+            var error: String?
+            
+            // 首先尝试UUID解析
+            if let uuid = UUID(uuidString: recordID) {
+                let request: NSFetchRequest<HeadacheRecord> = HeadacheRecord.fetchRequest()
+                request.predicate = NSPredicate(format: "id == %@", uuid as CVarArg)
+                request.fetchLimit = 1
+                
+                do {
+                    let records = try viewContext.fetch(request)
+                    loadedRecord = records.first
+                } catch {
+                    print("❌ 通过UUID加载记录失败: \(error)")
+                }
+            }
+            
+            // 如果UUID失败，尝试ObjectID URI解析
+            if loadedRecord == nil {
+                if let decodedString = recordID.removingPercentEncoding,
+                   let url = URL(string: decodedString),
+                   let objectID = viewContext.persistentStoreCoordinator?.managedObjectID(forURIRepresentation: url) {
+                    
+                    do {
+                        loadedRecord = try viewContext.existingObject(with: objectID) as? HeadacheRecord
+                    } catch {
+                        print("❌ 通过ObjectID加载记录失败: \(error)")
+                    }
+                } else {
+                    error = "记录ID格式无效"
+                }
+            }
+            
+            DispatchQueue.main.async {
+                self.isLoading = false
+                if let record = loadedRecord {
+                    self.record = record
+                    self.updatedIntensity = Int(record.intensity)
+                } else {
+                    self.errorMessage = error ?? "加载记录时出现未知错误"
+                }
+            }
+        }
+    }
+    
+    private func saveUpdates() {
+        guard let record = record else { return }
+        
+        do {
+            record.intensity = Int16(updatedIntensity)
+            
+            if !updatedNote.isEmpty {
+                let timestamp = DateFormatter.localizedString(from: Date(), dateStyle: .none, timeStyle: .short)
+                let newNote = "[\(timestamp)] \(updatedNote)"
+                
+                if let existingNote = record.note, !existingNote.isEmpty {
+                    record.note = "\(existingNote)\n\(newNote)"
+                } else {
+                    record.note = newNote
+                }
+            }
+            
+            try viewContext.save()
+            print("✅ 头痛状态更新成功")
+            
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                dismiss()
+                appStateManager.dismissPresentedSheet()
+            }
+            
+        } catch {
+            print("❌ 保存更新失败: \(error)")
+            errorMessage = "保存更新失败：\(error.localizedDescription)"
+            showingError = true
+        }
+    }
+    
+    private func endHeadache() {
+        guard let record = record else { return }
+        
+        do {
+            record.endTime = Date()
+            try viewContext.save()
+            print("✅ 头痛已结束")
+            
+            Task {
+                await NotificationManager.shared.cancelHeadacheReminders(for: recordID)
+            }
+            
+            NotificationCenter.default.post(
+                name: .headacheEnded,
+                object: nil,
+                userInfo: ["recordID": recordID]
+            )
+            
+            dismiss()
+            appStateManager.dismissPresentedSheet()
+            
+        } catch {
+            print("❌ 结束头痛失败: \(error)")
+            errorMessage = "结束头痛失败：\(error.localizedDescription)"
+            showingError = true
+        }
+    }
+    
+    private func scheduleReminder(minutes: Int) {
+        guard let record = record else { return }
+        
+        saveUpdates()
+        
+        NotificationManager.shared.scheduleHeadacheReminder(for: record, reminderMinutes: minutes)
+        print("✅ 已安排\(minutes)分钟后提醒")
+        
+        dismiss()
+        appStateManager.dismissPresentedSheet()
+    }
+    
+    private func formatDuration(from startTime: Date, to endTime: Date) -> String {
+        let interval = endTime.timeIntervalSince(startTime)
+        let hours = Int(interval) / 3600
+        let minutes = (Int(interval) % 3600) / 60
+        
+        if hours > 0 {
+            return "\(hours)小时\(minutes)分钟"
+        } else {
+            return "\(minutes)分钟"
         }
     }
 }
