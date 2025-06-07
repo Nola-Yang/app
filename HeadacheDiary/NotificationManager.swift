@@ -658,6 +658,7 @@ extension Notification.Name {
     static let openHeadacheList = Notification.Name("openHeadacheList")
     static let openHeadacheEdit = Notification.Name("openHeadacheEdit")
     static let notificationActionPerformed = Notification.Name("notificationActionPerformed")
+    static let openHeadacheUpdate = Notification.Name("openHeadacheUpdate")
 }
 
 // MARK: - 通知代理
@@ -721,15 +722,15 @@ class NotificationDelegate: NSObject, UNUserNotificationCenterDelegate {
             print("✅ 用户选择结束头痛")
             
         case "open_record", "update_record", "continue_headache":
-            openHeadacheRecord(recordID: recordID)
-            print("✅ 用户选择打开记录")
+            openHeadacheUpdateState(recordID: recordID)
+            print("✅ 用户选择进入更新状态")
             
         case "postpone_reminder":
             NotificationManager.shared.handlePostponeAction(recordID: recordID)
             print("✅ 用户选择延迟提醒")
             
         case UNNotificationDefaultActionIdentifier:
-            openHeadacheRecord(recordID: recordID)
+            openHeadacheUpdateState(recordID: recordID)
             print("✅ 用户点击通知，打开对应记录")
             
         case UNNotificationDismissActionIdentifier:
@@ -738,6 +739,17 @@ class NotificationDelegate: NSObject, UNUserNotificationCenterDelegate {
         default:
             openHeadacheList()
             print("📱 默认行为：打开记录列表")
+        }
+        
+        func openHeadacheUpdateState(recordID: String) {
+            DispatchQueue.main.async {
+                let userInfo = ["recordID": recordID, "action": "update_state"]
+                NotificationCenter.default.post(
+                    name: .openHeadacheUpdate, // 新的通知名称
+                    object: nil,
+                    userInfo: userInfo
+                )
+            }
         }
     }
     

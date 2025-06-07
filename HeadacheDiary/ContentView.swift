@@ -42,6 +42,19 @@ struct ContentView: View {
         }
         .withNotificationNavigation() // 添加通知导航支持
         .environmentObject(appStateManager) // 注入状态管理器
+        .overlay {
+                    if appStateManager.showingHeadacheUpdate,
+                       let recordID = appStateManager.activeRecordID {
+                        HeadacheUpdateOverlay(
+                            recordID: recordID,
+                            mode: appStateManager.updateMode
+                        ) {
+                            // 关闭更新状态
+                            appStateManager.showingHeadacheUpdate = false
+                            appStateManager.activeRecordID = nil
+                        }
+                    }
+        }
     }
 }
 
@@ -51,6 +64,7 @@ enum AppNavigationState: Equatable {
     case headacheList
     case headacheDetail(recordID: String)
     case headacheEdit(recordID: String)
+    case headacheUpdate(recordID: String)
     case quickRecord
     case weatherAnalysis
     case settings
@@ -70,6 +84,11 @@ enum AppNavigationState: Equatable {
             return false
         }
     }
+}
+
+enum HeadacheUpdateMode {
+    case inlineUpdate  // 内嵌更新模式
+    case fullEdit     // 完整编辑模式
 }
 
 // MARK: - 弹出页面类型
@@ -102,6 +121,17 @@ class AppStateManager: ObservableObject {
     @Published var showingQuickRecord = false
     @Published var showingWeatherAnalysis = false
     @Published var presentedSheet: PresentedSheet?
+    @Published var updateMode: HeadacheUpdateMode = .inlineUpdate
+    @Published var showingHeadacheUpdate = false
+    
+    func navigateToHeadacheUpdate(recordID: String, mode: HeadacheUpdateMode = .inlineUpdate) {
+        DispatchQueue.main.async {
+            self.activeRecordID = recordID
+            self.updateMode = mode
+            self.navigationState = .headacheUpdate(recordID: recordID)
+            self.showingHeadacheUpdate = true
+        }
+    }
     
     private var cancellables = Set<AnyCancellable>()
     
@@ -111,6 +141,13 @@ class AppStateManager: ObservableObject {
     
     // MARK: - 设置通知观察者
     private func setupNotificationObservers() {
+        // 新增：观察头痛更新状态的通知
+       NotificationCenter.default.publisher(for: .openHeadacheUpdate)
+           .sink { [weak self] notification in
+               self?.handleOpenHeadacheUpdate(notification: notification)
+           }
+           .store(in: &cancellables)
+        
         // 观察打开头痛记录编辑页面的通知
         NotificationCenter.default.publisher(for: .openHeadacheEdit)
             .sink { [weak self] notification in
@@ -147,14 +184,21 @@ class AppStateManager: ObservableObject {
             .store(in: &cancellables)
     }
     
+    private func handleOpenHeadacheUpdate(notification: Foundation.Notification) {
+        DispatchQueue.main.async {
+            if let recordID = notification.userInfo?["recordID"] as? String {
+                print("📱 进入头痛更新状态: \(recordID)")
+                self.navigateToHeadacheUpdate(recordID: recordID, mode: .inlineUpdate)
+            }
+        }
+    }
+    
     // MARK: - 通知处理方法
     private func handleOpenHeadacheEdit(notification: Foundation.Notification) {
         DispatchQueue.main.async {
             if let recordID = notification.userInfo?["recordID"] as? String {
                 print("📱 导航到头痛记录编辑页面: \(recordID)")
-                self.activeRecordID = recordID
-                self.navigationState = .headacheEdit(recordID: recordID)
-                self.presentedSheet = .headacheEdit(recordID: recordID)
+                self.navigateToHeadacheUpdate(recordID: recordID, mode: .inlineUpdate)
             }
         }
     }
@@ -266,6 +310,9 @@ struct NotificationNavigationModifier: ViewModifier {
         case .weatherAnalysis:
             break
         case .settings:
+            break
+        case .headacheUpdate(recordID: let recordID):
+            print("📱 处理头痛更新状态导航: \(recordID)")
             break
         }
     }

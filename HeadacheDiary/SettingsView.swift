@@ -436,7 +436,7 @@ struct QuickStatsView: View {
 struct NotificationSettingsView: View {
     @State private var notificationsEnabled = true
     @State private var reminderInterval: Double = 3
-    @State private var maxReminders: Double = 8
+    @State private var maxReminders: Double = 3
     @State private var quietHoursEnabled = false
     @State private var quietStartTime = Date()
     @State private var quietEndTime = Date()
