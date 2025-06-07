@@ -22,11 +22,48 @@ struct MonthlyView: View {
     @State private var expandedMonths: Set<String> = [] // 追踪展开的月份
     @State private var showMedicationSafetyGuide = false
     
+    @State private var showEndConfirmation = false
+    @State private var recordToEnd: HeadacheRecord?
+   
+    @State private var showMessage = false
+    @State private var messageText = ""
+    @State private var messageType: MessageType = .success
+    
+    enum MessageType {
+            case success, error
+            
+            var color: Color {
+                switch self {
+                case .success: return .green
+                case .error: return .red
+                }
+            }
+            
+            var icon: String {
+                switch self {
+                case .success: return "checkmark.circle.fill"
+                case .error: return "xmark.circle.fill"
+                }
+            }
+    }
+    
     var body: some View {
         NavigationView {
             VStack(spacing: 0) {
                 // 快速操作栏
                 quickActionBar
+                
+                                
+                // 消息提示 Toast
+                if showMessage {
+                    MessageToast(
+                        text: messageText,
+                        type: messageType,
+                        isShowing: $showMessage
+                    )
+                    .transition(.move(edge: .top).combined(with: .opacity))
+                    .animation(.easeInOut(duration: 0.3), value: showMessage)
+                }
                 
                 List {
                     // 用药警告部分 - 显示在顶部
@@ -67,11 +104,30 @@ struct MonthlyView: View {
                                         .onTapGesture {
                                             selectedRecord = record
                                         }
+                                        .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                                            // 删除按钮 - 对所有记录显示
+                                            Button(role: .destructive) {
+                                                deleteRecord(record, from: monthGroup.records)
+                                            } label: {
+                                                Label("删除", systemImage: "trash")
+                                            }
+                                            
+                                            // 结束按钮 - 仅对进行中的记录显示
+                                            if record.isOngoing {
+                                                Button {
+                                                    endHeadache(record)
+                                                } label: {
+                                                    Label("结束", systemImage: "stop.circle.fill")
+                                                }
+                                                .tint(.orange)
+                                            }
+                                        }
                                 }
                                 .onDelete { offsets in
                                     deleteItems(offsets: offsets, from: monthGroup.records)
                                 }
                             }
+                            
                         }
                     }
                 }
@@ -143,7 +199,7 @@ struct MonthlyView: View {
         }
     }
     
-    // 新增：快速操作栏
+    // 快速操作栏
     @ViewBuilder
     private var quickActionBar: some View {
         HStack(spacing: 16) {
@@ -246,7 +302,70 @@ struct MonthlyView: View {
         }.count
     }
     
-    // 新增：本周轻微头痛次数
+    /// 结束进行中的头痛
+    private func endHeadache(_ record: HeadacheRecord) {
+        withAnimation {
+            record.endTime = Date()
+            
+            do {
+                try viewContext.save()
+                print("✅ 头痛记录已结束: \(record.objectID)")
+                
+                // 刷新视图
+                refreshID = UUID()
+                
+                // 显示成功提示
+                showSuccessMessage("头痛记录已结束")
+                
+                // 触觉反馈
+                let impactFeedback = UIImpactFeedbackGenerator(style: .light)
+                impactFeedback.impactOccurred()
+                
+            } catch {
+                print("❌ 结束头痛记录失败: \(error)")
+                showErrorMessage("结束头痛记录失败")
+                
+                // 错误反馈
+                let impactFeedback = UIImpactFeedbackGenerator(style: .heavy)
+                impactFeedback.impactOccurred()
+            }
+        }
+    }
+    
+    /// 删除单个记录（从滑动操作调用）
+    private func deleteRecord(_ record: HeadacheRecord, from records: [HeadacheRecord]) {
+        if let index = records.firstIndex(of: record) {
+            let indexSet = IndexSet([index])
+            deleteItems(offsets: indexSet, from: records)
+        }
+    }
+    
+    
+    /// 显示成功消息
+    private func showSuccessMessage(_ message: String) {
+        messageText = message
+        messageType = .success
+        showMessage = true
+        
+        // 3秒后自动隐藏
+        DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
+            showMessage = false
+        }
+    }
+    
+    /// 显示错误消息
+    private func showErrorMessage(_ message: String) {
+        messageText = message
+        messageType = .error
+        showMessage = true
+        
+        // 4秒后自动隐藏
+        DispatchQueue.main.asyncAfter(deadline: .now() + 4.0) {
+            showMessage = false
+        }
+    }
+    
+    // 本周轻微头痛次数
     private var thisWeekMildCount: Int {
         let calendar = Calendar.current
         let now = Date()
@@ -298,6 +417,99 @@ struct MonthlyView: View {
         }
     }
 }
+
+struct MessageToast: View {
+    let text: String
+    let type: MonthlyView.MessageType
+    @Binding var isShowing: Bool
+    
+    var body: some View {
+        HStack {
+            Image(systemName: type.icon)
+                .foregroundColor(type.color)
+                .font(.system(size: 16, weight: .semibold))
+            
+            Text(text)
+                .font(.subheadline)
+                .foregroundColor(.primary)
+            
+            Spacer()
+            
+            Button(action: {
+                withAnimation {
+                    isShowing = false
+                }
+            }) {
+                Image(systemName: "xmark")
+                    .foregroundColor(.secondary)
+                    .font(.caption)
+            }
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 12)
+        .background(
+            RoundedRectangle(cornerRadius: 10)
+                .fill(type.color.opacity(0.1))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 10)
+                        .stroke(type.color.opacity(0.3), lineWidth: 1)
+                )
+        )
+        .padding(.horizontal, 16)
+        .padding(.vertical, 8)
+    }
+}
+
+
+extension HeadacheRecordRow {
+    /// 增强的持续时间显示，突出显示进行中状态
+    @ViewBuilder
+    private var enhancedDurationView: some View {
+        if let startTime = record.startTime, let endTime = record.endTime {
+            // 已结束的记录
+            HStack {
+                Image(systemName: "clock")
+                    .foregroundColor(.gray)
+                    .font(.caption)
+                Text(durationText(from: startTime, to: endTime))
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
+        } else if let startTime = record.startTime, record.endTime == nil {
+            // 进行中的记录 - 突出显示
+            HStack {
+                Image(systemName: "clock.fill")
+                    .foregroundColor(.orange)
+                    .font(.caption)
+                Text("进行中...")
+                    .font(.caption.bold())
+                    .foregroundColor(.orange)
+                
+                // 进行中指示器
+                Circle()
+                    .fill(.orange)
+                    .frame(width: 6, height: 6)
+                    .opacity(0.8)
+                
+                // 动态时间显示
+                Text(durationText(from: startTime, to: Date()))
+                    .font(.caption2)
+                    .foregroundColor(.orange.opacity(0.8))
+            }
+            .padding(.horizontal, 8)
+            .padding(.vertical, 4)
+            .background(
+                RoundedRectangle(cornerRadius: 6)
+                    .fill(.orange.opacity(0.1))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 6)
+                            .stroke(.orange.opacity(0.3), lineWidth: 1)
+                    )
+            )
+        }
+    }
+}
+
 
 struct MonthGroup {
     let month: Date
