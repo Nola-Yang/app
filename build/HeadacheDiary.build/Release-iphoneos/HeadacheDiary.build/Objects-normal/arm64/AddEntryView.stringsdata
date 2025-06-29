@@ -1,0 +1,640 @@
+{
+  "source": "/Users/siyuean/Desktop/app/HeadacheDiary/HeadacheDiary/AddEntryView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "编辑记录",
+        "location": {
+          "startingColumn": 42,
+          "startingLine": 148
+        }
+      },
+      {
+        "comment": "",
+        "key": "记录头痛",
+        "location": {
+          "startingColumn": 59,
+          "startingLine": 148
+        }
+      },
+      {
+        "comment": "",
+        "key": "保存失败",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 188
+        }
+      },
+      {
+        "comment": "",
+        "key": "上一步",
+        "location": {
+          "startingColumn": 36,
+          "startingLine": 102
+        }
+      },
+      {
+        "comment": "",
+        "key": "下一步",
+        "location": {
+          "startingColumn": 36,
+          "startingLine": 114
+        }
+      },
+      {
+        "comment": "",
+        "key": "更新",
+        "location": {
+          "startingColumn": 48,
+          "startingLine": 122
+        }
+      },
+      {
+        "comment": "",
+        "key": "保存",
+        "location": {
+          "startingColumn": 59,
+          "startingLine": 122
+        }
+      },
+      {
+        "comment": "",
+        "key": "保存并完成",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 137
+        }
+      },
+      {
+        "comment": "",
+        "key": "取消",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 152
+        }
+      },
+      {
+        "comment": "",
+        "key": "删除",
+        "location": {
+          "startingColumn": 32,
+          "startingLine": 156
+        }
+      },
+      {
+        "comment": "",
+        "key": "确定",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 189
+        }
+      },
+      {
+        "comment": "",
+        "key": "无法获取天气数据，可以手动输入",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 230
+        }
+      },
+      {
+        "comment": "",
+        "key": "自动检测天气",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 201
+        }
+      },
+      {
+        "comment": "",
+        "key": "正在获取天气数据...",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 211
+        }
+      },
+      {
+        "comment": "",
+        "key": "天气获取失败",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 217
+        }
+      },
+      {
+        "comment": "",
+        "key": "重新获取",
+        "location": {
+          "startingColumn": 36,
+          "startingLine": 223
+        }
+      },
+      {
+        "comment": "",
+        "key": "天气信息",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 239
+        }
+      },
+      {
+        "comment": "",
+        "key": "天气数据有助于分析头痛与天气变化的关联性",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 242
+        }
+      },
+      {
+        "comment": "",
+        "key": "✅ 将自动关联当前天气数据到此次头痛记录",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 244
+        }
+      },
+      {
+        "comment": "",
+        "key": "天气相关备注",
+        "location": {
+          "startingColumn": 27,
+          "startingLine": 253
+        }
+      },
+      {
+        "comment": "",
+        "key": "天气备注",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 256
+        }
+      },
+      {
+        "comment": "",
+        "key": "记录天气对头痛的影响，如：气压变化、温度骤降等",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 258
+        }
+      },
+      {
+        "comment": "",
+        "key": "%@°C",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 280
+        }
+      },
+      {
+        "comment": "",
+        "key": "与昨日相比:",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 297
+        }
+      },
+      {
+        "comment": "",
+        "key": "温度%@%@°C",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 304
+        }
+      },
+      {
+        "comment": "",
+        "key": "气压%@%@hPa",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 313
+        }
+      },
+      {
+        "comment": "",
+        "key": "天气状况",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 329
+        }
+      },
+      {
+        "comment": "",
+        "key": "温度: %@°C",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 340
+        }
+      },
+      {
+        "comment": "",
+        "key": "湿度: %@%%",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 347
+        }
+      },
+      {
+        "comment": "",
+        "key": "天气洞察",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 373
+        }
+      },
+      {
+        "comment": "",
+        "key": "记录时间",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 423
+        }
+      },
+      {
+        "comment": "",
+        "key": "总体备注",
+        "location": {
+          "startingColumn": 27,
+          "startingLine": 431
+        }
+      },
+      {
+        "comment": "",
+        "key": "疼痛强度: %lld",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 426
+        }
+      },
+      {
+        "comment": "",
+        "key": "基本信息",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 434
+        }
+      },
+      {
+        "comment": "",
+        "key": "记录这次头痛的基本信息和总体感受",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 437
+        }
+      },
+      {
+        "comment": "",
+        "key": "💡 提示：可以随时点击\"保存并完成\"来快速保存当前信息",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 438
+        }
+      },
+      {
+        "comment": "",
+        "key": "疼痛位置选择",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 452
+        }
+      },
+      {
+        "comment": "",
+        "key": "点击3D头部模型上的区域来选择疼痛位置",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 456
+        }
+      },
+      {
+        "comment": "",
+        "key": "或使用传统方式选择",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 469
+        }
+      },
+      {
+        "comment": "",
+        "key": "常见疼痛位置",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 475
+        }
+      },
+      {
+        "comment": "",
+        "key": "已保存的自定义位置",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 522
+        }
+      },
+      {
+        "comment": "",
+        "key": "本次临时添加",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 569
+        }
+      },
+      {
+        "comment": "",
+        "key": "💡 临时添加的位置只用于本次记录。要永久保存，请在设置中添加。",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 616
+        }
+      },
+      {
+        "comment": "",
+        "key": "临时添加位置",
+        "location": {
+          "startingColumn": 35,
+          "startingLine": 603
+        }
+      },
+      {
+        "comment": "",
+        "key": "添加",
+        "location": {
+          "startingColumn": 32,
+          "startingLine": 605
+        }
+      },
+      {
+        "comment": "",
+        "key": "用药记录",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 630
+        }
+      },
+      {
+        "comment": "",
+        "key": "💡 没有用药？可直接保存",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 635
+        }
+      },
+      {
+        "comment": "",
+        "key": "可能的触发因素 (可多选)",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 674
+        }
+      },
+      {
+        "comment": "",
+        "key": "💡 不确定触发因素？可以暂时跳过，后续再补充",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 676
+        }
+      },
+      {
+        "comment": "",
+        "key": "已保存的自定义触发因素",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 710
+        }
+      },
+      {
+        "comment": "",
+        "key": "删除",
+        "location": {
+          "startingColumn": 32,
+          "startingLine": 722
+        }
+      },
+      {
+        "comment": "",
+        "key": "临时添加触发因素",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 731
+        }
+      },
+      {
+        "comment": "",
+        "key": "添加",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 732
+        }
+      },
+      {
+        "comment": "",
+        "key": "本次临时添加",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 742
+        }
+      },
+      {
+        "comment": "",
+        "key": "触发因素详细备注",
+        "location": {
+          "startingColumn": 27,
+          "startingLine": 747
+        }
+      },
+      {
+        "comment": "",
+        "key": "触发因素备注",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 750
+        }
+      },
+      {
+        "comment": "",
+        "key": "记录触发因素的具体情况、持续时间、严重程度等",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 752
+        }
+      },
+      {
+        "comment": "",
+        "key": "伴随耳鸣",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 761
+        }
+      },
+      {
+        "comment": "",
+        "key": "明显血管跳动",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 762
+        }
+      },
+      {
+        "comment": "",
+        "key": "常见症状",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 764
+        }
+      },
+      {
+        "comment": "",
+        "key": "💡 症状信息可选，有助于分析头痛类型",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 766
+        }
+      },
+      {
+        "comment": "",
+        "key": "已保存的其他症状",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 800
+        }
+      },
+      {
+        "comment": "",
+        "key": "删除",
+        "location": {
+          "startingColumn": 32,
+          "startingLine": 812
+        }
+      },
+      {
+        "comment": "",
+        "key": "临时添加症状",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 821
+        }
+      },
+      {
+        "comment": "",
+        "key": "添加",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 822
+        }
+      },
+      {
+        "comment": "",
+        "key": "本次临时添加",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 832
+        }
+      },
+      {
+        "comment": "",
+        "key": "症状详细备注",
+        "location": {
+          "startingColumn": 27,
+          "startingLine": 837
+        }
+      },
+      {
+        "comment": "",
+        "key": "症状备注",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 840
+        }
+      },
+      {
+        "comment": "",
+        "key": "记录症状的强度、变化、持续时间等详细信息",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 842
+        }
+      },
+      {
+        "comment": "",
+        "key": "未结束 - 将在后续提醒中询问",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 858
+        }
+      },
+      {
+        "comment": "",
+        "key": "开始时间",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 851
+        }
+      },
+      {
+        "comment": "",
+        "key": "记录结束时间",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 853
+        }
+      },
+      {
+        "comment": "",
+        "key": "结束时间",
+        "location": {
+          "startingColumn": 32,
+          "startingLine": 856
+        }
+      },
+      {
+        "comment": "",
+        "key": "疼痛时间范围",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 864
+        }
+      },
+      {
+        "comment": "",
+        "key": "如果头痛还在持续，系统会每3小时提醒你更新状态",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 868
+        }
+      },
+      {
+        "comment": "",
+        "key": "💡 时间信息也是可选的，可以随时保存当前记录",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 870
+        }
+      },
+      {
+        "comment": "",
+        "key": "时间相关备注",
+        "location": {
+          "startingColumn": 27,
+          "startingLine": 878
+        }
+      },
+      {
+        "comment": "",
+        "key": "时间备注",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 881
+        }
+      },
+      {
+        "comment": "",
+        "key": "记录疼痛的变化过程、发作模式、缓解过程等时间相关信息",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 883
+        }
+      }
+    ]
+  },
+  "version": 1
+}

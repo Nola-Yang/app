@@ -1,0 +1,280 @@
+{
+  "source": "/Users/siyuean/Desktop/app/HeadacheDiary/HeadacheDiary/DataAnalysisView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "高级分析",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 95
+        }
+      },
+      {
+        "comment": "",
+        "key": "生成详细报告",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 83
+        }
+      },
+      {
+        "comment": "",
+        "key": "分析时间范围",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 108
+        }
+      },
+      {
+        "comment": "",
+        "key": "核心指标",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 166
+        }
+      },
+      {
+        "comment": "",
+        "key": "频率趋势",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 250
+        }
+      },
+      {
+        "comment": "",
+        "key": "暂无数据",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 255
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 264
+        }
+      },
+      {
+        "comment": "",
+        "key": "总次数",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 267
+        }
+      },
+      {
+        "comment": "",
+        "key": "次/周",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 277
+        }
+      },
+      {
+        "comment": "",
+        "key": "趋势",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 287
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 393
+        }
+      },
+      {
+        "comment": "",
+        "key": "强度分布",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 426
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 439
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 477
+        }
+      },
+      {
+        "comment": "",
+        "key": "触发因素关联分析",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 520
+        }
+      },
+      {
+        "comment": "",
+        "key": "需要更多数据来分析触发因素关联性",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 525
+        }
+      },
+      {
+        "comment": "",
+        "key": "高强度头痛相关触发因素 (前5位)",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 532
+        }
+      },
+      {
+        "comment": "",
+        "key": "用药效果分析",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 602
+        }
+      },
+      {
+        "comment": "",
+        "key": "需要更多用药数据来分析效果",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 607
+        }
+      },
+      {
+        "comment": "",
+        "key": "使用%lld次，成功%lld次",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 618
+        }
+      },
+      {
+        "comment": "",
+        "key": "时间模式分析",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 677
+        }
+      },
+      {
+        "comment": "",
+        "key": "高发时段:",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 682
+        }
+      },
+      {
+        "comment": "",
+        "key": "• %@ - %lld次",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 686
+        }
+      },
+      {
+        "comment": "",
+        "key": "高发星期:",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 690
+        }
+      },
+      {
+        "comment": "",
+        "key": "• %@ - %lld次",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 694
+        }
+      },
+      {
+        "comment": "",
+        "key": "个人化洞察",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 726
+        }
+      },
+      {
+        "comment": "",
+        "key": "记录更多头痛数据后，系统将为您提供个性化洞察",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 745
+        }
+      },
+      {
+        "comment": "",
+        "key": "详细报告",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 829
+        }
+      },
+      {
+        "comment": "",
+        "key": "头痛分析报告",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 807
+        }
+      },
+      {
+        "comment": "",
+        "key": "分析期间: %@",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 810
+        }
+      },
+      {
+        "comment": "",
+        "key": "报告生成时间: %@",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 814
+        }
+      },
+      {
+        "comment": "",
+        "key": "详细分析内容将在此显示...",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 821
+        }
+      },
+      {
+        "comment": "",
+        "key": "关闭",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 833
+        }
+      },
+      {
+        "comment": "",
+        "key": "分享",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 836
+        }
+      }
+    ]
+  },
+  "version": 1
+}

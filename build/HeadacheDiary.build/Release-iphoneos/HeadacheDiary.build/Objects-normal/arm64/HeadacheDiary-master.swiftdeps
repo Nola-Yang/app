@@ -1,0 +1,50 @@
+version: "Apple Swift version 6.1.2 (swiftlang-6.1.2.1.2 clang-1700.0.13.5)"
+options: "acfdfc3e0e29b6c2ae542dd5843a84a3f73bd25385064237c5dd4c9f4a68fb48"
+build_start_time: [1751223177, 97349000]
+build_end_time: [1751223202, 521036000]
+inputs:
+  "/Users/siyuean/Desktop/app/HeadacheDiary/HeadacheDiary/AddEntryView.swift": [1751222870, 851918920]
+  "/Users/siyuean/Desktop/app/HeadacheDiary/HeadacheDiary/AutoHeadacheManager.swift": [1749290609, 23587730]
+  "/Users/siyuean/Desktop/app/HeadacheDiary/HeadacheDiary/ComprehensiveInsightsView.swift": [1751221251, 729868820]
+  "/Users/siyuean/Desktop/app/HeadacheDiary/HeadacheDiary/ComprehensiveTriggerEngine.swift": [1751222984, 478888423]
+  "/Users/siyuean/Desktop/app/HeadacheDiary/HeadacheDiary/ContentView.swift": [1751223167, 387089783]
+  "/Users/siyuean/Desktop/app/HeadacheDiary/HeadacheDiary/DataAnalysisView.swift": [1749274216, 50382235]
+  "/Users/siyuean/Desktop/app/HeadacheDiary/HeadacheDiary/EnhancedWeatherAnalysis.swift": [1749289095, 328120850]
+  "/Users/siyuean/Desktop/app/HeadacheDiary/HeadacheDiary/HeadModel3DView.swift": [1751175590, 778655347]
+  "/Users/siyuean/Desktop/app/HeadacheDiary/HeadacheDiary/HeadRecoder.swift": [1749285296, 861305011]
+  "/Users/siyuean/Desktop/app/HeadacheDiary/HeadacheDiary/HeadacheDiaryApp.swift": [1749333315, 317501878]
+  "/Users/siyuean/Desktop/app/HeadacheDiary/HeadacheDiary/HeadacheRecord+AutoEnd.swift": [1749321576, 162667285]
+  "/Users/siyuean/Desktop/app/HeadacheDiary/HeadacheDiary/HeadacheRecord+CoreDataProperties.swift": [1749274216, 55775800]
+  "/Users/siyuean/Desktop/app/HeadacheDiary/HeadacheDiary/HeadacheRecord+HealthKit.swift": [1751177391, 82459894]
+  "/Users/siyuean/Desktop/app/HeadacheDiary/HeadacheDiary/HealthAnalysisEngine.swift": [1751221899, 207391497]
+  "/Users/siyuean/Desktop/app/HeadacheDiary/HeadacheDiary/HealthInsightsView.swift": [1751222312, 166490778]
+  "/Users/siyuean/Desktop/app/HeadacheDiary/HeadacheDiary/HealthKitManager.swift": [1751221587, 25006506]
+  "/Users/siyuean/Desktop/app/HeadacheDiary/HeadacheDiary/MedicationEntry.swift": [1749274216, 56225260]
+  "/Users/siyuean/Desktop/app/HeadacheDiary/HeadacheDiary/MedicationTrackingView.swift": [1751173563, 735370266]
+  "/Users/siyuean/Desktop/app/HeadacheDiary/HeadacheDiary/MedicationWarningSettingsView.swift": [1749274216, 56860471]
+  "/Users/siyuean/Desktop/app/HeadacheDiary/HeadacheDiary/MedicationWarningView.swift": [1749274216, 57087222]
+  "/Users/siyuean/Desktop/app/HeadacheDiary/HeadacheDiary/MedicineEnums.swift": [1749274216, 57410765]
+  "/Users/siyuean/Desktop/app/HeadacheDiary/HeadacheDiary/MonthlyView.swift": [1749322793, 447122821]
+  "/Users/siyuean/Desktop/app/HeadacheDiary/HeadacheDiary/NotificationManager.swift": [1751221066, 742130594]
+  "/Users/siyuean/Desktop/app/HeadacheDiary/HeadacheDiary/Persistence.swift": [1749274216, 58161102]
+  "/Users/siyuean/Desktop/app/HeadacheDiary/HeadacheDiary/QuickHeadacheEntryView.swift": [1749319753, 922320343]
+  "/Users/siyuean/Desktop/app/HeadacheDiary/HeadacheDiary/SettingsView.swift": [1749333687, 730050483]
+  "/Users/siyuean/Desktop/app/HeadacheDiary/HeadacheDiary/StatisticsView.swift": [1749285324, 469889439]
+  "/Users/siyuean/Desktop/app/HeadacheDiary/HeadacheDiary/TriggerButton.swift": [1749274216, 59215815]
+  "/Users/siyuean/Desktop/app/HeadacheDiary/HeadacheDiary/TriggerEnums.swift": [1749274216, 59346815]
+  "/Users/siyuean/Desktop/app/HeadacheDiary/HeadacheDiary/WeatherAnalysisView.swift": [1751220447, 455350294]
+  "/Users/siyuean/Desktop/app/HeadacheDiary/HeadacheDiary/WeatherService.swift": [1751219760, 46898675]
+  "/Users/siyuean/Desktop/app/HeadacheDiary/HeadacheDiary/WeatherSettingsView.swift": [1749289478, 255466458]
+  "/Users/siyuean/Desktop/app/HeadacheDiary/HeadacheDiary/WeatherWarningManager.swift": [1751221097, 227904540]
+  ? "/Users/siyuean/Desktop/app/HeadacheDiary/build/HeadacheDiary.build/Release-iphoneos/HeadacheDiary.build/DerivedSources/CoreDataGenerated/HeadacheDiary/Entity+CoreDataClass.swift"
+  : [1751223177, 33927727]
+  ? "/Users/siyuean/Desktop/app/HeadacheDiary/build/HeadacheDiary.build/Release-iphoneos/HeadacheDiary.build/DerivedSources/CoreDataGenerated/HeadacheDiary/Entity+CoreDataProperties.swift"
+  : [1751223177, 34264310]
+  ? "/Users/siyuean/Desktop/app/HeadacheDiary/build/HeadacheDiary.build/Release-iphoneos/HeadacheDiary.build/DerivedSources/CoreDataGenerated/HeadacheDiary/HeadacheDiary+CoreDataModel.swift"
+  : [1751223177, 32603561]
+  ? "/Users/siyuean/Desktop/app/HeadacheDiary/build/HeadacheDiary.build/Release-iphoneos/HeadacheDiary.build/DerivedSources/CoreDataGenerated/HeadacheDiary/Item+CoreDataClass.swift"
+  : [1751223177, 34974142]
+  ? "/Users/siyuean/Desktop/app/HeadacheDiary/build/HeadacheDiary.build/Release-iphoneos/HeadacheDiary.build/DerivedSources/CoreDataGenerated/HeadacheDiary/Item+CoreDataProperties.swift"
+  : [1751223177, 35389267]
+  ? "/Users/siyuean/Desktop/app/HeadacheDiary/build/HeadacheDiary.build/Release-iphoneos/HeadacheDiary.build/DerivedSources/GeneratedAssetSymbols.swift"
+  : [1751223176, 671170006]

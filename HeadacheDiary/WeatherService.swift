@@ -122,6 +122,7 @@ class WeatherService: NSObject, ObservableObject {
     @Published var isLocationAuthorized = false
     @Published var isLoading = false
     @Published var errorMessage: String?
+    @Published var weatherDataSnapshot: WeatherDataSnapshot?
     
     private let weatherService = WeatherKit.WeatherService()
     private let locationManager = CLLocationManager()
@@ -222,6 +223,9 @@ class WeatherService: NSObject, ObservableObject {
             
             // 分析头痛风险
             await analyzeHeadacheRisk()
+            
+            // 更新天气数据快照
+            updateWeatherDataSnapshot(from: currentWeatherRecord)
             
             print("✅ 天气数据获取成功: \(currentWeatherRecord.condition), 温度: \(currentWeatherRecord.temperature)°C")
             
@@ -423,6 +427,186 @@ class WeatherService: NSObject, ObservableObject {
             return nil
         }
     }
+    
+    // MARK: - 数据快照更新
+    
+    private func updateWeatherDataSnapshot(from record: WeatherRecord) {
+        let snapshot = WeatherDataSnapshot(
+            date: record.date,
+            temperature: record.temperature,
+            humidity: record.humidity,
+            pressure: record.pressure,
+            condition: record.condition,
+            uvIndex: record.uvIndex,
+            windSpeed: record.windSpeed,
+            precipitationChance: record.precipitationChance,
+            temperatureChange: record.temperatureChange,
+            pressureChange: record.pressureChange,
+            riskLevel: currentRisk
+        )
+        
+        weatherDataSnapshot = snapshot
+        print("✅ 天气数据快照已更新")
+    }
+    
+    // MARK: - 增强版相关性分析
+    
+    func performEnhancedCorrelationAnalysis(with headacheRecords: [HeadacheRecord]) -> EnhancedWeatherCorrelationResult {
+        var conditionCorrelations: [String: CorrelationData] = [:]
+        
+        let calendar = Calendar.current
+        let dateFormatter = DateFormatter.dayFormatter
+        
+        // 分析天气与头痛的相关性
+        for weather in weatherHistory {
+            let weatherDateString = dateFormatter.string(from: weather.date)
+            let condition = weather.condition
+            
+            if conditionCorrelations[condition] == nil {
+                conditionCorrelations[condition] = CorrelationData()
+            }
+            
+            conditionCorrelations[condition]!.totalDays += 1
+            conditionCorrelations[condition]!.temperatures.append(weather.temperature)
+            conditionCorrelations[condition]!.pressures.append(weather.pressure)
+            conditionCorrelations[condition]!.humidities.append(weather.humidity)
+            
+            // 检查这一天是否有头痛记录
+            let hasHeadache = headacheRecords.contains { record in
+                guard let timestamp = record.timestamp else { return false }
+                let recordDateString = dateFormatter.string(from: timestamp)
+                return recordDateString == weatherDateString
+            }
+            
+            if hasHeadache {
+                conditionCorrelations[condition]!.headacheDays += 1
+            }
+        }
+        
+        // 生成相关性结果
+        let correlations = conditionCorrelations.map { condition, data in
+            WeatherConditionCorrelation(
+                condition: condition,
+                headacheRate: data.totalDays > 0 ? Double(data.headacheDays) / Double(data.totalDays) * 100 : 0,
+                totalDays: data.totalDays,
+                headacheDays: data.headacheDays,
+                averageTemperature: data.temperatures.isEmpty ? 0 : data.temperatures.reduce(0, +) / Double(data.temperatures.count),
+                averagePressure: data.pressures.isEmpty ? 0 : data.pressures.reduce(0, +) / Double(data.pressures.count),
+                averageHumidity: data.humidities.isEmpty ? 0 : data.humidities.reduce(0, +) / Double(data.humidities.count)
+            )
+        }.sorted { $0.headacheRate > $1.headacheRate }
+        
+        let totalWeatherDays = weatherHistory.count
+        let totalHeadacheDays = conditionCorrelations.values.reduce(0) { $0 + $1.headacheDays }
+        
+        // 计算气压和温度变化的相关性
+        let pressureCorrelation = calculatePressureChangeCorrelation(headacheRecords: headacheRecords)
+        let temperatureCorrelation = calculateTemperatureChangeCorrelation(headacheRecords: headacheRecords)
+        
+        return EnhancedWeatherCorrelationResult(
+            conditions: correlations,
+            analysisDate: Date(),
+            totalWeatherDays: totalWeatherDays,
+            totalHeadacheDays: totalHeadacheDays,
+            pressureChangeCorrelation: pressureCorrelation,
+            temperatureChangeCorrelation: temperatureCorrelation,
+            highRiskFactors: identifyHighRiskFactors(from: correlations)
+        )
+    }
+    
+    private func calculatePressureChangeCorrelation(headacheRecords: [HeadacheRecord]) -> Double {
+        var pressureChanges: [Double] = []
+        var headacheIntensities: [Double] = []
+        
+        let calendar = Calendar.current
+        let dateFormatter = DateFormatter.dayFormatter
+        
+        for record in headacheRecords {
+            guard let timestamp = record.timestamp else { continue }
+            let recordDateString = dateFormatter.string(from: timestamp)
+            
+            if let weather = weatherHistory.first(where: { weather in
+                dateFormatter.string(from: weather.date) == recordDateString
+            }) {
+                pressureChanges.append(abs(weather.pressureChange))
+                headacheIntensities.append(Double(record.intensity))
+            }
+        }
+        
+        return calculateCorrelation(x: pressureChanges, y: headacheIntensities)
+    }
+    
+    private func calculateTemperatureChangeCorrelation(headacheRecords: [HeadacheRecord]) -> Double {
+        var temperatureChanges: [Double] = []
+        var headacheIntensities: [Double] = []
+        
+        let calendar = Calendar.current
+        let dateFormatter = DateFormatter.dayFormatter
+        
+        for record in headacheRecords {
+            guard let timestamp = record.timestamp else { continue }
+            let recordDateString = dateFormatter.string(from: timestamp)
+            
+            if let weather = weatherHistory.first(where: { weather in
+                dateFormatter.string(from: weather.date) == recordDateString
+            }) {
+                temperatureChanges.append(abs(weather.temperatureChange))
+                headacheIntensities.append(Double(record.intensity))
+            }
+        }
+        
+        return calculateCorrelation(x: temperatureChanges, y: headacheIntensities)
+    }
+    
+    private func calculateCorrelation(x: [Double], y: [Double]) -> Double {
+        guard x.count == y.count, x.count > 1 else { return 0 }
+        
+        let n = Double(x.count)
+        let sumX = x.reduce(0, +)
+        let sumY = y.reduce(0, +)
+        let sumXY = zip(x, y).map(*).reduce(0, +)
+        let sumX2 = x.map { $0 * $0 }.reduce(0, +)
+        let sumY2 = y.map { $0 * $0 }.reduce(0, +)
+        
+        let numerator = n * sumXY - sumX * sumY
+        let denominator = sqrt((n * sumX2 - sumX * sumX) * (n * sumY2 - sumY * sumY))
+        
+        return denominator != 0 ? numerator / denominator : 0
+    }
+    
+    private func identifyHighRiskFactors(from correlations: [WeatherConditionCorrelation]) -> [HighRiskFactor] {
+        var riskFactors: [HighRiskFactor] = []
+        
+        for correlation in correlations {
+            if correlation.headacheRate > 60 {
+                riskFactors.append(HighRiskFactor(
+                    factor: "\(correlation.conditionEnum?.displayName ?? correlation.condition)天气",
+                    riskLevel: correlation.headacheRate,
+                    description: "在\(correlation.conditionEnum?.displayName ?? correlation.condition)天气下，头痛发生率为\(String(format: "%.1f", correlation.headacheRate))%",
+                    recommendation: generateRecommendation(for: correlation)
+                ))
+            }
+        }
+        
+        return riskFactors
+    }
+    
+    private func generateRecommendation(for correlation: WeatherConditionCorrelation) -> String {
+        guard let condition = correlation.conditionEnum else {
+            return "关注天气变化，做好预防措施"
+        }
+        
+        switch condition {
+        case .stormy, .rainy:
+            return "雨天时注意保持室内环境稳定，避免剧烈活动"
+        case .cloudy, .foggy:
+            return "阴天时可能光线不足，注意补充维生素D"
+        case .windy:
+            return "大风天气注意保暖，避免长时间户外活动"
+        default:
+            return "根据天气情况调整作息和活动安排"
+        }
+    }
 }
 
 // MARK: - 数据模型
@@ -507,6 +691,48 @@ extension WeatherService: CLLocationManagerDelegate {
             }
         }
     }
+}
+
+// MARK: - 新增数据结构
+
+struct WeatherDataSnapshot {
+    let date: Date
+    let temperature: Double
+    let humidity: Double
+    let pressure: Double
+    let condition: String
+    let uvIndex: Int
+    let windSpeed: Double
+    let precipitationChance: Double
+    let temperatureChange: Double
+    let pressureChange: Double
+    let riskLevel: HeadacheRisk
+}
+
+struct EnhancedWeatherCorrelationResult {
+    let conditions: [WeatherConditionCorrelation]
+    let analysisDate: Date
+    let totalWeatherDays: Int
+    let totalHeadacheDays: Int
+    let pressureChangeCorrelation: Double
+    let temperatureChangeCorrelation: Double
+    let highRiskFactors: [HighRiskFactor]
+    
+    var overallHeadacheRate: Double {
+        totalWeatherDays > 0 ? Double(totalHeadacheDays) / Double(totalWeatherDays) * 100 : 0
+    }
+    
+    var highestRiskCondition: WeatherConditionCorrelation? {
+        conditions.first
+    }
+}
+
+struct HighRiskFactor: Identifiable {
+    let id = UUID()
+    let factor: String
+    let riskLevel: Double
+    let description: String
+    let recommendation: String
 }
 
 // MARK: - 扩展

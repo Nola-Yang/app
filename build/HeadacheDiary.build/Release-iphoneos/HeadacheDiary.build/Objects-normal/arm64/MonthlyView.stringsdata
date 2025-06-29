@@ -1,0 +1,192 @@
+{
+  "source": "/Users/siyuean/Desktop/app/HeadacheDiary/HeadacheDiary/MonthlyView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "头痛日记",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 140
+        }
+      },
+      {
+        "comment": "",
+        "key": "删除",
+        "location": {
+          "startingColumn": 55,
+          "startingLine": 112
+        }
+      },
+      {
+        "comment": "",
+        "key": "结束",
+        "location": {
+          "startingColumn": 59,
+          "startingLine": 120
+        }
+      },
+      {
+        "comment": "",
+        "key": "详细记录",
+        "location": {
+          "startingColumn": 35,
+          "startingLine": 148
+        }
+      },
+      {
+        "comment": "",
+        "key": "快速记录轻微头痛",
+        "location": {
+          "startingColumn": 35,
+          "startingLine": 151
+        }
+      },
+      {
+        "comment": "",
+        "key": "快速记录",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 213
+        }
+      },
+      {
+        "comment": "",
+        "key": "轻微头痛",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 216
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 237
+        }
+      },
+      {
+        "comment": "",
+        "key": "今天",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 240
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 246
+        }
+      },
+      {
+        "comment": "",
+        "key": "本周轻微",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 249
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 255
+        }
+      },
+      {
+        "comment": "",
+        "key": "本周总计",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 258
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 264
+        }
+      },
+      {
+        "comment": "",
+        "key": "进行中",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 267
+        }
+      },
+      {
+        "comment": "",
+        "key": "进行中...",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 533
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld次",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 609
+        }
+      },
+      {
+        "comment": "",
+        "key": "快速",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 646
+        }
+      },
+      {
+        "comment": "",
+        "key": "进行中...",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 744
+        }
+      },
+      {
+        "comment": "",
+        "key": "%@ %@",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 768
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld次用药，共%lldmg",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 788
+        }
+      },
+      {
+        "comment": "",
+        "key": "(%lld次有效)",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 792
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld",
+        "location": {
+          "startingColumn": 14,
+          "startingLine": 846
+        }
+      }
+    ]
+  },
+  "version": 1
+}

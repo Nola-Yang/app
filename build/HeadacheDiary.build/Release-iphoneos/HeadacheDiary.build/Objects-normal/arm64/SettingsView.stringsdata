@@ -1,0 +1,648 @@
+{
+  "source": "/Users/siyuean/Desktop/app/HeadacheDiary/HeadacheDiary/SettingsView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "自定义选项管理",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 94
+        }
+      },
+      {
+        "comment": "",
+        "key": "提示",
+        "location": {
+          "startingColumn": 16,
+          "startingLine": 141
+        }
+      },
+      {
+        "comment": "",
+        "key": "选择分类",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 22
+        }
+      },
+      {
+        "comment": "",
+        "key": "添加新的%@",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 68
+        }
+      },
+      {
+        "comment": "",
+        "key": "当前分类选项数量",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 77
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 79
+        }
+      },
+      {
+        "comment": "",
+        "key": "总选项数量",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 84
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 86
+        }
+      },
+      {
+        "comment": "",
+        "key": "统计信息",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 90
+        }
+      },
+      {
+        "comment": "",
+        "key": "清空当前分类",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 99
+        }
+      },
+      {
+        "comment": "",
+        "key": "调试：打印所有选项",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 103
+        }
+      },
+      {
+        "comment": "",
+        "key": "确定",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 142
+        }
+      },
+      {
+        "comment": "",
+        "key": "输入%@名称",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 167
+        }
+      },
+      {
+        "comment": "",
+        "key": "该选项已存在",
+        "location": {
+          "startingColumn": 35,
+          "startingLine": 175
+        }
+      },
+      {
+        "comment": "",
+        "key": "可以添加",
+        "location": {
+          "startingColumn": 35,
+          "startingLine": 178
+        }
+      },
+      {
+        "comment": "",
+        "key": "新增 %@",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 183
+        }
+      },
+      {
+        "comment": "",
+        "key": "请输入您要添加的%@名称，例如：",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 185
+        }
+      },
+      {
+        "comment": "",
+        "key": "还有 %lld 个选项...",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 204
+        }
+      },
+      {
+        "comment": "",
+        "key": "已有的%@（参考）",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 209
+        }
+      },
+      {
+        "comment": "",
+        "key": "取消",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 217
+        }
+      },
+      {
+        "comment": "",
+        "key": "保存",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 220
+        }
+      },
+      {
+        "comment": "",
+        "key": "设置",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 386
+        }
+      },
+      {
+        "comment": "",
+        "key": "自定义选项管理",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 271
+        }
+      },
+      {
+        "comment": "",
+        "key": "已有 %lld 个自定义选项",
+        "location": {
+          "startingColumn": 42,
+          "startingLine": 273
+        }
+      },
+      {
+        "comment": "",
+        "key": "用药安全监控",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 292
+        }
+      },
+      {
+        "comment": "",
+        "key": "监控用药频率，预防药物过量性头痛",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 293
+        }
+      },
+      {
+        "comment": "",
+        "key": "通知设置",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 307
+        }
+      },
+      {
+        "comment": "",
+        "key": "管理头痛提醒通知",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 308
+        }
+      },
+      {
+        "comment": "",
+        "key": "个人化设置",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 315
+        }
+      },
+      {
+        "comment": "",
+        "key": "导出数据",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 327
+        }
+      },
+      {
+        "comment": "",
+        "key": "导出头痛记录为CSV文件",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 329
+        }
+      },
+      {
+        "comment": "",
+        "key": "高级分析",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 342
+        }
+      },
+      {
+        "comment": "",
+        "key": "深度数据分析和趋势",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 343
+        }
+      },
+      {
+        "comment": "",
+        "key": "数据管理",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 350
+        }
+      },
+      {
+        "comment": "",
+        "key": "关于应用",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 360
+        }
+      },
+      {
+        "comment": "",
+        "key": "健康提醒",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 369
+        }
+      },
+      {
+        "comment": "",
+        "key": "记录详细信息有助于医生诊断",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 370
+        }
+      },
+      {
+        "comment": "",
+        "key": "应用信息",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 376
+        }
+      },
+      {
+        "comment": "",
+        "key": "快速统计",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 383
+        }
+      },
+      {
+        "comment": "",
+        "key": "通知设置",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 495
+        }
+      },
+      {
+        "comment": "",
+        "key": "启用头痛提醒",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 447
+        }
+      },
+      {
+        "comment": "",
+        "key": "提醒间隔: %lld小时",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 451
+        }
+      },
+      {
+        "comment": "",
+        "key": "最大提醒次数: %lld次",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 456
+        }
+      },
+      {
+        "comment": "",
+        "key": "头痛提醒设置",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 461
+        }
+      },
+      {
+        "comment": "",
+        "key": "当头痛未设置结束时间时，系统会定期提醒您更新状态",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 463
+        }
+      },
+      {
+        "comment": "",
+        "key": "启用免打扰时间",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 467
+        }
+      },
+      {
+        "comment": "",
+        "key": "开始时间",
+        "location": {
+          "startingColumn": 32,
+          "startingLine": 470
+        }
+      },
+      {
+        "comment": "",
+        "key": "结束时间",
+        "location": {
+          "startingColumn": 32,
+          "startingLine": 471
+        }
+      },
+      {
+        "comment": "",
+        "key": "免打扰设置",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 474
+        }
+      },
+      {
+        "comment": "",
+        "key": "在免打扰时间段内不会发送提醒通知",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 476
+        }
+      },
+      {
+        "comment": "",
+        "key": "清除所有待发送通知",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 485
+        }
+      },
+      {
+        "comment": "",
+        "key": "通知管理",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 492
+        }
+      },
+      {
+        "comment": "",
+        "key": "导出数据",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 632
+        }
+      },
+      {
+        "comment": "",
+        "key": "导出失败",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 644
+        }
+      },
+      {
+        "comment": "",
+        "key": "导出格式",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 568
+        }
+      },
+      {
+        "comment": "",
+        "key": "导出设置",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 575
+        }
+      },
+      {
+        "comment": "",
+        "key": "包含自定义选项",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 581
+        }
+      },
+      {
+        "comment": "",
+        "key": "包含详细备注",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 582
+        }
+      },
+      {
+        "comment": "",
+        "key": "数据选项",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 584
+        }
+      },
+      {
+        "comment": "",
+        "key": "总记录数",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 589
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 591
+        }
+      },
+      {
+        "comment": "",
+        "key": "有备注记录",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 596
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 598
+        }
+      },
+      {
+        "comment": "",
+        "key": "自定义选项记录",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 603
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 605
+        }
+      },
+      {
+        "comment": "",
+        "key": "数据概览",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 609
+        }
+      },
+      {
+        "comment": "",
+        "key": "导出中...",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 618
+        }
+      },
+      {
+        "comment": "",
+        "key": "开始导出",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 621
+        }
+      },
+      {
+        "comment": "",
+        "key": "导出完成后将打开系统分享界面，您可以选择保存到文件、发送邮件或其他应用",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 629
+        }
+      },
+      {
+        "comment": "",
+        "key": "取消",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 636
+        }
+      },
+      {
+        "comment": "",
+        "key": "确定",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 645
+        }
+      },
+      {
+        "comment": "",
+        "key": "关于",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 1047
+        }
+      },
+      {
+        "comment": "",
+        "key": "功能特色",
+        "location": {
+          "startingColumn": 21,
+          "startingLine": 1033
+        }
+      },
+      {
+        "comment": "",
+        "key": "使用建议",
+        "location": {
+          "startingColumn": 21,
+          "startingLine": 1040
+        }
+      },
+      {
+        "comment": "",
+        "key": "头痛日记",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 1023
+        }
+      },
+      {
+        "comment": "",
+        "key": "个人化头痛管理工具",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 1025
+        }
+      },
+      {
+        "comment": "",
+        "key": "• 详细记录有助于发现头痛模式",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 1041
+        }
+      },
+      {
+        "comment": "",
+        "key": "• 自定义选项让记录更个性化",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 1042
+        }
+      },
+      {
+        "comment": "",
+        "key": "• 定期查看统计分析寻找规律",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 1043
+        }
+      },
+      {
+        "comment": "",
+        "key": "• 导出数据可作为就医参考",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 1044
+        }
+      }
+    ]
+  },
+  "version": 1
+}

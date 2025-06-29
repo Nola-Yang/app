@@ -1,0 +1,360 @@
+{
+  "source": "/Users/siyuean/Desktop/app/HeadacheDiary/HeadacheDiary/StatisticsView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "统计分析",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 49
+        }
+      },
+      {
+        "comment": "",
+        "key": "整体概况",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 83
+        }
+      },
+      {
+        "comment": "",
+        "key": "近期趋势",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 153
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 165
+        }
+      },
+      {
+        "comment": "",
+        "key": "疼痛位置分布",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 218
+        }
+      },
+      {
+        "comment": "",
+        "key": "暂无位置数据",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 223
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld次",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 234
+        }
+      },
+      {
+        "comment": "",
+        "key": "(%lld%%)",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 238
+        }
+      },
+      {
+        "comment": "",
+        "key": "触发因素分析",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 283
+        }
+      },
+      {
+        "comment": "",
+        "key": "暂无触发因素数据",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 288
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld次",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 311
+        }
+      },
+      {
+        "comment": "",
+        "key": "(%lld%%)",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 314
+        }
+      },
+      {
+        "comment": "",
+        "key": "用药统计",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 433
+        }
+      },
+      {
+        "comment": "",
+        "key": "各药物详细统计:",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 471
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld次",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 480
+        }
+      },
+      {
+        "comment": "",
+        "key": "总剂量:",
+        "location": {
+          "startingColumn": 42,
+          "startingLine": 487
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lldmg",
+        "location": {
+          "startingColumn": 42,
+          "startingLine": 488
+        }
+      },
+      {
+        "comment": "",
+        "key": "平均:",
+        "location": {
+          "startingColumn": 42,
+          "startingLine": 495
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lldmg",
+        "location": {
+          "startingColumn": 42,
+          "startingLine": 496
+        }
+      },
+      {
+        "comment": "",
+        "key": "有效率:",
+        "location": {
+          "startingColumn": 42,
+          "startingLine": 503
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld%%",
+        "location": {
+          "startingColumn": 42,
+          "startingLine": 504
+        }
+      },
+      {
+        "comment": "",
+        "key": "用药洞察:",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 565
+        }
+      },
+      {
+        "comment": "",
+        "key": "用药时间线",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 628
+        }
+      },
+      {
+        "comment": "",
+        "key": "未用药",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 632
+        }
+      },
+      {
+        "comment": "",
+        "key": "有效缓解",
+        "location": {
+          "startingColumn": 42,
+          "startingLine": 674
+        }
+      },
+      {
+        "comment": "",
+        "key": "缓解于 %@",
+        "location": {
+          "startingColumn": 42,
+          "startingLine": 670
+        }
+      },
+      {
+        "comment": "",
+        "key": "未缓解",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 679
+        }
+      },
+      {
+        "comment": "",
+        "key": "症状分析",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 745
+        }
+      },
+      {
+        "comment": "",
+        "key": "暂无症状数据",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 750
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld次",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 773
+        }
+      },
+      {
+        "comment": "",
+        "key": "(%lld%%)",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 776
+        }
+      },
+      {
+        "comment": "",
+        "key": "轻微头痛分析",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 868
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld次",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 872
+        }
+      },
+      {
+        "comment": "",
+        "key": "常见触发因素:",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 916
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld次",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 932
+        }
+      },
+      {
+        "comment": "",
+        "key": "记录详细度",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 1053
+        }
+      },
+      {
+        "comment": "",
+        "key": "详细的备注有助于发现头痛模式和改善治疗效果",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 1092
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 1059
+        }
+      },
+      {
+        "comment": "",
+        "key": "有备注记录",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 1062
+        }
+      },
+      {
+        "comment": "",
+        "key": "备注完整度",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 1073
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld%%",
+        "location": {
+          "startingColumn": 46,
+          "startingLine": 1070
+        }
+      },
+      {
+        "comment": "",
+        "key": "0%",
+        "location": {
+          "startingColumn": 116,
+          "startingLine": 1070
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 1081
+        }
+      },
+      {
+        "comment": "",
+        "key": "详细记录",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 1084
+        }
+      }
+    ]
+  },
+  "version": 1
+}

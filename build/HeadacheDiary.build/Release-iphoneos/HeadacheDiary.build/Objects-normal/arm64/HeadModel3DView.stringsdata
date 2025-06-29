@@ -1,0 +1,48 @@
+{
+  "source": "/Users/siyuean/Desktop/app/HeadacheDiary/HeadacheDiary/HeadModel3DView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "点击头部模型上的区域选择疼痛位置",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 69
+        }
+      },
+      {
+        "comment": "",
+        "key": "💡 可以旋转和缩放模型以获得更好的视角",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 74
+        }
+      },
+      {
+        "comment": "",
+        "key": "📦 支持导入3D模型文件：将.scn或.obj文件添加到应用包中",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 78
+        }
+      },
+      {
+        "comment": "",
+        "key": "🔴 点击任何区域都会短暂变红并映射到头痛位置",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 82
+        }
+      },
+      {
+        "comment": "",
+        "key": "已选择的位置:",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 90
+        }
+      }
+    ]
+  },
+  "version": 1
+}

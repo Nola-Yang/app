@@ -170,7 +170,7 @@ struct WeatherAnalysisView: View {
                 .analyzeWeatherHeadacheCorrelation(with: Array(filtered))
 
             isAnalyzing = false
-            print("✅ 天气关联分析完成，得到 \(correlationResult?.correlations.count ?? 0) 个因素")
+            print("✅ 天气关联分析完成，得到 \(correlationResult?.conditions.count ?? 0) 个因素")
         }
     }
 }
@@ -592,7 +592,7 @@ struct WeatherCorrelationCard: View {
                 }
             }
             .pickerStyle(SegmentedPickerStyle())
-            .onChange(of: timeRange) { newValue in
+            .onChange(of: timeRange) { _, newValue in
                 onTimeRangeChanged(newValue)
             }
             
@@ -613,26 +613,26 @@ struct WeatherCorrelationCard: View {
     @ViewBuilder
     private func correlationContent(_ result: EnhancedWeatherCorrelationResult) -> some View {
         VStack(spacing: 12) {
-            Text(result.summary)
+            Text("分析了 \(result.totalWeatherDays) 天天气数据，发现 \(result.totalHeadacheDays) 天有头痛记录")
                 .font(.subheadline)
 
-            // 数据质量
+            // 总体头痛率
             HStack {
-                Text("数据质量: \(result.dataQuality.qualityLevel.displayName)")
+                Text("总体头痛率: \(String(format: "%.1f", result.overallHeadacheRate))%")
                     .font(.caption)
                 Spacer()
-                Text("覆盖率 \(Int(result.dataQuality.coveragePercentage * 100))%")
+                Text("高风险因素: \(result.highRiskFactors.count)个")
                     .font(.caption2)
                     .foregroundColor(.secondary)
             }
 
-            if !result.correlations.isEmpty {
+            if !result.conditions.isEmpty {
                 VStack(alignment: .leading, spacing: 8) {
                     Text("主要相关因素:")
                         .font(.subheadline.bold())
 
-                    ForEach(result.correlations.prefix(5), id: \.weatherFactor) { corr in
-                        EnhancedCorrelationRow(correlation: corr)
+                    ForEach(result.conditions.prefix(5), id: \.id) { condition in
+                        ConditionCorrelationRow(condition: condition)
                     }
                 }
             }
@@ -900,14 +900,14 @@ struct PersonalizedAdviceCard: View {
             }
             
             VStack(alignment: .leading, spacing: 12) {
-                if let result = correlationResult, !result.insights.isEmpty {
-                    ForEach(result.insights, id: \.self) { advice in
+                if let result = correlationResult, !result.highRiskFactors.isEmpty {
+                    ForEach(result.highRiskFactors, id: \.id) { factor in
                         HStack(alignment: .top, spacing: 8) {
                             Image(systemName: "checkmark.circle")
                                 .foregroundColor(.green)
                                 .font(.caption)
                                 .padding(.top, 2)
-                            Text(advice)
+                            Text(factor.recommendation)
                                 .font(.caption)
                         }
                     }
@@ -1065,6 +1065,29 @@ private let fullDateFormatter: DateFormatter = {
     formatter.timeStyle = .short
     return formatter
 }()
+
+struct ConditionCorrelationRow: View {
+    let condition: WeatherConditionCorrelation
+
+    var body: some View {
+        HStack {
+            Text(condition.conditionEnum?.displayName ?? condition.condition)
+                .font(.caption)
+
+            Spacer()
+
+            VStack(alignment: .trailing, spacing: 2) {
+                Text(String(format: "%.1f%%", condition.headacheRate))
+                    .font(.caption.bold())
+                    .foregroundColor(.blue)
+
+                Text("\(condition.headacheDays)/\(condition.totalDays)天")
+                    .font(.caption2)
+                    .foregroundColor(.secondary)
+            }
+        }
+    }
+}
 
 #Preview {
     WeatherAnalysisView()

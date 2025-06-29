@@ -1,0 +1,264 @@
+{
+  "source": "/Users/siyuean/Desktop/app/HeadacheDiary/HeadacheDiary/HealthInsightsView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "健康洞察",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 69
+        }
+      },
+      {
+        "comment": "",
+        "key": "HealthKit权限",
+        "location": {
+          "startingColumn": 16,
+          "startingLine": 87
+        }
+      },
+      {
+        "comment": "",
+        "key": "查看详细分析",
+        "location": {
+          "startingColumn": 16,
+          "startingLine": 361
+        }
+      },
+      {
+        "comment": "",
+        "key": "去设置",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 88
+        }
+      },
+      {
+        "comment": "",
+        "key": "取消",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 96
+        }
+      },
+      {
+        "comment": "",
+        "key": "需要访问健康数据才能进行分析",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 98
+        }
+      },
+      {
+        "comment": "",
+        "key": "暂无健康数据",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 154
+        }
+      },
+      {
+        "comment": "",
+        "key": "健康状态概览",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 114
+        }
+      },
+      {
+        "comment": "",
+        "key": "分析时间范围",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 168
+        }
+      },
+      {
+        "comment": "",
+        "key": "时间范围",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 173
+        }
+      },
+      {
+        "comment": "",
+        "key": "连接健康应用",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 189
+        }
+      },
+      {
+        "comment": "",
+        "key": "授权访问健康数据后，我们可以分析HRV、睡眠、月经周期等数据与头痛的关联性，为您提供个性化的健康洞察。",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 193
+        }
+      },
+      {
+        "comment": "",
+        "key": "连接健康应用",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 199
+        }
+      },
+      {
+        "comment": "",
+        "key": "正在分析健康数据...",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 219
+        }
+      },
+      {
+        "comment": "",
+        "key": "健康指标详情",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 230
+        }
+      },
+      {
+        "comment": "",
+        "key": "相关性分析",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 280
+        }
+      },
+      {
+        "comment": "",
+        "key": "头痛风险预测",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 311
+        }
+      },
+      {
+        "comment": "",
+        "key": "主要风险因素",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 321
+        }
+      },
+      {
+        "comment": "",
+        "key": "预防建议",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 336
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld.",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 342
+        }
+      },
+      {
+        "comment": "",
+        "key": "相关性: %.2f",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 469
+        }
+      },
+      {
+        "comment": "",
+        "key": "显著",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 476
+        }
+      },
+      {
+        "comment": "",
+        "key": "风险评分",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 523
+        }
+      },
+      {
+        "comment": "",
+        "key": "可信度",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 535
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld%%",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 538
+        }
+      },
+      {
+        "comment": "",
+        "key": "详细分析",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 604
+        }
+      },
+      {
+        "comment": "",
+        "key": "关闭",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 608
+        }
+      },
+      {
+        "comment": "",
+        "key": "相关系数:",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 634
+        }
+      },
+      {
+        "comment": "",
+        "key": "%.3f",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 638
+        }
+      },
+      {
+        "comment": "",
+        "key": "统计显著性:",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 644
+        }
+      },
+      {
+        "comment": "",
+        "key": "p = %.3f",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 648
+        }
+      },
+      {
+        "comment": "",
+        "key": "风险等级:",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 654
+        }
+      }
+    ]
+  },
+  "version": 1
+}

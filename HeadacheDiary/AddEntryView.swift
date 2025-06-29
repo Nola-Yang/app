@@ -445,103 +445,179 @@ struct AddEntryView: View {
     
     @ViewBuilder
     private func locationStep() -> some View {
-        Form {
-            // 预定义位置
-            Section {
-                ForEach(HeadacheLocation.allCases, id: \.self) { location in
-                    Button(action: {
-                        if selectedLocations.contains(location) {
-                            selectedLocations.remove(location)
-                        } else {
-                            selectedLocations.insert(location)
-                        }
-                    }) {
-                        HStack {
-                            Text(location.displayName)
-                                .foregroundColor(.primary)
-                            Spacer()
-                            if selectedLocations.contains(location) {
-                                Image(systemName: "checkmark.circle.fill")
-                                    .foregroundColor(.blue)
-                            } else {
-                                Image(systemName: "circle")
-                                    .foregroundColor(.gray)
-                            }
-                        }
-                    }
+        ScrollView {
+            VStack(spacing: 20) {
+                // 3D头部模型选择
+                VStack(alignment: .leading, spacing: 12) {
+                    Text("疼痛位置选择")
+                        .font(.title2.bold())
+                        .foregroundColor(.primary)
+                    
+                    Text("点击3D头部模型上的区域来选择疼痛位置")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                    
+                    HeadModel3DView(
+                        selectedLocations: $selectedLocations,
+                        selectedCustomLocations: $selectedCustomLocations
+                    )
                 }
-            } header: {
-                Text("疼痛位置 (可多选)")
-            } footer: {
-                Text("💡 没有合适的选项？可以添加临时位置或在设置中永久添加")
-                    .foregroundColor(.blue)
-                    .font(.caption)
-            }
-            
-            // 已保存的自定义位置
-            let savedCustomLocations = customOptionsManager.getCustomOptions(for: .location)
-            if !savedCustomLocations.isEmpty {
-                Section {
-                    ForEach(savedCustomLocations, id: \.id) { option in
-                        Button(action: {
-                            if selectedCustomLocations.contains(option.text) {
-                                selectedCustomLocations.remove(option.text)
-                            } else {
-                                selectedCustomLocations.insert(option.text)
-                            }
-                        }) {
-                            HStack {
-                                Image(systemName: "person.badge.plus")
-                                    .foregroundColor(.purple)
-                                Text(option.text)
-                                    .foregroundColor(.primary)
-                                Spacer()
-                                if selectedCustomLocations.contains(option.text) {
-                                    Image(systemName: "checkmark.circle.fill")
-                                        .foregroundColor(.purple)
-                                } else {
-                                    Image(systemName: "circle")
-                                        .foregroundColor(.gray)
+                .padding(.horizontal)
+                
+                // 传统列表选择（作为补充）
+                VStack(alignment: .leading, spacing: 12) {
+                    Text("或使用传统方式选择")
+                        .font(.headline)
+                        .foregroundColor(.primary)
+                    
+                    // 预定义位置
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("常见疼痛位置")
+                            .font(.subheadline.bold())
+                            .foregroundColor(.blue)
+                        
+                        LazyVGrid(columns: [
+                            GridItem(.flexible()),
+                            GridItem(.flexible())
+                        ], spacing: 8) {
+                            ForEach(HeadacheLocation.allCases, id: \.self) { location in
+                                Button(action: {
+                                    if selectedLocations.contains(location) {
+                                        selectedLocations.remove(location)
+                                    } else {
+                                        selectedLocations.insert(location)
+                                    }
+                                }) {
+                                    HStack {
+                                        Text(location.displayName)
+                                            .font(.subheadline)
+                                            .foregroundColor(.primary)
+                                        Spacer()
+                                        if selectedLocations.contains(location) {
+                                            Image(systemName: "checkmark.circle.fill")
+                                                .foregroundColor(.blue)
+                                        } else {
+                                            Image(systemName: "circle")
+                                                .foregroundColor(.gray)
+                                        }
+                                    }
+                                    .padding(.horizontal, 12)
+                                    .padding(.vertical, 8)
+                                    .background(
+                                        RoundedRectangle(cornerRadius: 8)
+                                            .fill(selectedLocations.contains(location) ? Color.blue.opacity(0.1) : Color(.systemGray6))
+                                    )
                                 }
+                                .buttonStyle(PlainButtonStyle())
                             }
                         }
                     }
-                } header: {
-                    Text("已保存的自定义位置")
-                }
-            }
-            
-            // 临时添加的位置
-            Section {
-                ForEach(temporaryCustomLocations, id: \.self) { location in
-                    HStack {
-                        Image(systemName: "clock")
-                            .foregroundColor(.orange)
-                        Text(location)
-                        Spacer()
-                        Button("删除") {
-                            temporaryCustomLocations.removeAll { $0 == location }
-                        }
-                        .font(.caption)
-                        .foregroundColor(.red)
-                    }
+                    .padding(.horizontal)
                 }
                 
-                HStack {
-                    TextField("临时添加位置", text: $newCustomLocation)
-                    Button("添加") {
-                        let trimmed = newCustomLocation.trimmingCharacters(in: .whitespacesAndNewlines)
-                        if !trimmed.isEmpty && !temporaryCustomLocations.contains(trimmed) {
-                            temporaryCustomLocations.append(trimmed)
-                            newCustomLocation = ""
+                // 已保存的自定义位置
+                let savedCustomLocations = customOptionsManager.getCustomOptions(for: .location)
+                if !savedCustomLocations.isEmpty {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("已保存的自定义位置")
+                            .font(.subheadline.bold())
+                            .foregroundColor(.purple)
+                        
+                        LazyVGrid(columns: [
+                            GridItem(.flexible()),
+                            GridItem(.flexible())
+                        ], spacing: 8) {
+                            ForEach(savedCustomLocations, id: \.id) { option in
+                                Button(action: {
+                                    if selectedCustomLocations.contains(option.text) {
+                                        selectedCustomLocations.remove(option.text)
+                                    } else {
+                                        selectedCustomLocations.insert(option.text)
+                                    }
+                                }) {
+                                    HStack {
+                                        Image(systemName: "person.badge.plus")
+                                            .foregroundColor(.purple)
+                                        Text(option.text)
+                                            .font(.subheadline)
+                                            .foregroundColor(.primary)
+                                        Spacer()
+                                        if selectedCustomLocations.contains(option.text) {
+                                            Image(systemName: "checkmark.circle.fill")
+                                                .foregroundColor(.purple)
+                                        } else {
+                                            Image(systemName: "circle")
+                                                .foregroundColor(.gray)
+                                        }
+                                    }
+                                    .padding(.horizontal, 12)
+                                    .padding(.vertical, 8)
+                                    .background(
+                                        RoundedRectangle(cornerRadius: 8)
+                                            .fill(selectedCustomLocations.contains(option.text) ? Color.purple.opacity(0.1) : Color(.systemGray6))
+                                    )
+                                }
+                                .buttonStyle(PlainButtonStyle())
+                            }
                         }
                     }
-                    .disabled(newCustomLocation.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                    .padding(.horizontal)
                 }
-            } header: {
-                Text("本次临时添加")
-            } footer: {
-                Text("临时添加的位置只用于本次记录。要永久保存，请在设置中添加。")
+                
+                // 临时添加的位置
+                VStack(alignment: .leading, spacing: 12) {
+                    Text("本次临时添加")
+                        .font(.subheadline.bold())
+                        .foregroundColor(.orange)
+                    
+                    if !temporaryCustomLocations.isEmpty {
+                        LazyVGrid(columns: [
+                            GridItem(.flexible()),
+                            GridItem(.flexible())
+                        ], spacing: 8) {
+                            ForEach(temporaryCustomLocations, id: \.self) { location in
+                                HStack {
+                                    Image(systemName: "clock")
+                                        .foregroundColor(.orange)
+                                    Text(location)
+                                        .font(.subheadline)
+                                    Spacer()
+                                    Button(action: {
+                                        temporaryCustomLocations.removeAll { $0 == location }
+                                    }) {
+                                        Image(systemName: "xmark.circle.fill")
+                                            .foregroundColor(.red)
+                                    }
+                                }
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 8)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 8)
+                                        .fill(Color.orange.opacity(0.1))
+                                )
+                            }
+                        }
+                    }
+                    
+                    HStack {
+                        TextField("临时添加位置", text: $newCustomLocation)
+                            .textFieldStyle(RoundedBorderTextFieldStyle())
+                        Button("添加") {
+                            let trimmed = newCustomLocation.trimmingCharacters(in: .whitespacesAndNewlines)
+                            if !trimmed.isEmpty && !temporaryCustomLocations.contains(trimmed) {
+                                temporaryCustomLocations.append(trimmed)
+                                newCustomLocation = ""
+                            }
+                        }
+                        .disabled(newCustomLocation.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                        .buttonStyle(.borderedProminent)
+                    }
+                    
+                    Text("💡 临时添加的位置只用于本次记录。要永久保存，请在设置中添加。")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+                .padding(.horizontal)
             }
         }
     }
@@ -897,6 +973,13 @@ struct AddEntryView: View {
     
     private func save() {
         isSaving = true
+
+        // 时间合理性检查
+        guard validateTime() else {
+            isSaving = false
+            showError = true
+            return
+        }
         
         DispatchQueue.main.async {
             do {
@@ -1087,6 +1170,28 @@ struct AddEntryView: View {
         Task {
             await NotificationManager.shared.scheduleHeadacheReminder(for: record)
         }
+    }
+
+    private func validateTime() -> Bool {
+        // 1. 确保开始时间不晚于结束时间（如果存在结束时间）
+        if hasEndTime && startTime > endTime {
+            errorMessage = "头痛开始时间不能晚于结束时间。"
+            return false
+        }
+
+        // 2. 确保记录时间（或头痛开始时间）不晚于当前时间
+        let now = Date()
+        if timestamp > now {
+            errorMessage = "记录时间不能晚于当前时间。"
+            return false
+        }
+
+        if startTime > now {
+            errorMessage = "头痛开始时间不能晚于当前时间。"
+            return false
+        }
+
+        return true
     }
 }
 

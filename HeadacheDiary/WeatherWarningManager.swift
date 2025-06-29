@@ -297,6 +297,36 @@ class WeatherWarningManager: ObservableObject {
         }
     }
     
+    @MainActor
+    public func checkAndSendWarnings() async {
+        guard settings.isEnabled,
+              let currentWeather = WeatherService.shared.currentWeather else {
+            print("⚠️ 天气预警检查跳过：设置未启用或无当前天气数据")
+            return
+        }
+        
+        // 使用现有的检查方法
+        await checkForWarnings(weather: currentWeather)
+        
+        // 发送未读的高优先级预警通知
+        let unreadHighPriorityWarnings = warnings.filter { warning in
+            !warning.isRead && 
+            (warning.riskLevel == .high || warning.riskLevel == .veryHigh) &&
+            warning.timestamp.timeIntervalSinceNow > -3600 // 1小时内的预警
+        }
+        
+        for warning in unreadHighPriorityWarnings.prefix(2) { // 最多发送2个通知
+            await NotificationManager.shared.sendWeatherWarningNotification(
+                title: warning.type.title,
+                message: warning.message,
+                riskLevel: warning.riskLevel,
+                warningId: warning.id.uuidString
+            )
+        }
+        
+        print("✅ 天气预警检查完成，发送了 \(min(unreadHighPriorityWarnings.count, 2)) 个通知")
+    }
+    
     private func isDuplicateWarning(_ warning: WeatherWarning) -> Bool {
         let today = Calendar.current.startOfDay(for: Date())
         return warnings.contains { existing in

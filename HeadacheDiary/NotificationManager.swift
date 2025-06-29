@@ -133,6 +133,27 @@ class NotificationManager: ObservableObject {
         )
         categories.insert(weatherForecastCategory)
         
+        // 预测预警类别
+        let viewPredictiveAlertAction = UNNotificationAction(
+            identifier: "view_predictive_alert",
+            title: "查看详情",
+            options: [.foreground]
+        )
+        
+        let dismissPredictiveAlertAction = UNNotificationAction(
+            identifier: "dismiss_predictive_alert",
+            title: "知道了",
+            options: []
+        )
+        
+        let predictiveAlertCategory = UNNotificationCategory(
+            identifier: "predictive_alert_category",
+            actions: [viewPredictiveAlertAction, dismissPredictiveAlertAction],
+            intentIdentifiers: [],
+            options: []
+        )
+        categories.insert(predictiveAlertCategory)
+        
         UNUserNotificationCenter.current().setNotificationCategories(categories)
         print("✅ 已注册 \(categories.count) 个通知类别")
     }
@@ -328,6 +349,54 @@ class NotificationManager: ObservableObject {
             print("✅ 发送天气预报通知成功")
         } catch {
             print("❌ 发送天气预报通知失败: \(error)")
+        }
+    }
+    
+    @MainActor
+    func sendPredictiveAlert(
+        title: String,
+        body: String,
+        alertDate: Date,
+        riskLevel: String
+    ) async {
+        let content = UNMutableNotificationContent()
+        content.title = title
+        content.body = body
+        content.sound = .default
+        
+        // 根据风险级别设置中断级别
+        if #available(iOS 15.0, *) {
+            switch riskLevel {
+            case "low":
+                content.interruptionLevel = .passive
+            case "medium":
+                content.interruptionLevel = .active
+            case "high", "critical":
+                content.interruptionLevel = .timeSensitive
+            default:
+                content.interruptionLevel = .active
+            }
+        }
+        
+        content.userInfo = [
+            "type": "predictive_alert",
+            "alertDate": alertDate.timeIntervalSince1970,
+            "riskLevel": riskLevel
+        ]
+        
+        content.categoryIdentifier = "predictive_alert_category"
+        
+        let request = UNNotificationRequest(
+            identifier: "predictive_alert_\(alertDate.timeIntervalSince1970)",
+            content: content,
+            trigger: nil // 立即发送
+        )
+        
+        do {
+            try await UNUserNotificationCenter.current().add(request)
+            print("✅ 发送预测预警通知成功: \(title)")
+        } catch {
+            print("❌ 发送预测预警通知失败: \(error)")
         }
     }
     

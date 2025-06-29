@@ -11,34 +11,40 @@ struct ContentView: View {
             MonthlyView()
                 .tabItem {
                     Image(systemName: "calendar")
-                    Text("月份")
+                    Text(NSLocalizedString("MONTHLY_VIEW_TAB", comment: ""))
                 }
             
             StatisticsView()
                 .tabItem {
                     Image(systemName: "chart.bar")
-                    Text("统计")
+                    Text(NSLocalizedString("STATISTICS_VIEW_TAB", comment: ""))
                 }
             
-            // 天气分析页面
-            WeatherAnalysisView()
+            // 综合洞察页面（包含天气分析）
+            ComprehensiveInsightsView()
                 .tabItem {
-                    Image(systemName: "cloud.sun.bolt")
-                    Text("天气")
+                    Image(systemName: "brain.head.profile")
+                    Text(NSLocalizedString("INSIGHTS_VIEW_TAB", comment: ""))
                 }
             
             SettingsView()
                 .tabItem {
                     Image(systemName: "gearshape")
-                    Text("设置")
+                    Text(NSLocalizedString("SETTINGS_VIEW_TAB", comment: ""))
                 }
         }
+        .id(appStateManager.forceRefresh) // 使用forceRefresh作为ID来强制重建TabView
         .onAppear {
             // 确保应用启动时通知权限已请求
             NotificationManager.shared.requestNotificationPermission()
             
             // 初始化天气服务
             WeatherService.shared.requestCurrentLocationWeather()
+            
+            // 初始化HealthKit (在后台异步进行)
+            Task {
+                let _ = await HealthKitManager.shared.requestHealthKitPermissions()
+            }
         }
         .withNotificationNavigation() // 添加通知导航支持
         .environmentObject(appStateManager) // 注入状态管理器
@@ -113,6 +119,7 @@ class AppStateManager: ObservableObject {
     @Published var presentedSheet: PresentedSheet?
     @Published var updateMode: HeadacheUpdateMode = .inlineUpdate
     @Published var showingHeadacheUpdate = false
+    @Published var forceRefresh: UUID = UUID() // 用于强制刷新UI
     
     func navigateToHeadacheUpdate(recordID: String, mode: HeadacheUpdateMode = .inlineUpdate) {
             DispatchQueue.main.async {
@@ -278,6 +285,10 @@ class AppStateManager: ObservableObject {
             self.showingWeatherAnalysis = false
             self.activeRecordID = nil
         }
+    }
+    
+    func triggerRefresh() {
+        forceRefresh = UUID()
     }
 }
 

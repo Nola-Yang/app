@@ -1,0 +1,205 @@
+{
+  "" : {
+    "const-values" : "/Users/siyuean/Desktop/app/HeadacheDiary/build/HeadacheDiary.build/Release-iphoneos/HeadacheDiary.build/Objects-normal/arm64/HeadacheDiary-master.swiftconstvalues",
+    "dependencies" : "/Users/siyuean/Desktop/app/HeadacheDiary/build/HeadacheDiary.build/Release-iphoneos/HeadacheDiary.build/Objects-normal/arm64/HeadacheDiary-master.d",
+    "diagnostics" : "/Users/siyuean/Desktop/app/HeadacheDiary/build/HeadacheDiary.build/Release-iphoneos/HeadacheDiary.build/Objects-normal/arm64/HeadacheDiary-master.dia",
+    "emit-module-dependencies" : "/Users/siyuean/Desktop/app/HeadacheDiary/build/HeadacheDiary.build/Release-iphoneos/HeadacheDiary.build/Objects-normal/arm64/HeadacheDiary-master-emit-module.d",
+    "emit-module-diagnostics" : "/Users/siyuean/Desktop/app/HeadacheDiary/build/HeadacheDiary.build/Release-iphoneos/HeadacheDiary.build/Objects-normal/arm64/HeadacheDiary-master-emit-module.dia",
+    "swift-dependencies" : "/Users/siyuean/Desktop/app/HeadacheDiary/build/HeadacheDiary.build/Release-iphoneos/HeadacheDiary.build/Objects-normal/arm64/HeadacheDiary-master.swiftdeps"
+  },
+  "/Users/siyuean/Desktop/app/HeadacheDiary/HeadacheDiary/AddEntryView.swift" : {
+    "index-unit-output-path" : "/HeadacheDiary.build/Release-iphoneos/HeadacheDiary.build/Objects-normal/arm64/AddEntryView.o",
+    "llvm-bc" : "/Users/siyuean/Desktop/app/HeadacheDiary/build/HeadacheDiary.build/Release-iphoneos/HeadacheDiary.build/Objects-normal/arm64/AddEntryView.bc",
+    "object" : "/Users/siyuean/Desktop/app/HeadacheDiary/build/HeadacheDiary.build/Release-iphoneos/HeadacheDiary.build/Objects-normal/arm64/AddEntryView.o"
+  },
+  "/Users/siyuean/Desktop/app/HeadacheDiary/HeadacheDiary/AutoHeadacheManager.swift" : {
+    "index-unit-output-path" : "/HeadacheDiary.build/Release-iphoneos/HeadacheDiary.build/Objects-normal/arm64/AutoHeadacheManager.o",
+    "llvm-bc" : "/Users/siyuean/Desktop/app/HeadacheDiary/build/HeadacheDiary.build/Release-iphoneos/HeadacheDiary.build/Objects-normal/arm64/AutoHeadacheManager.bc",
+    "object" : "/Users/siyuean/Desktop/app/HeadacheDiary/build/HeadacheDiary.build/Release-iphoneos/HeadacheDiary.build/Objects-normal/arm64/AutoHeadacheManager.o"
+  },
+  "/Users/siyuean/Desktop/app/HeadacheDiary/HeadacheDiary/ComprehensiveInsightsView.swift" : {
+    "index-unit-output-path" : "/HeadacheDiary.build/Release-iphoneos/HeadacheDiary.build/Objects-normal/arm64/ComprehensiveInsightsView.o",
+    "llvm-bc" : "/Users/siyuean/Desktop/app/HeadacheDiary/build/HeadacheDiary.build/Release-iphoneos/HeadacheDiary.build/Objects-normal/arm64/ComprehensiveInsightsView.bc",
+    "object" : "/Users/siyuean/Desktop/app/HeadacheDiary/build/HeadacheDiary.build/Release-iphoneos/HeadacheDiary.build/Objects-normal/arm64/ComprehensiveInsightsView.o"
+  },
+  "/Users/siyuean/Desktop/app/HeadacheDiary/HeadacheDiary/ComprehensiveTriggerEngine.swift" : {
+    "index-unit-output-path" : "/HeadacheDiary.build/Release-iphoneos/HeadacheDiary.build/Objects-normal/arm64/ComprehensiveTriggerEngine.o",
+    "llvm-bc" : "/Users/siyuean/Desktop/app/HeadacheDiary/build/HeadacheDiary.build/Release-iphoneos/HeadacheDiary.build/Objects-normal/arm64/ComprehensiveTriggerEngine.bc",
+    "object" : "/Users/siyuean/Desktop/app/HeadacheDiary/build/HeadacheDiary.build/Release-iphoneos/HeadacheDiary.build/Objects-normal/arm64/ComprehensiveTriggerEngine.o"
+  },
+  "/Users/siyuean/Desktop/app/HeadacheDiary/HeadacheDiary/ContentView.swift" : {
+    "index-unit-output-path" : "/HeadacheDiary.build/Release-iphoneos/HeadacheDiary.build/Objects-normal/arm64/ContentView.o",
+    "llvm-bc" : "/Users/siyuean/Desktop/app/HeadacheDiary/build/HeadacheDiary.build/Release-iphoneos/HeadacheDiary.build/Objects-normal/arm64/ContentView.bc",
+    "object" : "/Users/siyuean/Desktop/app/HeadacheDiary/build/HeadacheDiary.build/Release-iphoneos/HeadacheDiary.build/Objects-normal/arm64/ContentView.o"
+  },
+  "/Users/siyuean/Desktop/app/HeadacheDiary/HeadacheDiary/DataAnalysisView.swift" : {
+    "index-unit-output-path" : "/HeadacheDiary.build/Release-iphoneos/HeadacheDiary.build/Objects-normal/arm64/DataAnalysisView.o",
+    "llvm-bc" : "/Users/siyuean/Desktop/app/HeadacheDiary/build/HeadacheDiary.build/Release-iphoneos/HeadacheDiary.build/Objects-normal/arm64/DataAnalysisView.bc",
+    "object" : "/Users/siyuean/Desktop/app/HeadacheDiary/build/HeadacheDiary.build/Release-iphoneos/HeadacheDiary.build/Objects-normal/arm64/DataAnalysisView.o"
+  },
+  "/Users/siyuean/Desktop/app/HeadacheDiary/HeadacheDiary/EnhancedWeatherAnalysis.swift" : {
+    "index-unit-output-path" : "/HeadacheDiary.build/Release-iphoneos/HeadacheDiary.build/Objects-normal/arm64/EnhancedWeatherAnalysis.o",
+    "llvm-bc" : "/Users/siyuean/Desktop/app/HeadacheDiary/build/HeadacheDiary.build/Release-iphoneos/HeadacheDiary.build/Objects-normal/arm64/EnhancedWeatherAnalysis.bc",
+    "object" : "/Users/siyuean/Desktop/app/HeadacheDiary/build/HeadacheDiary.build/Release-iphoneos/HeadacheDiary.build/Objects-normal/arm64/EnhancedWeatherAnalysis.o"
+  },
+  "/Users/siyuean/Desktop/app/HeadacheDiary/HeadacheDiary/HeadModel3DView.swift" : {
+    "index-unit-output-path" : "/HeadacheDiary.build/Release-iphoneos/HeadacheDiary.build/Objects-normal/arm64/HeadModel3DView.o",
+    "llvm-bc" : "/Users/siyuean/Desktop/app/HeadacheDiary/build/HeadacheDiary.build/Release-iphoneos/HeadacheDiary.build/Objects-normal/arm64/HeadModel3DView.bc",
+    "object" : "/Users/siyuean/Desktop/app/HeadacheDiary/build/HeadacheDiary.build/Release-iphoneos/HeadacheDiary.build/Objects-normal/arm64/HeadModel3DView.o"
+  },
+  "/Users/siyuean/Desktop/app/HeadacheDiary/HeadacheDiary/HeadRecoder.swift" : {
+    "index-unit-output-path" : "/HeadacheDiary.build/Release-iphoneos/HeadacheDiary.build/Objects-normal/arm64/HeadRecoder.o",
+    "llvm-bc" : "/Users/siyuean/Desktop/app/HeadacheDiary/build/HeadacheDiary.build/Release-iphoneos/HeadacheDiary.build/Objects-normal/arm64/HeadRecoder.bc",
+    "object" : "/Users/siyuean/Desktop/app/HeadacheDiary/build/HeadacheDiary.build/Release-iphoneos/HeadacheDiary.build/Objects-normal/arm64/HeadRecoder.o"
+  },
+  "/Users/siyuean/Desktop/app/HeadacheDiary/HeadacheDiary/HeadacheDiaryApp.swift" : {
+    "index-unit-output-path" : "/HeadacheDiary.build/Release-iphoneos/HeadacheDiary.build/Objects-normal/arm64/HeadacheDiaryApp.o",
+    "llvm-bc" : "/Users/siyuean/Desktop/app/HeadacheDiary/build/HeadacheDiary.build/Release-iphoneos/HeadacheDiary.build/Objects-normal/arm64/HeadacheDiaryApp.bc",
+    "object" : "/Users/siyuean/Desktop/app/HeadacheDiary/build/HeadacheDiary.build/Release-iphoneos/HeadacheDiary.build/Objects-normal/arm64/HeadacheDiaryApp.o"
+  },
+  "/Users/siyuean/Desktop/app/HeadacheDiary/HeadacheDiary/HeadacheRecord+AutoEnd.swift" : {
+    "index-unit-output-path" : "/HeadacheDiary.build/Release-iphoneos/HeadacheDiary.build/Objects-normal/arm64/HeadacheRecord+AutoEnd.o",
+    "llvm-bc" : "/Users/siyuean/Desktop/app/HeadacheDiary/build/HeadacheDiary.build/Release-iphoneos/HeadacheDiary.build/Objects-normal/arm64/HeadacheRecord+AutoEnd.bc",
+    "object" : "/Users/siyuean/Desktop/app/HeadacheDiary/build/HeadacheDiary.build/Release-iphoneos/HeadacheDiary.build/Objects-normal/arm64/HeadacheRecord+AutoEnd.o"
+  },
+  "/Users/siyuean/Desktop/app/HeadacheDiary/HeadacheDiary/HeadacheRecord+CoreDataProperties.swift" : {
+    "index-unit-output-path" : "/HeadacheDiary.build/Release-iphoneos/HeadacheDiary.build/Objects-normal/arm64/HeadacheRecord+CoreDataProperties.o",
+    "llvm-bc" : "/Users/siyuean/Desktop/app/HeadacheDiary/build/HeadacheDiary.build/Release-iphoneos/HeadacheDiary.build/Objects-normal/arm64/HeadacheRecord+CoreDataProperties.bc",
+    "object" : "/Users/siyuean/Desktop/app/HeadacheDiary/build/HeadacheDiary.build/Release-iphoneos/HeadacheDiary.build/Objects-normal/arm64/HeadacheRecord+CoreDataProperties.o"
+  },
+  "/Users/siyuean/Desktop/app/HeadacheDiary/HeadacheDiary/HeadacheRecord+HealthKit.swift" : {
+    "index-unit-output-path" : "/HeadacheDiary.build/Release-iphoneos/HeadacheDiary.build/Objects-normal/arm64/HeadacheRecord+HealthKit.o",
+    "llvm-bc" : "/Users/siyuean/Desktop/app/HeadacheDiary/build/HeadacheDiary.build/Release-iphoneos/HeadacheDiary.build/Objects-normal/arm64/HeadacheRecord+HealthKit.bc",
+    "object" : "/Users/siyuean/Desktop/app/HeadacheDiary/build/HeadacheDiary.build/Release-iphoneos/HeadacheDiary.build/Objects-normal/arm64/HeadacheRecord+HealthKit.o"
+  },
+  "/Users/siyuean/Desktop/app/HeadacheDiary/HeadacheDiary/HealthAnalysisEngine.swift" : {
+    "index-unit-output-path" : "/HeadacheDiary.build/Release-iphoneos/HeadacheDiary.build/Objects-normal/arm64/HealthAnalysisEngine.o",
+    "llvm-bc" : "/Users/siyuean/Desktop/app/HeadacheDiary/build/HeadacheDiary.build/Release-iphoneos/HeadacheDiary.build/Objects-normal/arm64/HealthAnalysisEngine.bc",
+    "object" : "/Users/siyuean/Desktop/app/HeadacheDiary/build/HeadacheDiary.build/Release-iphoneos/HeadacheDiary.build/Objects-normal/arm64/HealthAnalysisEngine.o"
+  },
+  "/Users/siyuean/Desktop/app/HeadacheDiary/HeadacheDiary/HealthInsightsView.swift" : {
+    "index-unit-output-path" : "/HeadacheDiary.build/Release-iphoneos/HeadacheDiary.build/Objects-normal/arm64/HealthInsightsView.o",
+    "llvm-bc" : "/Users/siyuean/Desktop/app/HeadacheDiary/build/HeadacheDiary.build/Release-iphoneos/HeadacheDiary.build/Objects-normal/arm64/HealthInsightsView.bc",
+    "object" : "/Users/siyuean/Desktop/app/HeadacheDiary/build/HeadacheDiary.build/Release-iphoneos/HeadacheDiary.build/Objects-normal/arm64/HealthInsightsView.o"
+  },
+  "/Users/siyuean/Desktop/app/HeadacheDiary/HeadacheDiary/HealthKitManager.swift" : {
+    "index-unit-output-path" : "/HeadacheDiary.build/Release-iphoneos/HeadacheDiary.build/Objects-normal/arm64/HealthKitManager.o",
+    "llvm-bc" : "/Users/siyuean/Desktop/app/HeadacheDiary/build/HeadacheDiary.build/Release-iphoneos/HeadacheDiary.build/Objects-normal/arm64/HealthKitManager.bc",
+    "object" : "/Users/siyuean/Desktop/app/HeadacheDiary/build/HeadacheDiary.build/Release-iphoneos/HeadacheDiary.build/Objects-normal/arm64/HealthKitManager.o"
+  },
+  "/Users/siyuean/Desktop/app/HeadacheDiary/HeadacheDiary/MedicationEntry.swift" : {
+    "index-unit-output-path" : "/HeadacheDiary.build/Release-iphoneos/HeadacheDiary.build/Objects-normal/arm64/MedicationEntry.o",
+    "llvm-bc" : "/Users/siyuean/Desktop/app/HeadacheDiary/build/HeadacheDiary.build/Release-iphoneos/HeadacheDiary.build/Objects-normal/arm64/MedicationEntry.bc",
+    "object" : "/Users/siyuean/Desktop/app/HeadacheDiary/build/HeadacheDiary.build/Release-iphoneos/HeadacheDiary.build/Objects-normal/arm64/MedicationEntry.o"
+  },
+  "/Users/siyuean/Desktop/app/HeadacheDiary/HeadacheDiary/MedicationTrackingView.swift" : {
+    "index-unit-output-path" : "/HeadacheDiary.build/Release-iphoneos/HeadacheDiary.build/Objects-normal/arm64/MedicationTrackingView.o",
+    "llvm-bc" : "/Users/siyuean/Desktop/app/HeadacheDiary/build/HeadacheDiary.build/Release-iphoneos/HeadacheDiary.build/Objects-normal/arm64/MedicationTrackingView.bc",
+    "object" : "/Users/siyuean/Desktop/app/HeadacheDiary/build/HeadacheDiary.build/Release-iphoneos/HeadacheDiary.build/Objects-normal/arm64/MedicationTrackingView.o"
+  },
+  "/Users/siyuean/Desktop/app/HeadacheDiary/HeadacheDiary/MedicationWarningSettingsView.swift" : {
+    "index-unit-output-path" : "/HeadacheDiary.build/Release-iphoneos/HeadacheDiary.build/Objects-normal/arm64/MedicationWarningSettingsView.o",
+    "llvm-bc" : "/Users/siyuean/Desktop/app/HeadacheDiary/build/HeadacheDiary.build/Release-iphoneos/HeadacheDiary.build/Objects-normal/arm64/MedicationWarningSettingsView.bc",
+    "object" : "/Users/siyuean/Desktop/app/HeadacheDiary/build/HeadacheDiary.build/Release-iphoneos/HeadacheDiary.build/Objects-normal/arm64/MedicationWarningSettingsView.o"
+  },
+  "/Users/siyuean/Desktop/app/HeadacheDiary/HeadacheDiary/MedicationWarningView.swift" : {
+    "index-unit-output-path" : "/HeadacheDiary.build/Release-iphoneos/HeadacheDiary.build/Objects-normal/arm64/MedicationWarningView.o",
+    "llvm-bc" : "/Users/siyuean/Desktop/app/HeadacheDiary/build/HeadacheDiary.build/Release-iphoneos/HeadacheDiary.build/Objects-normal/arm64/MedicationWarningView.bc",
+    "object" : "/Users/siyuean/Desktop/app/HeadacheDiary/build/HeadacheDiary.build/Release-iphoneos/HeadacheDiary.build/Objects-normal/arm64/MedicationWarningView.o"
+  },
+  "/Users/siyuean/Desktop/app/HeadacheDiary/HeadacheDiary/MedicineEnums.swift" : {
+    "index-unit-output-path" : "/HeadacheDiary.build/Release-iphoneos/HeadacheDiary.build/Objects-normal/arm64/MedicineEnums.o",
+    "llvm-bc" : "/Users/siyuean/Desktop/app/HeadacheDiary/build/HeadacheDiary.build/Release-iphoneos/HeadacheDiary.build/Objects-normal/arm64/MedicineEnums.bc",
+    "object" : "/Users/siyuean/Desktop/app/HeadacheDiary/build/HeadacheDiary.build/Release-iphoneos/HeadacheDiary.build/Objects-normal/arm64/MedicineEnums.o"
+  },
+  "/Users/siyuean/Desktop/app/HeadacheDiary/HeadacheDiary/MonthlyView.swift" : {
+    "index-unit-output-path" : "/HeadacheDiary.build/Release-iphoneos/HeadacheDiary.build/Objects-normal/arm64/MonthlyView.o",
+    "llvm-bc" : "/Users/siyuean/Desktop/app/HeadacheDiary/build/HeadacheDiary.build/Release-iphoneos/HeadacheDiary.build/Objects-normal/arm64/MonthlyView.bc",
+    "object" : "/Users/siyuean/Desktop/app/HeadacheDiary/build/HeadacheDiary.build/Release-iphoneos/HeadacheDiary.build/Objects-normal/arm64/MonthlyView.o"
+  },
+  "/Users/siyuean/Desktop/app/HeadacheDiary/HeadacheDiary/NotificationManager.swift" : {
+    "index-unit-output-path" : "/HeadacheDiary.build/Release-iphoneos/HeadacheDiary.build/Objects-normal/arm64/NotificationManager.o",
+    "llvm-bc" : "/Users/siyuean/Desktop/app/HeadacheDiary/build/HeadacheDiary.build/Release-iphoneos/HeadacheDiary.build/Objects-normal/arm64/NotificationManager.bc",
+    "object" : "/Users/siyuean/Desktop/app/HeadacheDiary/build/HeadacheDiary.build/Release-iphoneos/HeadacheDiary.build/Objects-normal/arm64/NotificationManager.o"
+  },
+  "/Users/siyuean/Desktop/app/HeadacheDiary/HeadacheDiary/Persistence.swift" : {
+    "index-unit-output-path" : "/HeadacheDiary.build/Release-iphoneos/HeadacheDiary.build/Objects-normal/arm64/Persistence.o",
+    "llvm-bc" : "/Users/siyuean/Desktop/app/HeadacheDiary/build/HeadacheDiary.build/Release-iphoneos/HeadacheDiary.build/Objects-normal/arm64/Persistence.bc",
+    "object" : "/Users/siyuean/Desktop/app/HeadacheDiary/build/HeadacheDiary.build/Release-iphoneos/HeadacheDiary.build/Objects-normal/arm64/Persistence.o"
+  },
+  "/Users/siyuean/Desktop/app/HeadacheDiary/HeadacheDiary/QuickHeadacheEntryView.swift" : {
+    "index-unit-output-path" : "/HeadacheDiary.build/Release-iphoneos/HeadacheDiary.build/Objects-normal/arm64/QuickHeadacheEntryView.o",
+    "llvm-bc" : "/Users/siyuean/Desktop/app/HeadacheDiary/build/HeadacheDiary.build/Release-iphoneos/HeadacheDiary.build/Objects-normal/arm64/QuickHeadacheEntryView.bc",
+    "object" : "/Users/siyuean/Desktop/app/HeadacheDiary/build/HeadacheDiary.build/Release-iphoneos/HeadacheDiary.build/Objects-normal/arm64/QuickHeadacheEntryView.o"
+  },
+  "/Users/siyuean/Desktop/app/HeadacheDiary/HeadacheDiary/SettingsView.swift" : {
+    "index-unit-output-path" : "/HeadacheDiary.build/Release-iphoneos/HeadacheDiary.build/Objects-normal/arm64/SettingsView.o",
+    "llvm-bc" : "/Users/siyuean/Desktop/app/HeadacheDiary/build/HeadacheDiary.build/Release-iphoneos/HeadacheDiary.build/Objects-normal/arm64/SettingsView.bc",
+    "object" : "/Users/siyuean/Desktop/app/HeadacheDiary/build/HeadacheDiary.build/Release-iphoneos/HeadacheDiary.build/Objects-normal/arm64/SettingsView.o"
+  },
+  "/Users/siyuean/Desktop/app/HeadacheDiary/HeadacheDiary/StatisticsView.swift" : {
+    "index-unit-output-path" : "/HeadacheDiary.build/Release-iphoneos/HeadacheDiary.build/Objects-normal/arm64/StatisticsView.o",
+    "llvm-bc" : "/Users/siyuean/Desktop/app/HeadacheDiary/build/HeadacheDiary.build/Release-iphoneos/HeadacheDiary.build/Objects-normal/arm64/StatisticsView.bc",
+    "object" : "/Users/siyuean/Desktop/app/HeadacheDiary/build/HeadacheDiary.build/Release-iphoneos/HeadacheDiary.build/Objects-normal/arm64/StatisticsView.o"
+  },
+  "/Users/siyuean/Desktop/app/HeadacheDiary/HeadacheDiary/TriggerButton.swift" : {
+    "index-unit-output-path" : "/HeadacheDiary.build/Release-iphoneos/HeadacheDiary.build/Objects-normal/arm64/TriggerButton.o",
+    "llvm-bc" : "/Users/siyuean/Desktop/app/HeadacheDiary/build/HeadacheDiary.build/Release-iphoneos/HeadacheDiary.build/Objects-normal/arm64/TriggerButton.bc",
+    "object" : "/Users/siyuean/Desktop/app/HeadacheDiary/build/HeadacheDiary.build/Release-iphoneos/HeadacheDiary.build/Objects-normal/arm64/TriggerButton.o"
+  },
+  "/Users/siyuean/Desktop/app/HeadacheDiary/HeadacheDiary/TriggerEnums.swift" : {
+    "index-unit-output-path" : "/HeadacheDiary.build/Release-iphoneos/HeadacheDiary.build/Objects-normal/arm64/TriggerEnums.o",
+    "llvm-bc" : "/Users/siyuean/Desktop/app/HeadacheDiary/build/HeadacheDiary.build/Release-iphoneos/HeadacheDiary.build/Objects-normal/arm64/TriggerEnums.bc",
+    "object" : "/Users/siyuean/Desktop/app/HeadacheDiary/build/HeadacheDiary.build/Release-iphoneos/HeadacheDiary.build/Objects-normal/arm64/TriggerEnums.o"
+  },
+  "/Users/siyuean/Desktop/app/HeadacheDiary/HeadacheDiary/WeatherAnalysisView.swift" : {
+    "index-unit-output-path" : "/HeadacheDiary.build/Release-iphoneos/HeadacheDiary.build/Objects-normal/arm64/WeatherAnalysisView.o",
+    "llvm-bc" : "/Users/siyuean/Desktop/app/HeadacheDiary/build/HeadacheDiary.build/Release-iphoneos/HeadacheDiary.build/Objects-normal/arm64/WeatherAnalysisView.bc",
+    "object" : "/Users/siyuean/Desktop/app/HeadacheDiary/build/HeadacheDiary.build/Release-iphoneos/HeadacheDiary.build/Objects-normal/arm64/WeatherAnalysisView.o"
+  },
+  "/Users/siyuean/Desktop/app/HeadacheDiary/HeadacheDiary/WeatherService.swift" : {
+    "index-unit-output-path" : "/HeadacheDiary.build/Release-iphoneos/HeadacheDiary.build/Objects-normal/arm64/WeatherService.o",
+    "llvm-bc" : "/Users/siyuean/Desktop/app/HeadacheDiary/build/HeadacheDiary.build/Release-iphoneos/HeadacheDiary.build/Objects-normal/arm64/WeatherService.bc",
+    "object" : "/Users/siyuean/Desktop/app/HeadacheDiary/build/HeadacheDiary.build/Release-iphoneos/HeadacheDiary.build/Objects-normal/arm64/WeatherService.o"
+  },
+  "/Users/siyuean/Desktop/app/HeadacheDiary/HeadacheDiary/WeatherSettingsView.swift" : {
+    "index-unit-output-path" : "/HeadacheDiary.build/Release-iphoneos/HeadacheDiary.build/Objects-normal/arm64/WeatherSettingsView.o",
+    "llvm-bc" : "/Users/siyuean/Desktop/app/HeadacheDiary/build/HeadacheDiary.build/Release-iphoneos/HeadacheDiary.build/Objects-normal/arm64/WeatherSettingsView.bc",
+    "object" : "/Users/siyuean/Desktop/app/HeadacheDiary/build/HeadacheDiary.build/Release-iphoneos/HeadacheDiary.build/Objects-normal/arm64/WeatherSettingsView.o"
+  },
+  "/Users/siyuean/Desktop/app/HeadacheDiary/HeadacheDiary/WeatherWarningManager.swift" : {
+    "index-unit-output-path" : "/HeadacheDiary.build/Release-iphoneos/HeadacheDiary.build/Objects-normal/arm64/WeatherWarningManager.o",
+    "llvm-bc" : "/Users/siyuean/Desktop/app/HeadacheDiary/build/HeadacheDiary.build/Release-iphoneos/HeadacheDiary.build/Objects-normal/arm64/WeatherWarningManager.bc",
+    "object" : "/Users/siyuean/Desktop/app/HeadacheDiary/build/HeadacheDiary.build/Release-iphoneos/HeadacheDiary.build/Objects-normal/arm64/WeatherWarningManager.o"
+  },
+  "/Users/siyuean/Desktop/app/HeadacheDiary/build/HeadacheDiary.build/Release-iphoneos/HeadacheDiary.build/DerivedSources/CoreDataGenerated/HeadacheDiary/Entity+CoreDataClass.swift" : {
+    "index-unit-output-path" : "/HeadacheDiary.build/Release-iphoneos/HeadacheDiary.build/Objects-normal/arm64/Entity+CoreDataClass.o",
+    "llvm-bc" : "/Users/siyuean/Desktop/app/HeadacheDiary/build/HeadacheDiary.build/Release-iphoneos/HeadacheDiary.build/Objects-normal/arm64/Entity+CoreDataClass.bc",
+    "object" : "/Users/siyuean/Desktop/app/HeadacheDiary/build/HeadacheDiary.build/Release-iphoneos/HeadacheDiary.build/Objects-normal/arm64/Entity+CoreDataClass.o"
+  },
+  "/Users/siyuean/Desktop/app/HeadacheDiary/build/HeadacheDiary.build/Release-iphoneos/HeadacheDiary.build/DerivedSources/CoreDataGenerated/HeadacheDiary/Entity+CoreDataProperties.swift" : {
+    "index-unit-output-path" : "/HeadacheDiary.build/Release-iphoneos/HeadacheDiary.build/Objects-normal/arm64/Entity+CoreDataProperties.o",
+    "llvm-bc" : "/Users/siyuean/Desktop/app/HeadacheDiary/build/HeadacheDiary.build/Release-iphoneos/HeadacheDiary.build/Objects-normal/arm64/Entity+CoreDataProperties.bc",
+    "object" : "/Users/siyuean/Desktop/app/HeadacheDiary/build/HeadacheDiary.build/Release-iphoneos/HeadacheDiary.build/Objects-normal/arm64/Entity+CoreDataProperties.o"
+  },
+  "/Users/siyuean/Desktop/app/HeadacheDiary/build/HeadacheDiary.build/Release-iphoneos/HeadacheDiary.build/DerivedSources/CoreDataGenerated/HeadacheDiary/HeadacheDiary+CoreDataModel.swift" : {
+    "index-unit-output-path" : "/HeadacheDiary.build/Release-iphoneos/HeadacheDiary.build/Objects-normal/arm64/HeadacheDiary+CoreDataModel.o",
+    "llvm-bc" : "/Users/siyuean/Desktop/app/HeadacheDiary/build/HeadacheDiary.build/Release-iphoneos/HeadacheDiary.build/Objects-normal/arm64/HeadacheDiary+CoreDataModel.bc",
+    "object" : "/Users/siyuean/Desktop/app/HeadacheDiary/build/HeadacheDiary.build/Release-iphoneos/HeadacheDiary.build/Objects-normal/arm64/HeadacheDiary+CoreDataModel.o"
+  },
+  "/Users/siyuean/Desktop/app/HeadacheDiary/build/HeadacheDiary.build/Release-iphoneos/HeadacheDiary.build/DerivedSources/CoreDataGenerated/HeadacheDiary/Item+CoreDataClass.swift" : {
+    "index-unit-output-path" : "/HeadacheDiary.build/Release-iphoneos/HeadacheDiary.build/Objects-normal/arm64/Item+CoreDataClass.o",
+    "llvm-bc" : "/Users/siyuean/Desktop/app/HeadacheDiary/build/HeadacheDiary.build/Release-iphoneos/HeadacheDiary.build/Objects-normal/arm64/Item+CoreDataClass.bc",
+    "object" : "/Users/siyuean/Desktop/app/HeadacheDiary/build/HeadacheDiary.build/Release-iphoneos/HeadacheDiary.build/Objects-normal/arm64/Item+CoreDataClass.o"
+  },
+  "/Users/siyuean/Desktop/app/HeadacheDiary/build/HeadacheDiary.build/Release-iphoneos/HeadacheDiary.build/DerivedSources/CoreDataGenerated/HeadacheDiary/Item+CoreDataProperties.swift" : {
+    "index-unit-output-path" : "/HeadacheDiary.build/Release-iphoneos/HeadacheDiary.build/Objects-normal/arm64/Item+CoreDataProperties.o",
+    "llvm-bc" : "/Users/siyuean/Desktop/app/HeadacheDiary/build/HeadacheDiary.build/Release-iphoneos/HeadacheDiary.build/Objects-normal/arm64/Item+CoreDataProperties.bc",
+    "object" : "/Users/siyuean/Desktop/app/HeadacheDiary/build/HeadacheDiary.build/Release-iphoneos/HeadacheDiary.build/Objects-normal/arm64/Item+CoreDataProperties.o"
+  },
+  "/Users/siyuean/Desktop/app/HeadacheDiary/build/HeadacheDiary.build/Release-iphoneos/HeadacheDiary.build/DerivedSources/GeneratedAssetSymbols.swift" : {
+    "index-unit-output-path" : "/HeadacheDiary.build/Release-iphoneos/HeadacheDiary.build/Objects-normal/arm64/GeneratedAssetSymbols.o",
+    "llvm-bc" : "/Users/siyuean/Desktop/app/HeadacheDiary/build/HeadacheDiary.build/Release-iphoneos/HeadacheDiary.build/Objects-normal/arm64/GeneratedAssetSymbols.bc",
+    "object" : "/Users/siyuean/Desktop/app/HeadacheDiary/build/HeadacheDiary.build/Release-iphoneos/HeadacheDiary.build/Objects-normal/arm64/GeneratedAssetSymbols.o"
+  }
+}

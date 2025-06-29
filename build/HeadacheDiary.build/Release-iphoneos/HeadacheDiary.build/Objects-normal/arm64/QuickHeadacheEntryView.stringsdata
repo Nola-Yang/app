@@ -1,0 +1,168 @@
+{
+  "source": "/Users/siyuean/Desktop/app/HeadacheDiary/HeadacheDiary/QuickHeadacheEntryView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "编辑快速记录",
+        "location": {
+          "startingColumn": 43,
+          "startingLine": 192
+        }
+      },
+      {
+        "comment": "",
+        "key": "快速记录",
+        "location": {
+          "startingColumn": 66,
+          "startingLine": 192
+        }
+      },
+      {
+        "comment": "",
+        "key": "保存失败",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 199
+        }
+      },
+      {
+        "comment": "",
+        "key": "编辑快速记录",
+        "location": {
+          "startingColumn": 47,
+          "startingLine": 57
+        }
+      },
+      {
+        "comment": "",
+        "key": "快速记录",
+        "location": {
+          "startingColumn": 70,
+          "startingLine": 57
+        }
+      },
+      {
+        "comment": "",
+        "key": "强度2级 • 若有若无症状",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 65
+        }
+      },
+      {
+        "comment": "",
+        "key": "今天已有记录，点击保存将更新现有记录",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 71
+        }
+      },
+      {
+        "comment": "",
+        "key": "修改今天的轻微头痛记录",
+        "location": {
+          "startingColumn": 47,
+          "startingLine": 62
+        }
+      },
+      {
+        "comment": "",
+        "key": "记录今天的轻微头痛",
+        "location": {
+          "startingColumn": 85,
+          "startingLine": 62
+        }
+      },
+      {
+        "comment": "",
+        "key": "记录日期：%@",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 184
+        }
+      },
+      {
+        "comment": "",
+        "key": "疼痛位置 (可选)",
+        "location": {
+          "startingColumn": 35,
+          "startingLine": 106
+        }
+      },
+      {
+        "comment": "",
+        "key": "可能原因",
+        "location": {
+          "startingColumn": 35,
+          "startingLine": 126
+        }
+      },
+      {
+        "comment": "",
+        "key": "补充说明 (可选)",
+        "location": {
+          "startingColumn": 39,
+          "startingLine": 132
+        }
+      },
+      {
+        "comment": "",
+        "key": "备注",
+        "location": {
+          "startingColumn": 35,
+          "startingLine": 136
+        }
+      },
+      {
+        "comment": "",
+        "key": "保存中...",
+        "location": {
+          "startingColumn": 42,
+          "startingLine": 147
+        }
+      },
+      {
+        "comment": "",
+        "key": "更新今天的记录",
+        "location": {
+          "startingColumn": 55,
+          "startingLine": 150
+        }
+      },
+      {
+        "comment": "",
+        "key": "保存今天的记录",
+        "location": {
+          "startingColumn": 81,
+          "startingLine": 150
+        }
+      },
+      {
+        "comment": "",
+        "key": "删除今天的记录",
+        "location": {
+          "startingColumn": 42,
+          "startingLine": 167
+        }
+      },
+      {
+        "comment": "",
+        "key": "取消",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 196
+        }
+      },
+      {
+        "comment": "",
+        "key": "确定",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 200
+        }
+      }
+    ]
+  },
+  "version": 1
+}

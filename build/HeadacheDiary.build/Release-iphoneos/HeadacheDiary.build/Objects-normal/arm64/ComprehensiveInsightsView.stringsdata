@@ -1,0 +1,368 @@
+{
+  "source": "/Users/siyuean/Desktop/app/HeadacheDiary/HeadacheDiary/ComprehensiveInsightsView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "综合分析",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 76
+        }
+      },
+      {
+        "comment": "",
+        "key": "洞察类型",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 47
+        }
+      },
+      {
+        "comment": "",
+        "key": "综合分析",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 48
+        }
+      },
+      {
+        "comment": "",
+        "key": "月经关联",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 49
+        }
+      },
+      {
+        "comment": "",
+        "key": "天气分析",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 50
+        }
+      },
+      {
+        "comment": "",
+        "key": "预测预警",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 51
+        }
+      },
+      {
+        "comment": "",
+        "key": "查看",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 109
+        }
+      },
+      {
+        "comment": "",
+        "key": "头痛高风险预警",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 99
+        }
+      },
+      {
+        "comment": "",
+        "key": "分析时间范围",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 128
+        }
+      },
+      {
+        "comment": "",
+        "key": "时间范围",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 133
+        }
+      },
+      {
+        "comment": "",
+        "key": "暂无预警信息",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 233
+        }
+      },
+      {
+        "comment": "",
+        "key": "综合分析概览",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 259
+        }
+      },
+      {
+        "comment": "",
+        "key": "主要触发因素组合",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 344
+        }
+      },
+      {
+        "comment": "",
+        "key": "暂无明显的触发因素组合",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 349
+        }
+      },
+      {
+        "comment": "",
+        "key": "频次: %lld次",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 389
+        }
+      },
+      {
+        "comment": "",
+        "key": "平均强度: %@",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 393
+        }
+      },
+      {
+        "comment": "",
+        "key": "个性化洞察",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 409
+        }
+      },
+      {
+        "comment": "",
+        "key": "需要更多数据来生成个性化洞察",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 414
+        }
+      },
+      {
+        "comment": "",
+        "key": "建议:",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 458
+        }
+      },
+      {
+        "comment": "",
+        "key": "• %@",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 463
+        }
+      },
+      {
+        "comment": "",
+        "key": "月经周期关联性",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 481
+        }
+      },
+      {
+        "comment": "",
+        "key": "相关性系数",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 487
+        }
+      },
+      {
+        "comment": "",
+        "key": "可预测性",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 499
+        }
+      },
+      {
+        "comment": "",
+        "key": "月经周期阶段分析",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 523
+        }
+      },
+      {
+        "comment": "",
+        "key": "强度: %@",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 567
+        }
+      },
+      {
+        "comment": "",
+        "key": "频次: %lld次",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 573
+        }
+      },
+      {
+        "comment": "",
+        "key": "常见触发: %@",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 578
+        }
+      },
+      {
+        "comment": "",
+        "key": "预防建议",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 595
+        }
+      },
+      {
+        "comment": "",
+        "key": "暂无特殊预防建议",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 600
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld.",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 606
+        }
+      },
+      {
+        "comment": "",
+        "key": "%@ × %@",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 637
+        }
+      },
+      {
+        "comment": "",
+        "key": "天气相关性:",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 648
+        }
+      },
+      {
+        "comment": "",
+        "key": "健康相关性:",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 658
+        }
+      },
+      {
+        "comment": "",
+        "key": "综合相关性:",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 668
+        }
+      },
+      {
+        "comment": "",
+        "key": "风险评分: %@",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 726
+        }
+      },
+      {
+        "comment": "",
+        "key": "正在进行综合分析...",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 748
+        }
+      },
+      {
+        "comment": "",
+        "key": "暂无分析数据",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 762
+        }
+      },
+      {
+        "comment": "",
+        "key": "需要更多头痛记录和健康数据进行分析",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 765
+        }
+      },
+      {
+        "comment": "",
+        "key": "预警详情",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 849
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld%%",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 791
+        }
+      },
+      {
+        "comment": "",
+        "key": "主要触发因素",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 808
+        }
+      },
+      {
+        "comment": "",
+        "key": "预防建议",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 827
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld.",
+        "location": {
+          "startingColumn": 42,
+          "startingLine": 833
+        }
+      },
+      {
+        "comment": "",
+        "key": "关闭",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 853
+        }
+      },
+      {
+        "comment": "",
+        "key": "天气健康关联分析",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 878
+        }
+      }
+    ]
+  },
+  "version": 1
+}

@@ -22,5 +22,12 @@
 	<!-- 通知权限说明 -->
 	<key>NSUserNotificationsUsageDescription</key>
 	<string>头痛日记需要发送通知来提醒您记录头痛状态，以及当检测到可能引发头痛的天气变化时发送预警通知。</string>
+	
+	<!-- HealthKit权限 -->
+	<key>NSHealthShareUsageDescription</key>
+	<string>头痛日记需要访问您的健康数据（包括心率变异性、月经周期、睡眠数据等）来分析这些健康指标与头痛发作的关联性，为您提供个性化的健康洞察和头痛风险预警。</string>
+	
+	<key>NSHealthUpdateUsageDescription</key>
+	<string>头痛日记可以将您的头痛记录同步到健康应用中，方便您和医生查看完整的健康数据。</string>
 </dict>
 </plist>

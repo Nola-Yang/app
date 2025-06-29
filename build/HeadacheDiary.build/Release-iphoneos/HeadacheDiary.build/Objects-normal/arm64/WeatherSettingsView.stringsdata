@@ -1,0 +1,464 @@
+{
+  "source": "/Users/siyuean/Desktop/app/HeadacheDiary/HeadacheDiary/WeatherSettingsView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "天气设置",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 332
+        }
+      },
+      {
+        "comment": "",
+        "key": "需要位置权限",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 348
+        }
+      },
+      {
+        "comment": "",
+        "key": "需要通知权限",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 356
+        }
+      },
+      {
+        "comment": "",
+        "key": "天气与头痛分析",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 38
+        }
+      },
+      {
+        "comment": "",
+        "key": "智能监控天气变化，预测头痛风险",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 40
+        }
+      },
+      {
+        "comment": "",
+        "key": "功能状态",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 68
+        }
+      },
+      {
+        "comment": "",
+        "key": "启用天气预警",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 73
+        }
+      },
+      {
+        "comment": "",
+        "key": "实时风险预警",
+        "location": {
+          "startingColumn": 32,
+          "startingLine": 84
+        }
+      },
+      {
+        "comment": "",
+        "key": "每日风险预报",
+        "location": {
+          "startingColumn": 32,
+          "startingLine": 85
+        }
+      },
+      {
+        "comment": "",
+        "key": "预报时间",
+        "location": {
+          "startingColumn": 36,
+          "startingLine": 88
+        }
+      },
+      {
+        "comment": "",
+        "key": "基本设置",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 96
+        }
+      },
+      {
+        "comment": "",
+        "key": "实时预警会在检测到高风险天气时立即通知，每日预报会定时发送当日和次日的头痛风险评估",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 99
+        }
+      },
+      {
+        "comment": "",
+        "key": "最低预警风险级别",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 107
+        }
+      },
+      {
+        "comment": "",
+        "key": "只有达到或超过此风险级别时才会发送预警",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 121
+        }
+      },
+      {
+        "comment": "",
+        "key": "风险级别",
+        "location": {
+          "startingColumn": 36,
+          "startingLine": 110
+        }
+      },
+      {
+        "comment": "",
+        "key": "气压变化阈值",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 128
+        }
+      },
+      {
+        "comment": "",
+        "key": "%@百帕",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 130
+        }
+      },
+      {
+        "comment": "",
+        "key": "温度变化阈值",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 139
+        }
+      },
+      {
+        "comment": "",
+        "key": "%@°C",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 141
+        }
+      },
+      {
+        "comment": "",
+        "key": "湿度阈值",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 150
+        }
+      },
+      {
+        "comment": "",
+        "key": "%@%%",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 152
+        }
+      },
+      {
+        "comment": "",
+        "key": "风速阈值",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 161
+        }
+      },
+      {
+        "comment": "",
+        "key": "%@km/h",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 163
+        }
+      },
+      {
+        "comment": "",
+        "key": "预警阈值",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 170
+        }
+      },
+      {
+        "comment": "",
+        "key": "当天气参数变化超过设定阈值时，系统会评估头痛风险并发送相应预警",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 172
+        }
+      },
+      {
+        "comment": "",
+        "key": "需要预警的天气条件",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 178
+        }
+      },
+      {
+        "comment": "",
+        "key": "天气条件",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 200
+        }
+      },
+      {
+        "comment": "",
+        "key": "选中的天气条件出现时会触发预警",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 202
+        }
+      },
+      {
+        "comment": "",
+        "key": "位置权限",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 230
+        }
+      },
+      {
+        "comment": "",
+        "key": "授权",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 261
+        }
+      },
+      {
+        "comment": "",
+        "key": "通知权限",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 254
+        }
+      },
+      {
+        "comment": "",
+        "key": "权限管理",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 272
+        }
+      },
+      {
+        "comment": "",
+        "key": "刷新当前天气",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 277
+        }
+      },
+      {
+        "comment": "",
+        "key": "清除天气历史",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 282
+        }
+      },
+      {
+        "comment": "",
+        "key": "清除预警历史",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 287
+        }
+      },
+      {
+        "comment": "",
+        "key": "查看预警统计",
+        "location": {
+          "startingColumn": 36,
+          "startingLine": 292
+        }
+      },
+      {
+        "comment": "",
+        "key": "数据管理",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 296
+        }
+      },
+      {
+        "comment": "",
+        "key": "天气参数说明",
+        "location": {
+          "startingColumn": 37,
+          "startingLine": 301
+        }
+      },
+      {
+        "comment": "",
+        "key": "帮助信息",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 329
+        }
+      },
+      {
+        "comment": "",
+        "key": "取消",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 336
+        }
+      },
+      {
+        "comment": "",
+        "key": "保存",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 341
+        }
+      },
+      {
+        "comment": "",
+        "key": "去设置",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 349
+        }
+      },
+      {
+        "comment": "",
+        "key": "取消",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 352
+        }
+      },
+      {
+        "comment": "",
+        "key": "请在系统设置中为HeadacheDiary开启位置权限，以获取准确的天气数据",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 354
+        }
+      },
+      {
+        "comment": "",
+        "key": "去设置",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 357
+        }
+      },
+      {
+        "comment": "",
+        "key": "取消",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 360
+        }
+      },
+      {
+        "comment": "",
+        "key": "请在系统设置中为HeadacheDiary开启通知权限，以接收天气预警",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 362
+        }
+      },
+      {
+        "comment": "",
+        "key": "预警统计",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 600
+        }
+      },
+      {
+        "comment": "",
+        "key": "总体统计",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 610
+        }
+      },
+      {
+        "comment": "",
+        "key": "预警类型分布",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 652
+        }
+      },
+      {
+        "comment": "",
+        "key": "暂无预警数据",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 657
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 672
+        }
+      },
+      {
+        "comment": "",
+        "key": "风险级别分布",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 692
+        }
+      },
+      {
+        "comment": "",
+        "key": "暂无风险数据",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 697
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 707
+        }
+      },
+      {
+        "comment": "",
+        "key": "最近7天趋势",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 748
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 760
+        }
+      }
+    ]
+  },
+  "version": 1
+}

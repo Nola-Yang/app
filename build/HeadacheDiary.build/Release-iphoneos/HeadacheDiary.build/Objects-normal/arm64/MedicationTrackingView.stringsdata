@@ -1,0 +1,400 @@
+{
+  "source": "/Users/siyuean/Desktop/app/HeadacheDiary/HeadacheDiary/MedicationTrackingView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "用药记录",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 21
+        }
+      },
+      {
+        "comment": "",
+        "key": "添加用药",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 27
+        }
+      },
+      {
+        "comment": "",
+        "key": "暂无用药记录",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 40
+        }
+      },
+      {
+        "comment": "",
+        "key": "点击\"添加用药\"记录服药时间、剂量和效果",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 43
+        }
+      },
+      {
+        "comment": "",
+        "key": "确认删除",
+        "location": {
+          "startingColumn": 16,
+          "startingLine": 195
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 121
+        }
+      },
+      {
+        "comment": "",
+        "key": "缓解于 %@",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 159
+        }
+      },
+      {
+        "comment": "",
+        "key": "有效",
+        "location": {
+          "startingColumn": 45,
+          "startingLine": 153
+        }
+      },
+      {
+        "comment": "",
+        "key": "无效",
+        "location": {
+          "startingColumn": 56,
+          "startingLine": 153
+        }
+      },
+      {
+        "comment": "",
+        "key": "编辑",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 178
+        }
+      },
+      {
+        "comment": "",
+        "key": "删除",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 182
+        }
+      },
+      {
+        "comment": "",
+        "key": "取消",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 196
+        }
+      },
+      {
+        "comment": "",
+        "key": "删除",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 197
+        }
+      },
+      {
+        "comment": "",
+        "key": "确定要删除这条用药记录吗？",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 199
+        }
+      },
+      {
+        "comment": "",
+        "key": "用药总结",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 226
+        }
+      },
+      {
+        "comment": "",
+        "key": "各药物剂量:",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 253
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lldmg",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 261
+        }
+      },
+      {
+        "comment": "",
+        "key": "有效用药时间线:",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 275
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld.",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 280
+        }
+      },
+      {
+        "comment": "",
+        "key": "%@",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 283
+        }
+      },
+      {
+        "comment": "",
+        "key": "编辑用药记录",
+        "location": {
+          "startingColumn": 42,
+          "startingLine": 474
+        }
+      },
+      {
+        "comment": "",
+        "key": "添加用药记录",
+        "location": {
+          "startingColumn": 65,
+          "startingLine": 474
+        }
+      },
+      {
+        "comment": "",
+        "key": "提示",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 491
+        }
+      },
+      {
+        "comment": "",
+        "key": "服药时间",
+        "location": {
+          "startingColumn": 32,
+          "startingLine": 372
+        }
+      },
+      {
+        "comment": "",
+        "key": "服药时间",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 374
+        }
+      },
+      {
+        "comment": "",
+        "key": "使用自定义药物",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 378
+        }
+      },
+      {
+        "comment": "",
+        "key": "选择药物",
+        "location": {
+          "startingColumn": 36,
+          "startingLine": 384
+        }
+      },
+      {
+        "comment": "",
+        "key": "输入药物名称",
+        "location": {
+          "startingColumn": 39,
+          "startingLine": 391
+        }
+      },
+      {
+        "comment": "",
+        "key": "药物类型",
+        "location": {
+          "startingColumn": 32,
+          "startingLine": 394
+        }
+      },
+      {
+        "comment": "",
+        "key": "选择药物",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 385
+        }
+      },
+      {
+        "comment": "",
+        "key": "药物选择",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 402
+        }
+      },
+      {
+        "comment": "",
+        "key": "剂量",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 407
+        }
+      },
+      {
+        "comment": "",
+        "key": "mg",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 413
+        }
+      },
+      {
+        "comment": "",
+        "key": "剂量",
+        "location": {
+          "startingColumn": 35,
+          "startingLine": 409
+        }
+      },
+      {
+        "comment": "",
+        "key": "常用剂量:",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 418
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lldmg",
+        "location": {
+          "startingColumn": 42,
+          "startingLine": 432
+        }
+      },
+      {
+        "comment": "",
+        "key": "剂量 (mg)",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 446
+        }
+      },
+      {
+        "comment": "",
+        "key": "请输入准确的服药剂量，这有助于分析用药效果",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 448
+        }
+      },
+      {
+        "comment": "",
+        "key": "是否缓解",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 452
+        }
+      },
+      {
+        "comment": "",
+        "key": "记录缓解时间",
+        "location": {
+          "startingColumn": 32,
+          "startingLine": 455
+        }
+      },
+      {
+        "comment": "",
+        "key": "缓解时间",
+        "location": {
+          "startingColumn": 40,
+          "startingLine": 458
+        }
+      },
+      {
+        "comment": "",
+        "key": "用药效果",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 462
+        }
+      },
+      {
+        "comment": "",
+        "key": "用药备注",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 466
+        }
+      },
+      {
+        "comment": "",
+        "key": "备注",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 469
+        }
+      },
+      {
+        "comment": "",
+        "key": "记录用药方式、副作用、特殊情况等",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 471
+        }
+      },
+      {
+        "comment": "",
+        "key": "取消",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 478
+        }
+      },
+      {
+        "comment": "",
+        "key": "更新",
+        "location": {
+          "startingColumn": 40,
+          "startingLine": 481
+        }
+      },
+      {
+        "comment": "",
+        "key": "保存",
+        "location": {
+          "startingColumn": 51,
+          "startingLine": 481
+        }
+      },
+      {
+        "comment": "",
+        "key": "确定",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 492
+        }
+      }
+    ]
+  },
+  "version": 1
+}

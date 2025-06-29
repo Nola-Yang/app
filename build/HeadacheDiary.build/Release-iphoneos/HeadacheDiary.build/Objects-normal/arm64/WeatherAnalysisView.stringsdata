@@ -1,0 +1,512 @@
+{
+  "source": "/Users/siyuean/Desktop/app/HeadacheDiary/HeadacheDiary/WeatherAnalysisView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "天气分析",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 79
+        }
+      },
+      {
+        "comment": "",
+        "key": "天气设置",
+        "location": {
+          "startingColumn": 32,
+          "startingLine": 83
+        }
+      },
+      {
+        "comment": "",
+        "key": "刷新天气",
+        "location": {
+          "startingColumn": 32,
+          "startingLine": 86
+        }
+      },
+      {
+        "comment": "",
+        "key": "重新分析",
+        "location": {
+          "startingColumn": 32,
+          "startingLine": 91
+        }
+      },
+      {
+        "comment": "",
+        "key": "检查权限",
+        "location": {
+          "startingColumn": 32,
+          "startingLine": 94
+        }
+      },
+      {
+        "comment": "",
+        "key": "需要位置权限",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 188
+        }
+      },
+      {
+        "comment": "",
+        "key": "天气分析功能需要获取您的位置信息来提供准确的天气数据和头痛风险预测",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 191
+        }
+      },
+      {
+        "comment": "",
+        "key": "开启位置权限",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 205
+        }
+      },
+      {
+        "comment": "",
+        "key": "重新检查权限",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 211
+        }
+      },
+      {
+        "comment": "",
+        "key": "开启步骤：",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 218
+        }
+      },
+      {
+        "comment": "",
+        "key": "1. 点击「开启位置权限」",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 221
+        }
+      },
+      {
+        "comment": "",
+        "key": "2. 在弹出的系统设置中找到「位置服务」",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 222
+        }
+      },
+      {
+        "comment": "",
+        "key": "3. 开启位置服务并为头痛日记选择「使用App时」",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 223
+        }
+      },
+      {
+        "comment": "",
+        "key": "4. 返回应用并点击「重新检查权限」",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 224
+        }
+      },
+      {
+        "comment": "",
+        "key": "当前天气",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 249
+        }
+      },
+      {
+        "comment": "",
+        "key": "刷新",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 257
+        }
+      },
+      {
+        "comment": "",
+        "key": "正在获取天气数据...",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 289
+        }
+      },
+      {
+        "comment": "",
+        "key": "需要位置权限",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 303
+        }
+      },
+      {
+        "comment": "",
+        "key": "开启权限",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 305
+        }
+      },
+      {
+        "comment": "",
+        "key": "%@°C",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 327
+        }
+      },
+      {
+        "comment": "",
+        "key": "%@°C",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 347
+        }
+      },
+      {
+        "comment": "",
+        "key": "%@hPa",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 358
+        }
+      },
+      {
+        "comment": "",
+        "key": "获取天气失败",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 385
+        }
+      },
+      {
+        "comment": "",
+        "key": "重新获取",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 393
+        }
+      },
+      {
+        "comment": "",
+        "key": "检查权限",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 399
+        }
+      },
+      {
+        "comment": "",
+        "key": "点击刷新获取天气数据",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 415
+        }
+      },
+      {
+        "comment": "",
+        "key": "获取天气",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 419
+        }
+      },
+      {
+        "comment": "",
+        "key": "头痛风险评估",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 460
+        }
+      },
+      {
+        "comment": "",
+        "key": "今日风险",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 469
+        }
+      },
+      {
+        "comment": "",
+        "key": "明日风险",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 480
+        }
+      },
+      {
+        "comment": "",
+        "key": "风险因素:",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 491
+        }
+      },
+      {
+        "comment": "",
+        "key": "建议:",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 506
+        }
+      },
+      {
+        "comment": "",
+        "key": "• 气压变化: %@%@hPa",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 525
+        }
+      },
+      {
+        "comment": "",
+        "key": "• 温度变化: %@%@°C",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 530
+        }
+      },
+      {
+        "comment": "",
+        "key": "• 高湿度: %@%%",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 535
+        }
+      },
+      {
+        "comment": "",
+        "key": "• 大风: %@km/h",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 540
+        }
+      },
+      {
+        "comment": "",
+        "key": "分析期间",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 589
+        }
+      },
+      {
+        "comment": "",
+        "key": "天气关联分析",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 574
+        }
+      },
+      {
+        "comment": "",
+        "key": "重新分析",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 582
+        }
+      },
+      {
+        "comment": "",
+        "key": "分析了 %lld 天天气数据，发现 %lld 天有头痛记录",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 616
+        }
+      },
+      {
+        "comment": "",
+        "key": "总体头痛率: %@%%",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 621
+        }
+      },
+      {
+        "comment": "",
+        "key": "高风险因素: %lld个",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 624
+        }
+      },
+      {
+        "comment": "",
+        "key": "主要相关因素:",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 631
+        }
+      },
+      {
+        "comment": "",
+        "key": "正在分析天气与头痛的关联性...",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 646
+        }
+      },
+      {
+        "comment": "",
+        "key": "点击\"重新分析\"开始分析",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 659
+        }
+      },
+      {
+        "comment": "",
+        "key": "n=%lld",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 682
+        }
+      },
+      {
+        "comment": "",
+        "key": "最近预警",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 705
+        }
+      },
+      {
+        "comment": "",
+        "key": "查看全部",
+        "location": {
+          "startingColumn": 36,
+          "startingLine": 710
+        }
+      },
+      {
+        "comment": "",
+        "key": "最近一周无预警",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 723
+        }
+      },
+      {
+        "comment": "",
+        "key": "天气趋势",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 797
+        }
+      },
+      {
+        "comment": "",
+        "key": "暂无足够的天气历史数据",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 807
+        }
+      },
+      {
+        "comment": "",
+        "key": "温度趋势",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 830
+        }
+      },
+      {
+        "comment": "",
+        "key": "%@",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 841
+        }
+      },
+      {
+        "comment": "",
+        "key": "气压趋势",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 855
+        }
+      },
+      {
+        "comment": "",
+        "key": "%@",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 866
+        }
+      },
+      {
+        "comment": "",
+        "key": "个性化建议",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 897
+        }
+      },
+      {
+        "comment": "",
+        "key": "收集更多数据后，系统将为您提供个性化的天气防护建议",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 915
+        }
+      },
+      {
+        "comment": "",
+        "key": "预警历史",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 990
+        }
+      },
+      {
+        "comment": "",
+        "key": "筛选",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 961
+        }
+      },
+      {
+        "comment": "",
+        "key": "暂无预警记录",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 974
+        }
+      },
+      {
+        "comment": "",
+        "key": "系统会根据天气变化为您发送头痛风险预警",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 976
+        }
+      },
+      {
+        "comment": "",
+        "key": "清理已读",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 994
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld/%lld天",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 1084
+        }
+      }
+    ]
+  },
+  "version": 1
+}
