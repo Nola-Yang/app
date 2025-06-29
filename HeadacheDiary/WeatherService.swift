@@ -92,7 +92,7 @@ enum HeadacheRisk: Int, CaseIterable, Codable {
         }
     }
     
-    var color: String {
+    var colorName: String {
         switch self {
         case .low: return "green"
         case .moderate: return "yellow"

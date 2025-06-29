@@ -68,8 +68,37 @@ class ComprehensiveTriggerEngine: ObservableObject {
             }
 
             let records = await fetchHeadacheRecords(from: context)
-            guard records.count >= 10 else {
-                print("⚠️ 需要至少10条头痛记录进行综合分析，当前记录数：\(records.count)")
+            guard records.count >= 3 else {
+                print("⚠️ 需要至少3条头痛记录进行综合分析，当前记录数：\(records.count)")
+                await MainActor.run { 
+                    self.isAnalyzing = false
+                    // 创建一个提示性的分析结果
+                    self.comprehensiveAnalysis = ComprehensiveHeadacheAnalysis(
+                        totalRecords: records.count,
+                        analysisDate: Date(),
+                        menstrualCorrelation: 0,
+                        weatherHealthCorrelations: [],
+                        primaryTriggerCombinations: [],
+                        riskPrediction: PredictiveModel(
+                            menstrualWeight: 0.25, weatherWeight: 0.25, 
+                            healthWeight: 0.25, timePatternWeight: 0.25, 
+                            riskForecast: []
+                        ),
+                        personalizedInsights: [
+                            PersonalizedInsight(
+                                category: .lifestyle,
+                                title: "数据收集阶段",
+                                description: "当前记录数：\(records.count)条。继续记录头痛数据以获得更准确的分析。",
+                                recommendations: [
+                                    "继续记录头痛发作的时间、强度和触发因素",
+                                    "记录睡眠、压力和其他可能的触发因素",
+                                    "建议至少收集一周的数据以获得初步分析"
+                                ],
+                                priority: .medium
+                            )
+                        ]
+                    )
+                }
                 return
             }
 
@@ -104,12 +133,6 @@ class ComprehensiveTriggerEngine: ObservableObject {
                 Task {
                     await self.sendPredictiveNotifications()
                 }
-            }
-        } catch {
-            print("❌ 综合分析过程中发生错误: \(error)")
-            await MainActor.run {
-                self.comprehensiveAnalysis = nil
-                self.predictiveAlerts = []
             }
         }
     }
@@ -206,21 +229,34 @@ class ComprehensiveTriggerEngine: ObservableObject {
     )) -> [PersonalizedInsight] {
         var insights: [PersonalizedInsight] = []
 
-        // Menstrual-related insights
+        // Menstrual-related insights with focus on pre-menstrual phase
         if let menstrualCorrelation = results.menstrual.first(where: { $0.healthMetric == "月经周期" }), menstrualCorrelation.correlation > 0.6 {
-            if let menstrualCorrelation = results.menstrual.first(where: { $0.healthMetric == "月经周期" }), menstrualCorrelation.correlation > 0.6 {
             insights.append(PersonalizedInsight(
                 category: .menstrual,
                 title: "月经周期是主要触发因素",
-                description: "您的头痛与月经周期高度相关（相关性：\(String(format: "%.2f", menstrualCorrelation.correlation))）。",
+                description: "您的头痛与月经周期高度相关（相关性：\(String(format: "%.2f", menstrualCorrelation.correlation))）。数据显示月经前两天是高风险期。",
                 recommendations: [
-                    "在月经前1周开始预防性治疗",
+                    "🔴 重点关注：月经前两天开始预防措施",
+                    "在月经前3-4天就开始预防性治疗",
+                    "月经前两天避免压力、充足睡眠",
                     "监测雌激素和孕激素水平变化",
-                    "考虑补充镁元素和维生素B2"
+                    "考虑补充镁元素和维生素B2",
+                    "设置月经前两天的特殊提醒"
                 ],
                 priority: .high
             ))
-        }
+        } else if let menstrualCorrelation = results.menstrual.first(where: { $0.healthMetric == "月经周期" }), menstrualCorrelation.correlation > 0.3 {
+            insights.append(PersonalizedInsight(
+                category: .menstrual,
+                title: "月经周期存在一定关联",
+                description: "您的头痛与月经周期存在中等程度关联（相关性：\(String(format: "%.2f", menstrualCorrelation.correlation))）。建议重点观察月经前两天。",
+                recommendations: [
+                    "记录月经前两天的头痛模式",
+                    "注意月经前期的生活方式调整",
+                    "继续收集数据以确认关联性"
+                ],
+                priority: .medium
+            ))
         }
 
         // Combined weather and health insights
@@ -391,17 +427,36 @@ class ComprehensiveTriggerEngine: ObservableObject {
     }
     
     private func calculateHormonalCorrelation(cyclePatterns: [Int: [HeadachePattern]]) -> Double {
-        // 简化的激素相关性计算
-        let preMenstrualDays = Array(25...28)
+        // 重点关注月经前两天的激素相关性计算
+        let preOnsetDays = Array(26...28)  // 月经前2-4天
+        let criticalPreDays = Array(27...28)  // 月经前两天（重点关注）
         let menstrualDays = Array(1...5)
-        let otherDays = Array(6...24)
+        let otherDays = Array(6...25)
         
-        let preMenstrualIntensity = calculateAverageIntensity(cyclePatterns: cyclePatterns, days: preMenstrualDays)
+        let preOnsetIntensity = calculateAverageIntensity(cyclePatterns: cyclePatterns, days: preOnsetDays)
+        let criticalPreIntensity = calculateAverageIntensity(cyclePatterns: cyclePatterns, days: criticalPreDays)
         let menstrualIntensity = calculateAverageIntensity(cyclePatterns: cyclePatterns, days: menstrualDays)
         let otherDaysIntensity = calculateAverageIntensity(cyclePatterns: cyclePatterns, days: otherDays)
         
-        let maxHormonalIntensity = max(preMenstrualIntensity, menstrualIntensity)
-        return otherDaysIntensity > 0 ? (maxHormonalIntensity - otherDaysIntensity) / otherDaysIntensity : 0
+        // 计算月经前两天的特殊权重
+        let criticalPreWeight = 2.0  // 月经前两天权重加倍
+        let weightedCriticalIntensity = criticalPreIntensity * criticalPreWeight
+        
+        // 综合计算激素相关性，重点考虑月经前两天
+        let maxHormonalIntensity = max(weightedCriticalIntensity, preOnsetIntensity, menstrualIntensity)
+        
+        if otherDaysIntensity > 0 {
+            let baseCorrelation = (maxHormonalIntensity - otherDaysIntensity) / otherDaysIntensity
+            
+            // 如果月经前两天有显著头痛，额外增加相关性分数
+            if criticalPreIntensity > otherDaysIntensity * 1.5 {
+                return min(baseCorrelation + 0.3, 1.0)  // 最大不超过1.0
+            }
+            
+            return baseCorrelation
+        }
+        
+        return 0
     }
     
     private func calculateAverageIntensity(cyclePatterns: [Int: [HeadachePattern]], days: [Int]) -> Double {
@@ -501,11 +556,20 @@ class ComprehensiveTriggerEngine: ObservableObject {
             var riskScore: Double = 0.3 // Base risk
             var triggers: [String] = []
 
-            // This is a simplified forecast logic. A real app would need a more sophisticated model.
+            // Enhanced forecast logic with focus on pre-menstrual days
             if let snapshot = healthKitManager.healthDataSnapshot {
-                if let cycleDay = snapshot.cycleDay, (cycleDay >= 25 || cycleDay <= 5) {
-                    riskScore += 0.4 * weights.menstrual
-                    triggers.append("激素波动期")
+                if let cycleDay = snapshot.cycleDay {
+                    // 重点关注月经前两天(周期第27-28天)
+                    if cycleDay >= 27 && cycleDay <= 28 {
+                        riskScore += 0.6 * weights.menstrual  // 月经前两天风险权重更高
+                        triggers.append("月经前两天高风险期")
+                    } else if cycleDay >= 25 && cycleDay <= 26 {
+                        riskScore += 0.4 * weights.menstrual  // 月经前3-4天中等风险
+                        triggers.append("月经前期")
+                    } else if cycleDay >= 1 && cycleDay <= 5 {
+                        riskScore += 0.3 * weights.menstrual  // 月经期风险
+                        triggers.append("月经期")
+                    }
                 }
             }
 
@@ -547,7 +611,17 @@ class ComprehensiveTriggerEngine: ObservableObject {
     private func generateAlertRecommendations(for forecast: DailyRiskForecast) -> [String] {
         var recommendations: [String] = []
         
-        if forecast.predictedTriggers.contains("激素波动期") {
+        if forecast.predictedTriggers.contains("月经前两天高风险期") {
+            recommendations.append("🔴 重点预防：现在是月经前两天高风险期")
+            recommendations.append("立即开始预防性用药")
+            recommendations.append("避免所有已知触发因素")
+            recommendations.append("保持充足睡眠，减少压力")
+            recommendations.append("准备止痛药和应急措施")
+        } else if forecast.predictedTriggers.contains("月经前期") {
+            recommendations.append("月经前期预防措施")
+            recommendations.append("考虑预防性用药")
+            recommendations.append("减少压力和负荷")
+        } else if forecast.predictedTriggers.contains("激素波动期") {
             recommendations.append("考虑预防性用药")
             recommendations.append("减少压力和负荷")
         }

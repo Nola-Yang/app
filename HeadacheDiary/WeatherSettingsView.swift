@@ -706,7 +706,7 @@ struct RiskLevelDistributionCard: View {
                             VStack(spacing: 8) {
                                 Text("\(count)")
                                     .font(.title2.bold())
-                                    .foregroundColor(Color(risk.color))
+                                    .foregroundColor(Color(risk.colorName))
                                 Text(risk.displayName)
                                     .font(.caption)
                                     .foregroundColor(.secondary)

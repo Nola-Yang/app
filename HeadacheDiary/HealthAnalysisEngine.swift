@@ -76,8 +76,19 @@ class HealthAnalysisEngine: ObservableObject {
     func analyzeHealthCorrelations(records: [HeadacheRecord]) async -> [HealthCorrelationResult] {
         var results: [HealthCorrelationResult] = []
 
-        guard let healthSnapshot = healthKitManager.healthDataSnapshot, records.count >= 10 else {
-            print("⚠️ 健康数据或头痛记录不足")
+        guard let healthSnapshot = healthKitManager.healthDataSnapshot, records.count >= 3 else {
+            print("⚠️ 健康数据或头痛记录不足，当前记录数：\(records.count)")
+            // 即使数据不足，也返回一些基础的分析结果
+            if records.count > 0 {
+                results.append(HealthCorrelationResult(
+                    healthMetric: "数据收集",
+                    correlation: 0.0,
+                    pValue: 1.0,
+                    isSignificant: false,
+                    riskFactor: .low,
+                    description: "数据样本较小，需要更多记录进行准确分析"
+                ))
+            }
             return results
         }
 

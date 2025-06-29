@@ -455,7 +455,7 @@ struct HeadacheRiskCard: View {
         VStack(spacing: 16) {
             HStack {
                 Image(systemName: weatherService.currentRisk.icon)
-                    .foregroundColor(Color(weatherService.currentRisk.color))
+                    .foregroundColor(Color(weatherService.currentRisk.colorName))
                     .font(.title2)
                 Text("头痛风险评估")
                     .font(.headline.bold())
@@ -470,7 +470,7 @@ struct HeadacheRiskCard: View {
                             .font(.subheadline.bold())
                         Text(weatherService.currentRisk.displayName)
                             .font(.title2.bold())
-                            .foregroundColor(Color(weatherService.currentRisk.color))
+                            .foregroundColor(Color(weatherService.currentRisk.colorName))
                     }
                     
                     Spacer()
@@ -481,7 +481,7 @@ struct HeadacheRiskCard: View {
                             .font(.subheadline.bold())
                         Text(warningManager.tomorrowsRisk.displayName)
                             .font(.title2.bold())
-                            .foregroundColor(Color(warningManager.tomorrowsRisk.color))
+                            .foregroundColor(Color(warningManager.tomorrowsRisk.colorName))
                     }
                 }
                 
@@ -496,7 +496,7 @@ struct HeadacheRiskCard: View {
                         }
                     }
                     .padding(8)
-                    .background(Color(weatherService.currentRisk.color).opacity(0.1))
+                    .background(Color(weatherService.currentRisk.colorName).opacity(0.1))
                     .cornerRadius(8)
                 }
                 
@@ -747,7 +747,7 @@ struct WarningRow: View {
     var body: some View {
         HStack {
             Image(systemName: warning.type.icon)
-                .foregroundColor(Color(warning.riskLevel.color))
+                .foregroundColor(Color(warning.riskLevel.colorName))
                 .font(.caption)
                 .frame(width: 20)
             
@@ -1009,7 +1009,7 @@ struct DetailedWarningRow: View {
             VStack(alignment: .leading, spacing: 8) {
                 HStack {
                     Image(systemName: warning.type.icon)
-                        .foregroundColor(Color(warning.riskLevel.color))
+                        .foregroundColor(Color(warning.riskLevel.colorName))
                     Text(warning.type.title)
                         .font(.subheadline.bold())
                     Spacer()
@@ -1035,8 +1035,8 @@ struct DetailedWarningRow: View {
                         .font(.caption2)
                         .padding(.horizontal, 6)
                         .padding(.vertical, 2)
-                        .background(Color(warning.riskLevel.color).opacity(0.2))
-                        .foregroundColor(Color(warning.riskLevel.color))
+                        .background(Color(warning.riskLevel.colorName).opacity(0.2))
+                        .foregroundColor(Color(warning.riskLevel.colorName))
                         .cornerRadius(4)
                 }
             }

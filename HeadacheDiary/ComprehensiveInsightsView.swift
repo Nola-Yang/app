@@ -46,7 +46,7 @@ struct ComprehensiveInsightsView: View {
                 // 分段控制器
                 Picker("洞察类型", selection: $selectedTab) {
                     Text("综合分析").tag(0)
-                    Text("月经关联").tag(1)
+                    Text("健康关联").tag(1)
                     Text("天气分析").tag(2)
                     Text("预测预警").tag(3)
                 }
@@ -61,7 +61,7 @@ struct ComprehensiveInsightsView: View {
                     comprehensiveAnalysisTab
                         .tag(0)
                     
-                    menstrualAnalysisTab
+                    healthAnalysisTab
                         .tag(1)
                     
                     weatherHealthTab
@@ -165,23 +165,31 @@ struct ComprehensiveInsightsView: View {
     }
     
     @ViewBuilder
-    private var menstrualAnalysisTab: some View {
+    private var healthAnalysisTab: some View {
         ScrollView {
             LazyVStack(spacing: 16) {
-                if let insights = triggerEngine.menstrualInsights {
-                    // 月经周期相关性卡片
-                    MenstrualCorrelationCard(insights: insights)
-                    
-                    // 周期阶段分析
-                    MenstrualPhasesCard(insights: insights)
-                    
-                    // 预防建议
-                    MenstrualPreventionCard(insights: insights)
-                    
-                } else if triggerEngine.isAnalyzing {
+                // HealthKit权限状态检查
+                if !healthKitManager.isAuthorized {
+                    HealthKitPermissionCard()
+                } else {
+                    // 健康数据概览卡片
+                    if let snapshot = healthKitManager.healthDataSnapshot {
+                        HealthDataOverviewCard(snapshot: snapshot)
+                    }
+                }
+                
+                // 健康相关性分析结果
+                if !healthKitManager.correlationResults.isEmpty {
+                    HealthCorrelationsSection(correlations: healthKitManager.correlationResults)
+                } else if healthKitManager.isAnalyzing || triggerEngine.isAnalyzing {
                     LoadingAnalysisView()
                 } else {
-                    EmptyAnalysisView()
+                    EmptyHealthAnalysisView()
+                }
+                
+                // 健康风险预测
+                if let prediction = healthKitManager.riskPrediction {
+                    HealthRiskPredictionCard(prediction: prediction)
                 }
             }
             .padding()
@@ -882,6 +890,372 @@ struct WeatherHealthCorrelationsSection: View {
             ForEach(correlations.prefix(5), id: \.weatherFactor) { correlation in
                 WeatherHealthCorrelationCard(correlation: correlation)
             }
+        }
+    }
+}
+
+// MARK: - 健康分析相关组件
+
+struct HealthKitPermissionCard: View {
+    var body: some View {
+        VStack(spacing: 16) {
+            Image(systemName: "heart.text.square")
+                .font(.largeTitle)
+                .foregroundColor(.red)
+            
+            Text("需要HealthKit权限")
+                .font(.headline)
+                .fontWeight(.semibold)
+            
+            Text("授权访问健康数据以分析与头痛的关联")
+                .font(.subheadline)
+                .foregroundColor(.secondary)
+                .multilineTextAlignment(.center)
+            
+            Button("授权HealthKit") {
+                Task {
+                    let _ = await HealthKitManager.shared.requestHealthKitPermissions()
+                }
+            }
+            .padding(.horizontal, 20)
+            .padding(.vertical, 10)
+            .background(Color.red)
+            .foregroundColor(.white)
+            .cornerRadius(8)
+        }
+        .padding()
+        .background(Color(.systemGray6))
+        .cornerRadius(12)
+    }
+}
+
+struct HealthDataOverviewCard: View {
+    let snapshot: HealthDataSnapshot
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("健康数据概览")
+                .font(.headline)
+                .fontWeight(.semibold)
+            
+            LazyVGrid(columns: [
+                GridItem(.flexible()),
+                GridItem(.flexible())
+            ], spacing: 12) {
+                if let hrv = snapshot.heartRateVariability {
+                    HealthMetricItem(
+                        title: "心率变异性",
+                        value: String(format: "%.1f ms", hrv.value),
+                        icon: "heart.circle",
+                        color: .red,
+                        trend: hrv.trend
+                    )
+                }
+                
+                if let sleep = snapshot.sleepDuration {
+                    HealthMetricItem(
+                        title: "睡眠时长",
+                        value: String(format: "%.1f h", sleep.value / 3600),
+                        icon: "bed.double.circle",
+                        color: .purple,
+                        trend: sleep.trend
+                    )
+                }
+                
+                if let heartRate = snapshot.restingHeartRate {
+                    HealthMetricItem(
+                        title: "静息心率",
+                        value: String(format: "%.0f bpm", heartRate.value),
+                        icon: "heart.circle",
+                        color: .pink,
+                        trend: heartRate.trend
+                    )
+                }
+                
+                if let steps = snapshot.stepCount {
+                    HealthMetricItem(
+                        title: "步数",
+                        value: String(format: "%.0f", steps.value),
+                        icon: "figure.walk.circle",
+                        color: .green,
+                        trend: steps.trend
+                    )
+                }
+            }
+        }
+        .padding()
+        .background(Color(.systemGray6))
+        .cornerRadius(12)
+    }
+}
+
+struct HealthMetricItem: View {
+    let title: String
+    let value: String
+    let icon: String
+    let color: Color
+    let trend: Double?
+    
+    var body: some View {
+        VStack(spacing: 8) {
+            HStack {
+                Image(systemName: icon)
+                    .foregroundColor(color)
+                Spacer()
+                if let trend = trend {
+                    Image(systemName: trend > 0 ? "arrow.up" : trend < 0 ? "arrow.down" : "minus")
+                        .foregroundColor(trend > 0 ? .green : trend < 0 ? .red : .gray)
+                        .font(.caption)
+                }
+            }
+            
+            HStack {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(title)
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    Text(value)
+                        .font(.subheadline)
+                        .fontWeight(.semibold)
+                }
+                Spacer()
+            }
+        }
+        .padding()
+        .background(Color(.systemBackground))
+        .cornerRadius(8)
+    }
+}
+
+struct HealthCorrelationsSection: View {
+    let correlations: [HealthCorrelationResult]
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("健康数据关联分析")
+                .font(.headline)
+                .fontWeight(.semibold)
+            
+            ForEach(correlations.prefix(8), id: \.healthMetric) { correlation in
+                HealthCorrelationCard(correlation: correlation)
+            }
+        }
+    }
+}
+
+struct HealthCorrelationCard: View {
+    let correlation: HealthCorrelationResult
+    
+    private var correlationColor: Color {
+        let absCorr = abs(correlation.correlation)
+        switch absCorr {
+        case 0..<0.3: return .green
+        case 0.3..<0.6: return .orange
+        default: return .red
+        }
+    }
+    
+    private var riskColor: Color {
+        switch correlation.riskFactor {
+        case .low: return .green
+        case .moderate: return .yellow
+        case .high: return .orange
+        case .veryHigh: return .red
+        }
+    }
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                Text(correlation.healthMetric)
+                    .font(.subheadline)
+                    .fontWeight(.medium)
+                Spacer()
+                HStack(spacing: 8) {
+                    Circle()
+                        .fill(correlationColor)
+                        .frame(width: 8, height: 8)
+                    if correlation.isSignificant {
+                        Image(systemName: "star.fill")
+                            .foregroundColor(.yellow)
+                            .font(.caption)
+                    }
+                }
+            }
+            
+            HStack {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("相关性")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    Text(String(format: "%.3f", correlation.correlation))
+                        .font(.subheadline)
+                        .fontWeight(.semibold)
+                        .foregroundColor(correlationColor)
+                }
+                
+                Spacer()
+                
+                VStack(alignment: .trailing, spacing: 4) {
+                    Text("显著性")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    Text(String(format: "%.3f", correlation.pValue))
+                        .font(.subheadline)
+                        .fontWeight(.medium)
+                        .foregroundColor(correlation.isSignificant ? .green : .gray)
+                }
+                
+                Spacer()
+                
+                VStack(alignment: .trailing, spacing: 4) {
+                    Text("风险级别")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    Text(correlation.riskFactor.description)
+                        .font(.caption)
+                        .fontWeight(.medium)
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 2)
+                        .background(riskColor.opacity(0.2))
+                        .foregroundColor(riskColor)
+                        .cornerRadius(4)
+                }
+            }
+            
+            if !correlation.description.isEmpty {
+                Text(correlation.description)
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                    .padding(.top, 4)
+            }
+        }
+        .padding()
+        .background(Color(.systemGray6))
+        .cornerRadius(12)
+    }
+}
+
+struct HealthRiskPredictionCard: View {
+    let prediction: HeadacheRiskPrediction
+    
+    private var riskColor: Color {
+        switch prediction.riskLevel {
+        case 0..<0.3: return .green
+        case 0.3..<0.6: return .yellow
+        case 0.6..<0.8: return .orange
+        default: return .red
+        }
+    }
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("健康风险预测")
+                .font(.headline)
+                .fontWeight(.semibold)
+            
+            // 风险评分显示
+            HStack {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("风险评分")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    Text(String(format: "%.1f%%", prediction.riskLevel * 100))
+                        .font(.title2)
+                        .fontWeight(.bold)
+                        .foregroundColor(riskColor)
+                }
+                
+                Spacer()
+                
+                VStack(alignment: .trailing, spacing: 4) {
+                    Text("可信度")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    Text(String(format: "%.1f%%", prediction.confidenceLevel * 100))
+                        .font(.title2)
+                        .fontWeight(.bold)
+                        .foregroundColor(.blue)
+                }
+            }
+            .padding()
+            .background(Color(.systemBackground))
+            .cornerRadius(8)
+            
+            // 主要风险因素
+            if !prediction.primaryFactors.isEmpty {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("主要风险因素")
+                        .font(.subheadline)
+                        .fontWeight(.medium)
+                    
+                    ForEach(prediction.primaryFactors, id: \.self) { factor in
+                        HStack {
+                            Circle()
+                                .fill(riskColor)
+                                .frame(width: 6, height: 6)
+                            Text(factor)
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                            Spacer()
+                        }
+                    }
+                }
+            }
+            
+            // 预防建议
+            if !prediction.recommendations.isEmpty {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("健康建议")
+                        .font(.subheadline)
+                        .fontWeight(.medium)
+                    
+                    ForEach(Array(prediction.recommendations.enumerated()), id: \.offset) { index, recommendation in
+                        HStack(alignment: .top, spacing: 8) {
+                            Text("\(index + 1).")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                            Text(recommendation)
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+                    }
+                }
+            }
+        }
+        .padding()
+        .background(Color(.systemGray6))
+        .cornerRadius(12)
+    }
+}
+
+struct EmptyHealthAnalysisView: View {
+    var body: some View {
+        VStack(spacing: 16) {
+            Image(systemName: "heart.text.square")
+                .font(.largeTitle)
+                .foregroundColor(.secondary)
+            Text("暂无健康关联分析")
+                .font(.headline)
+                .foregroundColor(.secondary)
+            Text("需要更多健康数据和头痛记录进行关联分析")
+                .font(.caption)
+                .foregroundColor(.secondary)
+                .multilineTextAlignment(.center)
+        }
+        .frame(maxWidth: .infinity, minHeight: 200)
+    }
+}
+
+
+// MARK: - 扩展HealthCorrelationResult.RiskLevel
+extension HealthCorrelationResult.RiskLevel {
+    var description: String {
+        switch self {
+        case .low: return "低"
+        case .moderate: return "中"
+        case .high: return "高"
+        case .veryHigh: return "极高"
         }
     }
 }

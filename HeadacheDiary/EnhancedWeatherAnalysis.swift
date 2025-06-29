@@ -958,7 +958,7 @@ struct PredictionVisualization {
         return VisualizationData(
             riskGauge: RiskGaugeData(
                 value: Double(prediction.riskLevel.rawValue) / 4.0,
-                color: prediction.riskLevel.color,
+                color: prediction.riskLevel.colorName,
                 label: prediction.riskLevel.displayName
             ),
             confidenceBar: ConfidenceBarData(

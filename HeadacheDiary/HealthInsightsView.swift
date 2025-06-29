@@ -122,28 +122,28 @@ struct HealthInsightsView: View {
                     GridItem(.flexible()),
                     GridItem(.flexible())
                 ], spacing: 12) {
-                    HealthMetricCard(
+                    HealthMetricCardSimple(
                         title: "HRV",
                         value: snapshot.heartRateVariability.map { "\(Int($0.value))ms" } ?? "未知",
                         icon: "waveform.path.ecg",
                         color: .green
                     )
                     
-                    HealthMetricCard(
+                    HealthMetricCardSimple(
                         title: "睡眠",
                         value: snapshot.sleepDuration.map { "\(Int($0.value / 3600))h" } ?? "未知",
                         icon: "bed.double",
                         color: .blue
                     )
                     
-                    HealthMetricCard(
+                    HealthMetricCardSimple(
                         title: "心率",
                         value: snapshot.restingHeartRate.map { "\(Int($0.value))bpm" } ?? "未知",
                         icon: "heart",
                         color: .red
                     )
                     
-                    HealthMetricCard(
+                    HealthMetricCardSimple(
                         title: "周期",
                         value: snapshot.cycleDay.map { "第\($0)天" } ?? "未知",
                         icon: "calendar",
@@ -392,6 +392,38 @@ struct HealthInsightsView: View {
 // MARK: - 支持组件
 
 struct HealthMetricCard: View {
+    let title: String
+    let value: String
+    let icon: String
+    let color: Color
+    
+    var body: some View {
+        VStack(spacing: 8) {
+            HStack {
+                Image(systemName: icon)
+                    .foregroundColor(color)
+                Spacer()
+            }
+            
+            HStack {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(title)
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    Text(value)
+                        .font(.subheadline)
+                        .fontWeight(.semibold)
+                }
+                Spacer()
+            }
+        }
+        .padding()
+        .background(Color(.systemBackground))
+        .cornerRadius(8)
+    }
+}
+
+struct HealthMetricCardSimple: View {
     let title: String
     let value: String
     let icon: String
@@ -675,12 +707,21 @@ struct DetailedCorrelationCard: View {
 }
 
 extension HealthCorrelationResult.RiskLevel {
-    var description: String {
+    var localizedDescription: String {
         switch self {
         case .low: return "低"
         case .moderate: return "中等"
         case .high: return "高"
         case .veryHigh: return "极高"
+        }
+    }
+    
+    var colorName: String {
+        switch self {
+        case .low: return "green"
+        case .moderate: return "yellow"
+        case .high: return "orange"
+        case .veryHigh: return "red"
         }
     }
 }
