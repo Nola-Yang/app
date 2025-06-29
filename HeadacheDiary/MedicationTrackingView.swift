@@ -426,15 +426,19 @@ struct AddMedicationEntryView: View {
                             GridItem(.flexible())
                         ], spacing: 8) {
                             ForEach([200, 400, 500, 600, 800, 1000], id: \.self) { commonDosage in
-                                Button("\(commonDosage)mg") {
+                                Button(action: {
                                     dosage = Double(commonDosage)
+                                }) {
+                                    Text("\(commonDosage)mg")
+                                        .font(.caption)
+                                        .padding(.horizontal, 8)
+                                        .padding(.vertical, 4)
+                                        .frame(minWidth: 60, minHeight: 32)
+                                        .background(dosage == Double(commonDosage) ? Color.blue : Color(.systemGray5))
+                                        .foregroundColor(dosage == Double(commonDosage) ? .white : .primary)
+                                        .cornerRadius(6)
                                 }
-                                .font(.caption)
-                                .padding(.horizontal, 8)
-                                .padding(.vertical, 4)
-                                .background(dosage == Double(commonDosage) ? Color.blue : Color(.systemGray5))
-                                .foregroundColor(dosage == Double(commonDosage) ? .white : .primary)
-                                .cornerRadius(6)
+                                .buttonStyle(PlainButtonStyle())
                             }
                         }
                     }
