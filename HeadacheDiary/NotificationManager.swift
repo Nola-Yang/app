@@ -56,14 +56,14 @@ class NotificationManager: ObservableObject {
             options: []
         )
         
-        let confirmationCategory = UNNotificationCategory(
+        _ = UNNotificationCategory(
             identifier: "headache_confirmation_category",
             actions: [endHeadacheAction],
             intentIdentifiers: [],
             options: []
         )
         
-        let endHeadacheConfirmAction = UNNotificationAction(
+        _ = UNNotificationAction(
             identifier: "end_headache_confirm",
             title: "结束头痛记录",
             options: []

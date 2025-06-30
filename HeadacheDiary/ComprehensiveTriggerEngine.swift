@@ -68,39 +68,11 @@ class ComprehensiveTriggerEngine: ObservableObject {
             }
 
             let records = await fetchHeadacheRecords(from: context)
-            guard records.count >= 3 else {
-                print("⚠️ 需要至少3条头痛记录进行综合分析，当前记录数：\(records.count)")
-                await MainActor.run { 
-                    self.isAnalyzing = false
-                    // 创建一个提示性的分析结果
-                    self.comprehensiveAnalysis = ComprehensiveHeadacheAnalysis(
-                        totalRecords: records.count,
-                        analysisDate: Date(),
-                        menstrualCorrelation: 0,
-                        weatherHealthCorrelations: [],
-                        primaryTriggerCombinations: [],
-                        riskPrediction: PredictiveModel(
-                            menstrualWeight: 0.25, weatherWeight: 0.25, 
-                            healthWeight: 0.25, timePatternWeight: 0.25, 
-                            riskForecast: []
-                        ),
-                        personalizedInsights: [
-                            PersonalizedInsight(
-                                category: .lifestyle,
-                                title: "数据收集阶段",
-                                description: "当前记录数：\(records.count)条。继续记录头痛数据以获得更准确的分析。",
-                                recommendations: [
-                                    "继续记录头痛发作的时间、强度和触发因素",
-                                    "记录睡眠、压力和其他可能的触发因素",
-                                    "建议至少收集一周的数据以获得初步分析"
-                                ],
-                                priority: .medium
-                            )
-                        ]
-                    )
-                }
-                return
-            }
+            print("📊 正在分析 \(records.count) 条头痛记录")
+            
+            // 即使数据较少也进行分析，但提供适当的提示
+            _ = records.count < 3 ? "数据收集阶段" : records.count < 10 ? "初步分析" : "详细分析"
+            _ = records.count < 3 ? "（数据有限，结果仅供参考）" : records.count < 10 ? "（基础分析）" : ""
 
             
 

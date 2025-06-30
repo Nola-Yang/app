@@ -328,9 +328,9 @@ struct NotificationNavigationModifier: ViewModifier {
             break
         case .headacheList:
             break
-        case .headacheDetail(let recordID):
+        case .headacheDetail(_):
             break
-        case .headacheEdit(let recordID):
+        case .headacheEdit(_):
             break
         case .quickRecord:
             break
@@ -738,7 +738,7 @@ struct HeadacheEditView: View {
     
     private func loadRecord() {
         // 首先尝试UUID
-        if let uuid = UUID(uuidString: recordID) {
+        if UUID(uuidString: recordID) != nil {
             let request: NSFetchRequest<HeadacheRecord> = HeadacheRecord.fetchRequest()
                request.predicate = NSPredicate(format: "timestamp != nil")
                request.fetchLimit = 1

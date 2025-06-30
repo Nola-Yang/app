@@ -1,37 +1,16 @@
 import SwiftUI
+import CoreData
 
 struct ComprehensiveInsightsView: View {
     @StateObject private var triggerEngine = ComprehensiveTriggerEngine.shared
     @StateObject private var healthKitManager = HealthKitManager.shared
     @StateObject private var weatherService = WeatherService.shared
+    @StateObject private var healthAnalysisEngine = HealthAnalysisEngine.shared
     @Environment(\.managedObjectContext) private var viewContext
     
     @State private var selectedTab = 0
     @State private var showingDetailedAlert = false
     @State private var selectedAlert: PredictiveAlert?
-    @State private var timeRange = TimeRange.month
-    
-    enum TimeRange: String, CaseIterable {
-        case week = "week"
-        case month = "month"
-        case threeMonths = "3months"
-        
-        var displayName: String {
-            switch self {
-            case .week: return "1周"
-            case .month: return "1个月"
-            case .threeMonths: return "3个月"
-            }
-        }
-        
-        var days: Int {
-            switch self {
-            case .week: return 7
-            case .month: return 30
-            case .threeMonths: return 90
-            }
-        }
-    }
     
     var body: some View {
         NavigationView {
@@ -53,8 +32,6 @@ struct ComprehensiveInsightsView: View {
                 .pickerStyle(SegmentedPickerStyle())
                 .padding()
                 
-                // 时间范围选择器
-                timeRangeSelector
                 
                 // 主要内容
                 TabView(selection: $selectedTab) {
@@ -76,9 +53,6 @@ struct ComprehensiveInsightsView: View {
         .navigationTitle("综合分析")
         .navigationBarTitleDisplayMode(.large)
         .onAppear {
-            performAnalysis()
-        }
-        .onChange(of: timeRange) { _, _ in
             performAnalysis()
         }
         .sheet(item: $selectedAlert) { alert in
@@ -122,37 +96,33 @@ struct ComprehensiveInsightsView: View {
         }
     }
     
-    @ViewBuilder
-    private var timeRangeSelector: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("分析时间范围")
-                .font(.subheadline)
-                .fontWeight(.medium)
-                .foregroundColor(.secondary)
-            
-            Picker("时间范围", selection: $timeRange) {
-                ForEach(TimeRange.allCases, id: \.self) { range in
-                    Text(range.displayName).tag(range)
-                }
-            }
-            .pickerStyle(SegmentedPickerStyle())
-        }
-        .padding(.horizontal)
-    }
     
     @ViewBuilder
     private var comprehensiveAnalysisTab: some View {
         ScrollView {
             LazyVStack(spacing: 16) {
                 if let analysis = triggerEngine.comprehensiveAnalysis {
-                    // 总体统计卡片
-                    ComprehensiveOverallStatsCard(analysis: analysis)
+                    // 综合统计概览卡片
+                    EnhancedComprehensiveStatsCard(analysis: analysis, context: viewContext)
                     
-                    // 主要触发因素组合
-                    TriggerCombinationsCard(combinations: analysis.primaryTriggerCombinations)
+                    // 头痛模式分析卡片
+                    HeadachePatternAnalysisCard(analysis: analysis, context: viewContext)
                     
-                    // 个性化洞察
-                    PersonalizedInsightsCard(insights: analysis.personalizedInsights)
+                    // 跨因素关联分析
+                    CrossFactorCorrelationCard(analysis: analysis)
+                    
+                    // 主要触发因素组合（保留但简化）
+                    if !analysis.primaryTriggerCombinations.isEmpty {
+                        TriggerCombinationsCard(combinations: analysis.primaryTriggerCombinations)
+                    }
+                    
+                    // 个性化洞察（保留）
+                    if !analysis.personalizedInsights.isEmpty {
+                        PersonalizedInsightsCard(insights: analysis.personalizedInsights)
+                    }
+                    
+                    // 预测和建议综合卡片
+                    PredictiveInsightsCard(analysis: analysis)
                     
                 } else if triggerEngine.isAnalyzing {
                     LoadingAnalysisView()
@@ -179,16 +149,16 @@ struct ComprehensiveInsightsView: View {
                 }
                 
                 // 健康相关性分析结果
-                if !healthKitManager.correlationResults.isEmpty {
-                    HealthCorrelationsSection(correlations: healthKitManager.correlationResults)
-                } else if healthKitManager.isAnalyzing || triggerEngine.isAnalyzing {
+                if !healthAnalysisEngine.correlationResults.isEmpty {
+                    HealthCorrelationsSection(correlations: healthAnalysisEngine.correlationResults)
+                } else if healthAnalysisEngine.isAnalyzing || triggerEngine.isAnalyzing {
                     LoadingAnalysisView()
                 } else {
                     EmptyHealthAnalysisView()
                 }
                 
                 // 健康风险预测
-                if let prediction = healthKitManager.riskPrediction {
+                if let prediction = healthAnalysisEngine.riskPrediction {
                     HealthRiskPredictionCard(prediction: prediction)
                 }
             }
@@ -252,6 +222,7 @@ struct ComprehensiveInsightsView: View {
     private func performAnalysis() {
         Task {
             await triggerEngine.performComprehensiveAnalysis()
+            await healthAnalysisEngine.performCorrelationAnalysis()
         }
     }
 }
@@ -770,7 +741,7 @@ struct EmptyAnalysisView: View {
             Text("暂无分析数据")
                 .font(.headline)
                 .foregroundColor(.secondary)
-            Text("需要更多头痛记录和健康数据进行分析")
+            Text("基于现有数据进行初步分析，随着数据积累将提供更准确的洞察")
                 .font(.caption)
                 .foregroundColor(.secondary)
                 .multilineTextAlignment(.center)
@@ -1238,7 +1209,7 @@ struct EmptyHealthAnalysisView: View {
             Text("暂无健康关联分析")
                 .font(.headline)
                 .foregroundColor(.secondary)
-            Text("需要更多健康数据和头痛记录进行关联分析")
+            Text("基于现有健康数据进行分析，持续记录将提供更精确的健康关联洞察")
                 .font(.caption)
                 .foregroundColor(.secondary)
                 .multilineTextAlignment(.center)
@@ -1258,6 +1229,647 @@ extension HealthCorrelationResult.RiskLevel {
         case .veryHigh: return "极高"
         }
     }
+}
+
+// MARK: - 新增综合分析组件
+
+struct EnhancedComprehensiveStatsCard: View {
+    let analysis: ComprehensiveHeadacheAnalysis
+    let context: NSManagedObjectContext
+    
+    @State private var headacheStats: HeadacheStatistics?
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                Text("头痛数据概览")
+                    .font(.headline)
+                    .fontWeight(.semibold)
+                Spacer()
+                Text(analysis.analysisDate, style: .date)
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
+            
+            if let stats = headacheStats {
+                LazyVGrid(columns: [
+                    GridItem(.flexible()),
+                    GridItem(.flexible())
+                ], spacing: 12) {
+                    ComprehensiveStatItem(
+                        title: "记录总数",
+                        value: "\(analysis.totalRecords)条",
+                        icon: "chart.bar.doc.horizontal",
+                        color: .blue
+                    )
+                    
+                    ComprehensiveStatItem(
+                        title: "平均强度",
+                        value: String(format: "%.1f", stats.averageIntensity),
+                        icon: "gauge.medium",
+                        color: .orange
+                    )
+                    
+                    ComprehensiveStatItem(
+                        title: "头痛频率",
+                        value: String(format: "%.1f天/次", stats.daysBetweenHeadaches),
+                        icon: "clock",
+                        color: .purple
+                    )
+                    
+                    ComprehensiveStatItem(
+                        title: "数据质量",
+                        value: stats.dataQualityDescription,
+                        icon: "checkmark.seal",
+                        color: stats.dataQualityColor
+                    )
+                }
+            } else {
+                ProgressView("计算统计数据...")
+                    .frame(maxWidth: .infinity, minHeight: 100)
+            }
+        }
+        .padding()
+        .background(Color(.systemGray6))
+        .cornerRadius(12)
+        .onAppear {
+            calculateHeadacheStats()
+        }
+    }
+    
+    private func calculateHeadacheStats() {
+        Task {
+            let stats = await computeHeadacheStatistics()
+            await MainActor.run {
+                self.headacheStats = stats
+            }
+        }
+    }
+    
+    private func computeHeadacheStatistics() async -> HeadacheStatistics {
+        return await withCheckedContinuation { continuation in
+            context.perform {
+                let request: NSFetchRequest<HeadacheRecord> = HeadacheRecord.fetchRequest()
+                request.sortDescriptors = [NSSortDescriptor(keyPath: \HeadacheRecord.timestamp, ascending: true)]
+                
+                do {
+                    let records = try context.fetch(request)
+                    
+                    let intensities = records.map { Double($0.intensity) }
+                    let averageIntensity = intensities.isEmpty ? 0 : intensities.reduce(0, +) / Double(intensities.count)
+                    
+                    let daysBetween: Double
+                    if records.count > 1, let firstDate = records.first?.timestamp, let lastDate = records.last?.timestamp {
+                        let totalDays = lastDate.timeIntervalSince(firstDate) / (24 * 3600)
+                        daysBetween = totalDays / Double(records.count - 1)
+                    } else {
+                        daysBetween = 0
+                    }
+                    
+                    let dataQuality: (String, Color)
+                    switch records.count {
+                    case 0..<5: dataQuality = ("初期", .gray)
+                    case 5..<15: dataQuality = ("基础", .yellow)
+                    case 15..<30: dataQuality = ("良好", .green)
+                    default: dataQuality = ("优秀", .blue)
+                    }
+                    
+                    let stats = HeadacheStatistics(
+                        totalRecords: records.count,
+                        averageIntensity: averageIntensity,
+                        daysBetweenHeadaches: daysBetween,
+                        dataQualityDescription: dataQuality.0,
+                        dataQualityColor: dataQuality.1
+                    )
+                    
+                    continuation.resume(returning: stats)
+                } catch {
+                    let stats = HeadacheStatistics(
+                        totalRecords: 0,
+                        averageIntensity: 0,
+                        daysBetweenHeadaches: 0,
+                        dataQualityDescription: "无数据",
+                        dataQualityColor: .gray
+                    )
+                    continuation.resume(returning: stats)
+                }
+            }
+        }
+    }
+}
+
+struct HeadachePatternAnalysisCard: View {
+    let analysis: ComprehensiveHeadacheAnalysis
+    let context: NSManagedObjectContext
+    
+    @State private var patternData: HeadachePatternData?
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("头痛模式分析")
+                .font(.headline)
+                .fontWeight(.semibold)
+            
+            if let pattern = patternData {
+                VStack(spacing: 12) {
+                    // 时间模式
+                    PatternRow(
+                        title: "高发时段",
+                        value: pattern.peakTimeDescription,
+                        icon: "clock.fill",
+                        color: .blue
+                    )
+                    
+                    // 持续时间模式
+                    PatternRow(
+                        title: "平均持续",
+                        value: pattern.averageDurationDescription,
+                        icon: "timer",
+                        color: .green
+                    )
+                    
+                    // 强度趋势
+                    PatternRow(
+                        title: "强度趋势",
+                        value: pattern.intensityTrendDescription,
+                        icon: "chart.line.uptrend.xyaxis",
+                        color: pattern.intensityTrendColor
+                    )
+                    
+                    // 频率趋势
+                    PatternRow(
+                        title: "频率变化",
+                        value: pattern.frequencyTrendDescription,
+                        icon: "waveform.path.ecg",
+                        color: pattern.frequencyTrendColor
+                    )
+                }
+            } else {
+                ProgressView("分析头痛模式...")
+                    .frame(maxWidth: .infinity, minHeight: 100)
+            }
+        }
+        .padding()
+        .background(Color(.systemGray6))
+        .cornerRadius(12)
+        .onAppear {
+            analyzeHeadachePatterns()
+        }
+    }
+    
+    private func analyzeHeadachePatterns() {
+        Task {
+            let pattern = await computeHeadachePatterns()
+            await MainActor.run {
+                self.patternData = pattern
+            }
+        }
+    }
+    
+    private func computeHeadachePatterns() async -> HeadachePatternData {
+        return await withCheckedContinuation { continuation in
+            context.perform {
+                let request: NSFetchRequest<HeadacheRecord> = HeadacheRecord.fetchRequest()
+                request.sortDescriptors = [NSSortDescriptor(keyPath: \HeadacheRecord.timestamp, ascending: true)]
+                
+                do {
+                    let records = try context.fetch(request)
+                    
+                    // 分析高发时段
+                    let hourCounts = records.reduce(into: [Int: Int]()) { counts, record in
+                        if let timestamp = record.timestamp {
+                            let hour = Calendar.current.component(.hour, from: timestamp)
+                            counts[hour, default: 0] += 1
+                        }
+                    }
+                    let peakHour = hourCounts.max(by: { $0.value < $1.value })?.key ?? 12
+                    let peakTimeDesc = "\(peakHour):00-\(peakHour+1):00"
+                    
+                    // 分析平均持续时间
+                    let durations = records.compactMap { record -> Double? in
+                        guard let start = record.startTime, let end = record.endTime else { return nil }
+                        return end.timeIntervalSince(start) / 3600 // 转换为小时
+                    }
+                    let avgDuration = durations.isEmpty ? 0 : durations.reduce(0, +) / Double(durations.count)
+                    let durationDesc = avgDuration > 0 ? String(format: "%.1f小时", avgDuration) : "未记录"
+                    
+                    // 分析强度趋势（最近vs早期）
+                    let recentRecords = records.suffix(max(records.count / 3, 5))
+                    let earlyRecords = records.prefix(max(records.count / 3, 5))
+                    let recentAvgIntensity = recentRecords.isEmpty ? 0 : Double(recentRecords.map { $0.intensity }.reduce(0, +)) / Double(recentRecords.count)
+                    let earlyAvgIntensity = earlyRecords.isEmpty ? 0 : Double(earlyRecords.map { $0.intensity }.reduce(0, +)) / Double(earlyRecords.count)
+                    
+                    let intensityChange = recentAvgIntensity - earlyAvgIntensity
+                    let intensityTrend: (String, Color)
+                    if abs(intensityChange) < 0.5 {
+                        intensityTrend = ("保持稳定", .blue)
+                    } else if intensityChange > 0 {
+                        intensityTrend = ("逐渐加重", .red)
+                    } else {
+                        intensityTrend = ("有所改善", .green)
+                    }
+                    
+                    // 分析频率趋势
+                    let now = Date()
+                    let recent30Days = records.filter { record in
+                        guard let timestamp = record.timestamp else { return false }
+                        return now.timeIntervalSince(timestamp) < 30 * 24 * 3600
+                    }
+                    let previous30Days = records.filter { record in
+                        guard let timestamp = record.timestamp else { return false }
+                        let daysSince = now.timeIntervalSince(timestamp) / (24 * 3600)
+                        return daysSince >= 30 && daysSince < 60
+                    }
+                    
+                    let recentFreq = recent30Days.count
+                    let prevFreq = previous30Days.count
+                    let freqTrend: (String, Color)
+                    if recentFreq == prevFreq {
+                        freqTrend = ("无明显变化", .blue)
+                    } else if recentFreq > prevFreq {
+                        freqTrend = ("频率增加", .red)
+                    } else {
+                        freqTrend = ("频率减少", .green)
+                    }
+                    
+                    let pattern = HeadachePatternData(
+                        peakTimeDescription: peakTimeDesc,
+                        averageDurationDescription: durationDesc,
+                        intensityTrendDescription: intensityTrend.0,
+                        intensityTrendColor: intensityTrend.1,
+                        frequencyTrendDescription: freqTrend.0,
+                        frequencyTrendColor: freqTrend.1
+                    )
+                    
+                    continuation.resume(returning: pattern)
+                } catch {
+                    let pattern = HeadachePatternData(
+                        peakTimeDescription: "无数据",
+                        averageDurationDescription: "无数据",
+                        intensityTrendDescription: "无数据",
+                        intensityTrendColor: .gray,
+                        frequencyTrendDescription: "无数据",
+                        frequencyTrendColor: .gray
+                    )
+                    continuation.resume(returning: pattern)
+                }
+            }
+        }
+    }
+}
+
+struct CrossFactorCorrelationCard: View {
+    let analysis: ComprehensiveHeadacheAnalysis
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("跨因素关联强度")
+                .font(.headline)
+                .fontWeight(.semibold)
+            
+            VStack(spacing: 10) {
+                // 综合关联评分
+                HStack {
+                    Text("综合关联评分")
+                        .font(.subheadline)
+                        .fontWeight(.medium)
+                    Spacer()
+                    Text(String(format: "%.0f%%", overallCorrelationScore * 100))
+                        .font(.title2)
+                        .fontWeight(.bold)
+                        .foregroundColor(correlationScoreColor)
+                }
+                .padding()
+                .background(Color(.systemBackground))
+                .cornerRadius(8)
+                
+                // 主要关联因素
+                if !topCorrelationFactors.isEmpty {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("主要关联因素")
+                            .font(.subheadline)
+                            .fontWeight(.medium)
+                        
+                        ForEach(topCorrelationFactors, id: \.factor) { item in
+                            HStack {
+                                Circle()
+                                    .fill(item.color)
+                                    .frame(width: 8, height: 8)
+                                Text(item.factor)
+                                    .font(.caption)
+                                Spacer()
+                                Text(String(format: "%.1f%%", item.strength * 100))
+                                    .font(.caption)
+                                    .fontWeight(.medium)
+                                    .foregroundColor(item.color)
+                            }
+                        }
+                    }
+                    .padding()
+                    .background(Color(.systemBackground))
+                    .cornerRadius(8)
+                }
+                
+                // 关联分析洞察
+                Text(correlationInsight)
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                    .padding()
+                    .background(Color(.systemBackground))
+                    .cornerRadius(8)
+            }
+        }
+        .padding()
+        .background(Color(.systemGray6))
+        .cornerRadius(12)
+    }
+    
+    private var overallCorrelationScore: Double {
+        let menstrualWeight = abs(analysis.menstrualCorrelation) * 0.4
+        
+        // Break down weather health weight calculation
+        let weatherCorrelations = analysis.weatherHealthCorrelations.prefix(3)
+        let weatherAbsValues = weatherCorrelations.map { abs($0.combinedCorrelation) }
+        let weatherSum = weatherAbsValues.reduce(0, +)
+        let weatherCount = max(1, weatherAbsValues.count) // Fix: use actual count, not max with original count
+        let weatherHealthWeight = (weatherSum / Double(weatherCount)) * 0.3
+        
+        // Break down trigger weight calculation
+        let triggerCombinations = analysis.primaryTriggerCombinations.prefix(3)
+        let triggerScores = triggerCombinations.map { $0.riskScore }
+        let triggerSum = triggerScores.reduce(0, +)
+        let triggerCount = max(1, triggerScores.count) // Fix: use actual count, not max with original count
+        let triggerWeight = (triggerSum / Double(triggerCount)) * 0.3
+        
+        let totalWeight = menstrualWeight + weatherHealthWeight + triggerWeight
+        return min(totalWeight, 1.0)
+    }
+    
+    private var correlationScoreColor: Color {
+        switch overallCorrelationScore {
+        case 0..<0.3: return .green
+        case 0.3..<0.6: return .orange
+        default: return .red
+        }
+    }
+    
+    private var topCorrelationFactors: [(factor: String, strength: Double, color: Color)] {
+        var factors: [(String, Double, Color)] = []
+        
+        if abs(analysis.menstrualCorrelation) > 0.3 {
+            factors.append(("月经周期", abs(analysis.menstrualCorrelation), .purple))
+        }
+        
+        for correlation in analysis.weatherHealthCorrelations.prefix(2) {
+            if abs(correlation.combinedCorrelation) > 0.3 {
+                factors.append(("\(correlation.weatherFactor)×\(correlation.healthMetric)", abs(correlation.combinedCorrelation), .blue))
+            }
+        }
+        
+        for combo in analysis.primaryTriggerCombinations.prefix(2) {
+            if combo.riskScore > 0.5 {
+                factors.append((combo.combinationKey, combo.riskScore, .orange))
+            }
+        }
+        
+        return Array(factors.sorted { $0.1 > $1.1 }.prefix(4))
+    }
+    
+    private var correlationInsight: String {
+        let score = overallCorrelationScore
+        
+        if score > 0.7 {
+            return "您的头痛与多个因素存在强烈关联，预测准确性较高。建议重点关注主要关联因素的管理。"
+        } else if score > 0.4 {
+            return "发现了一些重要的关联模式，继续记录数据将提高分析准确性。"
+        } else if score > 0.2 {
+            return "找到了一些潜在的关联因素，需要更多数据来确认这些模式。"
+        } else {
+            return "目前关联模式不够明显，可能需要更长时间的数据积累，或头痛原因较为复杂多样。"
+        }
+    }
+}
+
+struct PredictiveInsightsCard: View {
+    let analysis: ComprehensiveHeadacheAnalysis
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("预测洞察与建议")
+                .font(.headline)
+                .fontWeight(.semibold)
+            
+            VStack(spacing: 12) {
+                // 预测可信度
+                HStack {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("预测可信度")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                        Text(String(format: "%.0f%%", predictiveConfidence * 100))
+                            .font(.title2)
+                            .fontWeight(.bold)
+                            .foregroundColor(confidenceColor)
+                    }
+                    
+                    Spacer()
+                    
+                    VStack(alignment: .trailing, spacing: 4) {
+                        Text("风险评级")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                        Text(currentRiskLevel)
+                            .font(.subheadline)
+                            .fontWeight(.semibold)
+                            .foregroundColor(riskLevelColor)
+                    }
+                }
+                .padding()
+                .background(Color(.systemBackground))
+                .cornerRadius(8)
+                
+                // 关键建议
+                if !keyRecommendations.isEmpty {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("关键建议")
+                            .font(.subheadline)
+                            .fontWeight(.medium)
+                        
+                        ForEach(Array(keyRecommendations.enumerated()), id: \.offset) { index, recommendation in
+                            HStack(alignment: .top, spacing: 8) {
+                                Image(systemName: recommendation.icon)
+                                    .foregroundColor(recommendation.color)
+                                    .font(.caption)
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text(recommendation.title)
+                                        .font(.caption)
+                                        .fontWeight(.medium)
+                                    Text(recommendation.description)
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                }
+                                Spacer()
+                            }
+                        }
+                    }
+                    .padding()
+                    .background(Color(.systemBackground))
+                    .cornerRadius(8)
+                }
+            }
+        }
+        .padding()
+        .background(Color(.systemGray6))
+        .cornerRadius(12)
+    }
+    
+    private var predictiveConfidence: Double {
+        let recordCount = analysis.totalRecords
+        let combinationCount = analysis.primaryTriggerCombinations.count
+        let correlationStrength = abs(analysis.menstrualCorrelation)
+        
+        var confidence = 0.0
+        
+        // 基于记录数量
+        confidence += min(Double(recordCount) / 50.0, 1.0) * 0.4
+        
+        // 基于找到的模式数量
+        confidence += min(Double(combinationCount) / 5.0, 1.0) * 0.3
+        
+        // 基于关联强度
+        confidence += correlationStrength * 0.3
+        
+        return min(confidence, 1.0)
+    }
+    
+    private var confidenceColor: Color {
+        switch predictiveConfidence {
+        case 0..<0.4: return .red
+        case 0.4..<0.7: return .orange
+        default: return .green
+        }
+    }
+    
+    private var currentRiskLevel: String {
+        let currentRisk = analysis.riskPrediction.riskForecast.first?.riskScore ?? 0
+        switch currentRisk {
+        case 0..<0.3: return "低风险"
+        case 0.3..<0.6: return "中等风险"
+        case 0.6..<0.8: return "高风险"
+        default: return "极高风险"
+        }
+    }
+    
+    private var riskLevelColor: Color {
+        let currentRisk = analysis.riskPrediction.riskForecast.first?.riskScore ?? 0
+        switch currentRisk {
+        case 0..<0.3: return .green
+        case 0.3..<0.6: return .orange
+        case 0.6..<0.8: return .red
+        default: return .purple
+        }
+    }
+    
+    private var keyRecommendations: [KeyRecommendation] {
+        var recommendations: [KeyRecommendation] = []
+        
+        // 基于月经相关性的建议
+        if abs(analysis.menstrualCorrelation) > 0.5 {
+            recommendations.append(KeyRecommendation(
+                icon: "calendar",
+                title: "月经周期管理",
+                description: "重点关注月经前2-3天的预防措施",
+                color: .purple
+            ))
+        }
+        
+        // 基于触发因素组合的建议
+        if let topCombination = analysis.primaryTriggerCombinations.first, topCombination.riskScore > 0.6 {
+            recommendations.append(KeyRecommendation(
+                icon: "exclamationmark.triangle",
+                title: "避免高危组合",
+                description: "当\(topCombination.combinationKey)同时出现时特别注意",
+                color: .orange
+            ))
+        }
+        
+        // 基于数据质量的建议
+        if analysis.totalRecords < 15 {
+            recommendations.append(KeyRecommendation(
+                icon: "chart.bar.doc.horizontal",
+                title: "继续记录数据",
+                description: "更多数据将显著提高预测准确性",
+                color: .blue
+            ))
+        }
+        
+        // 基于预测可信度的建议
+        if predictiveConfidence < 0.5 {
+            recommendations.append(KeyRecommendation(
+                icon: "info.circle",
+                title: "模式识别中",
+                description: "需要更多时间来识别个人化的头痛模式",
+                color: .gray
+            ))
+        }
+        
+        return Array(recommendations.prefix(3))
+    }
+}
+
+struct PatternRow: View {
+    let title: String
+    let value: String
+    let icon: String
+    let color: Color
+    
+    var body: some View {
+        HStack {
+            Image(systemName: icon)
+                .foregroundColor(color)
+                .frame(width: 20)
+            
+            VStack(alignment: .leading, spacing: 2) {
+                Text(title)
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                Text(value)
+                    .font(.subheadline)
+                    .fontWeight(.medium)
+            }
+            
+            Spacer()
+        }
+        .padding()
+        .background(Color(.systemBackground))
+        .cornerRadius(8)
+    }
+}
+
+// MARK: - 数据结构
+
+struct HeadacheStatistics {
+    let totalRecords: Int
+    let averageIntensity: Double
+    let daysBetweenHeadaches: Double
+    let dataQualityDescription: String
+    let dataQualityColor: Color
+}
+
+struct HeadachePatternData {
+    let peakTimeDescription: String
+    let averageDurationDescription: String
+    let intensityTrendDescription: String
+    let intensityTrendColor: Color
+    let frequencyTrendDescription: String
+    let frequencyTrendColor: Color
+}
+
+struct KeyRecommendation {
+    let icon: String
+    let title: String
+    let description: String
+    let color: Color
 }
 
 #Preview {

@@ -6,6 +6,12 @@
 //
 
 import SwiftUI
+#if canImport(UIKit)
+import UIKit
+#endif
+import UserNotifications
+import UniformTypeIdentifiers
+import CoreData
 
 
 struct CustomOptionsManagementView: View {
@@ -24,7 +30,9 @@ struct CustomOptionsManagementView: View {
                     Text(category.displayName).tag(category)
                 }
             }
-            .pickerStyle(SegmentedPickerStyle())
+#if os(iOS)
+            .pickerStyle(.segmented)
+#endif
             .padding()
             
             // 自定义选项列表
@@ -39,7 +47,7 @@ struct CustomOptionsManagementView: View {
                         VStack(alignment: .leading) {
                             Text(option.text)
                                 .font(.body)
-                            Text(option.createdAt, formatter: dateFormatter)
+                            Text(option.createdAt.formatted(date: .abbreviated, time: .shortened))
                                 .font(.caption)
                                 .foregroundColor(.secondary)
                         }
@@ -92,7 +100,9 @@ struct CustomOptionsManagementView: View {
             }
         }
         .navigationTitle("自定义选项管理")
+#if os(iOS)
         .navigationBarTitleDisplayMode(.inline)
+#endif
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
                 Menu {
@@ -211,7 +221,9 @@ struct AddCustomOptionView: View {
                 }
             }
             .navigationTitle(title)
-            .navigationBarTitleDisplayMode(.inline)
+    #if os(iOS)
+        .navigationBarTitleDisplayMode(.inline)
+#endif
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("取消", action: onCancel)
@@ -493,7 +505,9 @@ struct NotificationSettingsView: View {
             }
         }
         .navigationTitle("通知设置")
+#if os(iOS)
         .navigationBarTitleDisplayMode(.inline)
+#endif
     }
     
     private func sendTestNotification() {
@@ -570,7 +584,9 @@ struct DataExportView: View {
                             Text(format.displayName).tag(format)
                         }
                     }
-                    .pickerStyle(SegmentedPickerStyle())
+#if os(iOS)
+                    .pickerStyle(.segmented)
+#endif
                 } header: {
                     Text("导出设置")
                 } footer: {
@@ -630,7 +646,9 @@ struct DataExportView: View {
                 }
             }
             .navigationTitle("导出数据")
-            .navigationBarTitleDisplayMode(.inline)
+    #if os(iOS)
+        .navigationBarTitleDisplayMode(.inline)
+#endif
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("取消") { dismiss() }
@@ -726,8 +744,8 @@ struct DataExportView: View {
         csv += "\n"
         
         for record in records {
-            let date = record.timestamp?.formatted(date: .abbreviated, time: .omitted) ?? ""
-            let time = record.timestamp?.formatted(date: .omitted, time: .shortened) ?? ""
+            let date = record.timestamp?.formatted(.dateTime.day().month(.abbreviated).year()) ?? ""
+            let time = record.timestamp?.formatted(.dateTime.hour().minute()) ?? ""
             let intensity = "\(record.intensity)"
             let locations = record.locationNames.joined(separator: "; ")
             let customLocations = includeCustomOptions ? record.customLocationNames.joined(separator: "; ") : ""
@@ -967,6 +985,7 @@ struct NotesExport: Codable {
 
 // MARK: - 系统分享界面
 
+#if canImport(UIKit)
 struct ShareSheet: UIViewControllerRepresentable {
     let activityItems: [Any]
     
@@ -977,17 +996,23 @@ struct ShareSheet: UIViewControllerRepresentable {
         )
         
         // 在iPad上设置弹出框
+        #if canImport(UIKit)
         if let popover = controller.popoverPresentationController {
-            popover.sourceView = UIApplication.shared.windows.first?.rootViewController?.view
-            popover.sourceRect = CGRect(x: UIScreen.main.bounds.width / 2, y: UIScreen.main.bounds.height / 2, width: 0, height: 0)
-            popover.permittedArrowDirections = []
+            if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+               let window = windowScene.windows.first {
+                popover.sourceView = window.rootViewController?.view
+                popover.sourceRect = CGRect(x: UIScreen.main.bounds.width / 2, y: UIScreen.main.bounds.height / 2, width: 0, height: 0)
+                popover.permittedArrowDirections = []
+            }
         }
+        #endif
         
         return controller
     }
     
     func updateUIViewController(_ uiViewController: UIActivityViewController, context: Context) {}
 }
+#endif
 
 struct StatCard: View {
     let title: String
@@ -1005,7 +1030,11 @@ struct StatCard: View {
         }
         .frame(maxWidth: .infinity)
         .padding()
-        .background(Color(.systemGray6))
+#if canImport(UIKit)
+.background(Color(UIColor.systemGray6))
+#else
+.background(Color.gray.opacity(0.1))
+#endif
         .cornerRadius(8)
     }
 }
@@ -1045,7 +1074,9 @@ struct AboutView: View {
             }
         }
         .navigationTitle("关于")
+#if os(iOS)
         .navigationBarTitleDisplayMode(.inline)
+#endif
     }
 }
 

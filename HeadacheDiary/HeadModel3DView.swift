@@ -230,7 +230,7 @@ struct HeadModel3DView: View {
         let url = URL(fileURLWithPath: path)
         
         // 创建MDLAsset来加载OBJ文件
-        let asset = MDLAsset(url: url)
+        _ = MDLAsset(url: url)
         
         // 使用SceneKit的内置方法加载3D资源
         let sceneSource = SCNSceneSource(url: url, options: nil)

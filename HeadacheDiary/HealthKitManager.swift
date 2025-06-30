@@ -119,6 +119,10 @@ class HealthKitManager: ObservableObject {
                 self.isAuthorized = true
                 print("✅ HealthKit权限获取成功")
             }
+            
+            // 权限获得后立即获取健康数据
+            await fetchRecentHealthData()
+            
             return true
         } catch {
             print("❌ HealthKit权限请求失败: \(error)")
@@ -134,6 +138,13 @@ class HealthKitManager: ObservableObject {
         
         DispatchQueue.main.async {
             self.isAuthorized = allAuthorized
+            
+            // 如果已经有权限，自动获取健康数据
+            if allAuthorized {
+                Task {
+                    await self.fetchRecentHealthData()
+                }
+            }
         }
     }
     

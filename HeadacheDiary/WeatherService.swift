@@ -454,7 +454,7 @@ class WeatherService: NSObject, ObservableObject {
     func performEnhancedCorrelationAnalysis(with headacheRecords: [HeadacheRecord]) -> EnhancedWeatherCorrelationResult {
         var conditionCorrelations: [String: CorrelationData] = [:]
         
-        let calendar = Calendar.current
+        _ = Calendar.current
         let dateFormatter = DateFormatter.dayFormatter
         
         // 分析天气与头痛的相关性
@@ -518,7 +518,7 @@ class WeatherService: NSObject, ObservableObject {
         var pressureChanges: [Double] = []
         var headacheIntensities: [Double] = []
         
-        let calendar = Calendar.current
+        _ = Calendar.current
         let dateFormatter = DateFormatter.dayFormatter
         
         for record in headacheRecords {
@@ -540,7 +540,7 @@ class WeatherService: NSObject, ObservableObject {
         var temperatureChanges: [Double] = []
         var headacheIntensities: [Double] = []
         
-        let calendar = Calendar.current
+        _ = Calendar.current
         let dateFormatter = DateFormatter.dayFormatter
         
         for record in headacheRecords {
