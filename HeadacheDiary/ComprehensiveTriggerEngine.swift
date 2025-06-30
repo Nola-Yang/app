@@ -118,7 +118,7 @@ class ComprehensiveTriggerEngine: ObservableObject {
         if let weatherCorrelations = weather {
             for weatherCorrelation in weatherCorrelations.conditions {
                 for healthCorrelation in health {
-                    let combinedCorrelation = (weatherCorrelation.headacheRate + healthCorrelation.correlation) / 2
+                    let combinedCorrelation = (weatherCorrelation.headacheRate / 100.0 + healthCorrelation.correlation) / 2
                     combined.append(WeatherHealthCorrelation(weatherFactor: weatherCorrelation.condition, healthMetric: healthCorrelation.healthMetric, weatherCorrelation: weatherCorrelation.headacheRate, healthCorrelation: healthCorrelation.correlation, combinedCorrelation: combinedCorrelation, significanceLevel: 0.05, insights: "Combined insight"))
                 }
             }

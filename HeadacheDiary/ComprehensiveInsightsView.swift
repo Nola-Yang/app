@@ -1585,20 +1585,22 @@ struct CrossFactorCorrelationCard: View {
     }
     
     private var overallCorrelationScore: Double {
-        let menstrualWeight = abs(analysis.menstrualCorrelation) * 0.4
+        // Assuming menstrualCorrelation, combinedCorrelation, and riskScore are already percentages (0-100)
+        // We need to convert them to a 0-1 scale before applying weights.
+        let menstrualWeight = (abs(analysis.menstrualCorrelation) / 100.0) * 0.4
         
         // Break down weather health weight calculation
         let weatherCorrelations = analysis.weatherHealthCorrelations.prefix(3)
-        let weatherAbsValues = weatherCorrelations.map { abs($0.combinedCorrelation) }
+        let weatherAbsValues = weatherCorrelations.map { abs($0.combinedCorrelation) / 100.0 }
         let weatherSum = weatherAbsValues.reduce(0, +)
-        let weatherCount = max(1, weatherAbsValues.count) // Fix: use actual count, not max with original count
+        let weatherCount = max(1, weatherAbsValues.count)
         let weatherHealthWeight = (weatherSum / Double(weatherCount)) * 0.3
         
         // Break down trigger weight calculation
         let triggerCombinations = analysis.primaryTriggerCombinations.prefix(3)
         let triggerScores = triggerCombinations.map { $0.riskScore }
         let triggerSum = triggerScores.reduce(0, +)
-        let triggerCount = max(1, triggerScores.count) // Fix: use actual count, not max with original count
+        let triggerCount = max(1, triggerScores.count)
         let triggerWeight = (triggerSum / Double(triggerCount)) * 0.3
         
         let totalWeight = menstrualWeight + weatherHealthWeight + triggerWeight
